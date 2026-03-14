@@ -44,7 +44,7 @@ export class UserListComponent extends BaseComponent {
   filteredUsers = [];
 
   render() {
-
+    console.log('list-control')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.filteredUsers = this.state.users.filter((u: any) => 
       this.state.searchQuery.length ? u.name.toLowerCase().includes(this.state.searchQuery) : true

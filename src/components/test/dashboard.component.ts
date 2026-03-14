@@ -18,10 +18,9 @@ export class DashboardComponent extends BaseComponent {
     // =================================================================================
     // Global
     // =================================================================================
-    pubSub.subscribe('COUNT_UPDATED', (data: ({id:string, val:string}) | undefined) => {
-      console.log('GLOBAL_COUNT_UPDATED', data);
+    pubSub.subscribe('COUNT_UPDATED', (data: ({id:string, val:string}) | undefined) => { 
       const message = `Contador ${data?.id} subió a ${data?.val}`;
-      alert(message);
+      console.log('GLOBAL_COUNT_UPDATED', data, message);
     });
 
     // =================================================================================
@@ -29,8 +28,7 @@ export class DashboardComponent extends BaseComponent {
     // =================================================================================
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.subscribe('COUNT_UPDATED', (data: any) => {
-      console.log('LOCAL_COUNT_UPDATED', data);
-      this.state.lastGlobalUpdate = String(data.args.join(', '));
+      console.log('LOCAL_COUNT_UPDATED', data);  
     });
 
   }

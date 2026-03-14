@@ -1,5 +1,11 @@
-import type { Component } from "../components/component.model";
+import type { Component, ComponentCreator } from "../components/component.model";
 import { pubSub } from "../services/pubsub.service";
+
+export interface ModuleNamespace { 
+  default?: ComponentCreator; 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any 
+};
 
 export interface ComponentContext{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

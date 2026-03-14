@@ -2,18 +2,19 @@ import { build } from "./dom";
 import { createIcon } from "./icons";
 import { getValue, interpolate, resolveArgs } from "./template";
 import type { BaseComponent, ComponentContext, ComponentElement } from "./types";
-import type { ComponentCreator } from "../components/component.model";
 import { HeaderComponent } from "../components/header/header.component";
-import { CounterComponent } from "../components/test/counter-component";
 import { DashboardComponent } from "../components/test/dashboard.component";
 import { UserListComponent } from "../components/test/user-list.component";
+import { loader } from "../services/loader.service";
 import { pubSub } from "../services/pubsub.service";
+import { router, type ComponentProvider } from "../services/router.service";
 
-const COMPONENT_REGISTRY: Record<string, ComponentCreator> = {
+const COMPONENT_REGISTRY: Record<string, ComponentProvider> = {
   'app-header': HeaderComponent,
   'app-dashboard': DashboardComponent,
   'app-user-list': UserListComponent,
-  'app-counter': CounterComponent
+  // 'app-counter': CounterComponent,
+  'app-counter': () => import('../components/test/counter-component'),
 };
 
 export function hydrateIcons(root: HTMLElement = document.body): HTMLElement {
@@ -77,7 +78,7 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
         el.addEventListener('click', (e) => {
           e.preventDefault();
           const path = attrValue.startsWith('@') ? getValue(attrValue.slice(1), ctx) : attrValue;
-          ctx.router?.navigateTo(path);
+          router.navigateTo(path);
         });
         el.removeAttribute(attrName);
       }
@@ -122,43 +123,73 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
   return container;
 }
 
-export function hydrateComponents(root: HTMLElement, ctx: ComponentContext): void {
+// export function hydrateComponents(root: HTMLElement, ctx: ComponentContext): void {
+//   const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
+
+//   placeholders.forEach(el => {
+//     const componentName = el.dataset.component!;
+//     el.removeAttribute('data-component');
+//     // const dataId = el.dataset.props;
+//     const customClasses = el.className.trim();
+
+//     const creator = COMPONENT_REGISTRY[componentName];
+
+//     if (creator) {
+//       let component: BaseComponent;
+//       if (typeof creator === 'function' && creator.prototype && creator.prototype.constructor.name) {
+//         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//         component = new (creator as any)(ctx);
+//       } else {
+//         // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+//         component = (creator as Function)(ctx);
+//       }
+//       // const props = dataId ? DataRegistry.consume(dataId) : {};
+//       component.init?.();
+//       const element = component.render() as ComponentElement;
+//       if (customClasses) {
+//         const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
+//         element.classList.add(...classesArray);
+//       }
+//       // Asegurar vinculación
+//       if (!element.__componentInstance) {
+//         element.__componentInstance = component;
+//         component.element = element;
+//       }
+        
+//       el.replaceWith(element);
+//       component.mounted?.();
+//     }
+//   });
+// }
+
+export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext): Promise<void> {
   const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
 
-  placeholders.forEach(el => {
+  for (const el of Array.from(placeholders)) {
     const componentName = el.dataset.component!;
-    el.removeAttribute('data-component');
-    // const dataId = el.dataset.props;
-    const customClasses = el.className.trim();
-
-    const creator = COMPONENT_REGISTRY[componentName];
-
-    if (creator) {
-      let component: BaseComponent;
-      if (typeof creator === 'function' && creator.prototype && creator.prototype.constructor.name) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        component = new (creator as any)(ctx);
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-        component = (creator as Function)(ctx);
-      }
-      // const props = dataId ? DataRegistry.consume(dataId) : {};
+    const provider = COMPONENT_REGISTRY[componentName];
+    if (provider) {
+      const component = await loader.resolve(provider, ctx);
+      el.removeAttribute('data-component');
+      const customClasses = el.className.trim();
       component.init?.();
       const element = component.render() as ComponentElement;
+
       if (customClasses) {
         const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
         element.classList.add(...classesArray);
       }
-      // Asegurar vinculación
       if (!element.__componentInstance) {
-        element.__componentInstance = component;
+        element.__componentInstance = component as BaseComponent;
         component.element = element;
       }
-        
       el.replaceWith(element);
       component.mounted?.();
+      
+    } else {
+      console.error(`Componente ${componentName} no encontrado en el registro.`);
     }
-  });
+  }
 }
 
 export function hydrateDirectives(container: HTMLElement, ctx: ComponentContext) {
