@@ -1,6 +1,6 @@
 import { buildAndInterpolate } from "../../core/dom";
-import { BaseComponent} from "../../core/types";
 import { pubSub } from "../../core/services/pubsub.service";
+import { BaseComponent} from "../../core/types";
 import type { ComponentContext, PublishContext } from "../component.model";
 
 export class DashboardComponent extends BaseComponent {

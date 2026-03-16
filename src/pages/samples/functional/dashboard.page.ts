@@ -1,8 +1,8 @@
 
 import type { ComponentContext, ComponentFactory } from '../../../components/component.model';
 import { $, build } from '../../../core/dom';
-import type { BaseComponent, ComponentElement } from '../../../core/types';
 import { loader } from '../../../core/services/loader.service';
+import type { BaseComponent, ComponentElement } from '../../../core/types';
 
 const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
 

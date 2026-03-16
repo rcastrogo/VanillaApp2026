@@ -24,6 +24,7 @@ export const APP_CONFIG = {
     'app-header': HeaderComponent,
     'app-user-list': UserListComponent,
     'app-theme-toggle': ThemeToggleComponent,
+    'app-dashboard': () => import('./components/test/dashboard.component'),
     'app-counter': () => import('./components/test/counter-component'),
   }
 };
