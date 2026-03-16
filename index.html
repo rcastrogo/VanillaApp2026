@@ -7,23 +7,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>vanillaapp2026</title>
   <style>
-    body {
+    body{ 
       visibility: hidden;
     }
   </style>
+  <script>
+    (function() {
+      const theme = localStorage.getItem('theme');
+      const isDark = theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);   
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.style.visibility = 'visible';
+      });
+    })();
+  </script> 
 </head>
 
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
-
-  <div id="app-wrapper" class="p-8">
-    <header class="flex justify-between items-center mb-12">
-      <h1 class="text-4xl font-bold tracking-tight">Dashboard Pro</h1>
-    </header>
-    <main id="app-container" class="">
-
-    </main>
-  </div>
-
+<body class="">
+  <main id="app-container"></main>
   <script type="module" src="/src/main.ts"></script>
 </body>
 

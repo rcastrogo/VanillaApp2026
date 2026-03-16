@@ -1,6 +1,6 @@
 import { hydrateComponents, hydrateDirectives, hydrateEventListeners, hydrateIcons } from "./hydrate";
 import { interpolate } from "./template";
-import type { ComponentContext } from "./types";
+import type { ComponentContext } from "../components/component.model";
 
 export function build<T extends HTMLElement>(
   tagName: string,

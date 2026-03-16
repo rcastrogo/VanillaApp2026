@@ -1,6 +1,6 @@
-import type { ComponentConstructor, ComponentFactory, ComponentProvider } from "./router.service";
-import type { Component, ComponentCreator } from "../components/component.model";
-import type { ComponentContext, ModuleNamespace } from "../core/types";
+import type { ComponentProvider } from "./router.service";
+import type { Component, ComponentConstructor, ComponentContext, ComponentCreator, ComponentFactory } from "../../components/component.model";
+import type { ModuleNamespace } from "../types";
 
 class ComponentLoaderService {
   
@@ -24,11 +24,13 @@ class ComponentLoaderService {
     return (creator as ComponentFactory)(ctx);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private isLazy(controller: any): boolean {
-    return typeof controller === 'function' && 
-           !/^\s*class\s+/.test(controller.toString()) &&
-           (controller.toString().includes('import(') || controller.toString().includes('__variableDynamicImport'));
+  private isLazy(componentProvider: ComponentProvider): boolean {
+    return typeof componentProvider === 'function' && 
+           !/^\s*class\s+/.test(componentProvider.toString()) &&
+           (
+            componentProvider.toString().includes('import(') || 
+            componentProvider.toString().includes('__variableDynamicImport')
+          );
   }
 
   async loadRaw(importPromise: () => Promise<{ default: string }>): Promise<string> {
@@ -39,12 +41,3 @@ class ComponentLoaderService {
 }
 
 export const loader = new ComponentLoaderService();
-
-
-
-
-
-
-
-
-

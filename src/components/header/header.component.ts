@@ -1,7 +1,8 @@
 import template from './header.template.html?raw';
 import { build } from '../../core/dom';
 import { interpolate } from '../../core/template';
-import { BaseComponent, type ComponentContext } from '../../core/types';
+import { BaseComponent} from '../../core/types';
+import type { ComponentContext } from '../component.model';
 
 export class HeaderComponent extends BaseComponent {
 

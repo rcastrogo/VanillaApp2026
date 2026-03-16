@@ -1,6 +1,5 @@
+import type { ComponentContext, ComponentFactory } from '../../../components/component.model';
 import { build } from '../../../core/dom';
-import type { ComponentContext } from '../../../core/types';
-import type { ComponentFactory } from '../../../services/router.service';
 
 const aboutPage: ComponentFactory = (_ctx: ComponentContext) => {
   return {

@@ -1,5 +1,11 @@
-import type { BaseComponent } from "../core/types";
 
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ComponentContext = any; 
+
+export type ComponentConstructor = new (ctx: ComponentContext) => Component;
+export type ComponentFactory = (ctx: ComponentContext) => Component;
+export type ComponentCreator = ComponentConstructor | ComponentFactory;
 
 export interface Component {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -9,13 +15,6 @@ export interface Component {
   mounted?(): void;
   destroy?(): void;
 }
-
-export type ComponentCreator = 
-  // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/no-explicit-any
-  | { new (ctx: any): BaseComponent } 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  | ((ctx: any) => BaseComponent);
-
 
 export interface PublishContext {
   event: Event, 

@@ -1,8 +1,8 @@
 
+import type { ComponentContext, ComponentFactory } from '../../../components/component.model';
 import { $, build } from '../../../core/dom';
-import type { BaseComponent, ComponentContext, ComponentElement } from '../../../core/types';
-import { loader } from '../../../services/loader.service';
-import type { ComponentFactory } from '../../../services/router.service';
+import type { BaseComponent, ComponentElement } from '../../../core/types';
+import { loader } from '../../../core/services/loader.service';
 
 const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
 

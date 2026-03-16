@@ -1,5 +1,6 @@
 import { buildAndInterpolate } from "../../core/dom";
-import { BaseComponent, type ComponentContext } from "../../core/types";
+import { BaseComponent } from "../../core/types";
+import type { ComponentContext } from "../component.model";
 
 export class UserListComponent extends BaseComponent {
 
@@ -14,6 +15,7 @@ export class UserListComponent extends BaseComponent {
       ],
       searchQuery: ''
     });
+    setTimeout(this.addUser, 3_000)
   }
 
   addUser() {
@@ -33,6 +35,7 @@ export class UserListComponent extends BaseComponent {
   }
 
   deleteUser(_el: HTMLElement, _ev: Event, id: number) {
+    console.log('deleteUser');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.state.users = this.state.users.filter((u: any) => u.id !== Number(id));
   }
@@ -93,13 +96,12 @@ export class UserListComponent extends BaseComponent {
               </button>
             </li>
           </ul>
-          
-          ${this.filteredUsers.length === 0 ? `
+          @if(filteredUsers.length === 0)
             <div class="py-20 text-center text-slate-400">
-               <i data-icon="user-minus" class="size-12 mx-auto mb-4 opacity-20"></i>
-               <p>No se encontraron usuarios</p>
+                <i data-icon="user-minus" class="size-12 mx-auto mb-4 opacity-20"></i>
+                <p>No se encontraron usuarios</p>
             </div>
-          ` : ''}
+          @endif
         </div>
       </div>
     `;

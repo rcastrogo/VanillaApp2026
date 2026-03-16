@@ -1,16 +1,7 @@
 import { MESSAGE_APP_VIEW_CHANGE } from "./app-engine.service";
 import { pubSub } from "./pubsub.service";
-import type { Component } from "../components/component.model";
+import type { ComponentCreator } from "../../components/component.model";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ComponentContext = any; 
-// Un constructor que devuelve un Component
-export type ComponentConstructor = new (ctx: ComponentContext) => Component;
-// Una función que devuelve un Component
-export type ComponentFactory = (ctx: ComponentContext) => Component;
-// El "Creador" puede ser la Clase o la Función
-export type ComponentCreator = ComponentConstructor | ComponentFactory;
-// El controlador de la ruta puede ser el Creador directo o la Promesa (lazy)
 export type ComponentProvider = 
   | ComponentCreator 
   | (() => Promise<{ default: ComponentCreator } | Record<string, ComponentCreator>>);
@@ -59,7 +50,7 @@ class RouterService {
   navigateTo(path: string) {
     const route = this.getRoute(path);
     if (route) {
-      window.history.pushState('', path, path);
+      window.history.pushState(null, route.name, path);
       this.sync();
     }
   }
@@ -69,6 +60,9 @@ class RouterService {
     const route = this.getRoute(path || '/');
     if (route) {
       this.currentRoute = route;
+      const searchParams = new URLSearchParams(window.location.search);
+      route.queryValues = Object.fromEntries(searchParams.entries());
+      document.title = route.name;
       // Aquí puedes parsear los query strings si tienes la utilidad pol.parseQueryString
       pubSub.publish(MESSAGE_APP_VIEW_CHANGE, route);
     }

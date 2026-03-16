@@ -1,17 +1,10 @@
-import type { Component, ComponentCreator } from "../components/component.model";
-import { pubSub } from "../services/pubsub.service";
+import type { Component, ComponentContext, ComponentCreator } from "../components/component.model";
+import { pubSub } from "./services/pubsub.service";
 
 export interface ModuleNamespace { 
   default?: ComponentCreator; 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any 
-};
-
-export interface ComponentContext{
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  router?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
 };
 
 export type CleanupFn = () => void;
@@ -35,7 +28,7 @@ export abstract class BaseComponent implements Component {
 
   constructor(ctx: ComponentContext) {
     this.instanceId = ++BaseComponent.instance;
-    // this.bindMethods();
+    this.bindMethods();
     this.ctx = ctx;
     this.state = new Proxy({}, {
       set: (target, prop, value) => {
@@ -62,17 +55,17 @@ export abstract class BaseComponent implements Component {
     this.cleanups.push(fn);
   }
 
-  // private bindMethods() {
-  //   const proto = Object.getPrototypeOf(this);
-  //   Object.getOwnPropertyNames(proto).forEach(key => {
-  //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //     const val = (this as any)[key];
-  //     if (key !== 'constructor' && typeof val === 'function') {
-  //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  //       (this as any)[key] = val.bind(this);
-  //     }
-  //   });
-  // }
+  private bindMethods() {
+    const proto = Object.getPrototypeOf(this);
+    Object.getOwnPropertyNames(proto).forEach(key => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const val = (this as any)[key];
+      if (key !== 'constructor' && typeof val === 'function') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any)[key] = val.bind(this);
+      }
+    });
+  }
 
   private update() {
     if (!this.element) return;
@@ -90,7 +83,7 @@ export abstract class BaseComponent implements Component {
       if (target) {
         target.focus();
         const len = target.value.length;
-        target.setSelectionRange(len, len);
+        target.setSelectionRange?.(len, len);
       }
     }
 

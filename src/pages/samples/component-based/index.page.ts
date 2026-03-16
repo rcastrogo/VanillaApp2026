@@ -1,5 +1,4 @@
-import type { Component } from "../../../components/component.model";
-import type { ComponentContext } from "../../../core/types";
+import type { Component, ComponentContext } from "../../../components/component.model";
 
 export default class IndexPage implements Component {
   

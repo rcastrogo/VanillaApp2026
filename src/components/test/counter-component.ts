@@ -1,6 +1,7 @@
 import { buildAndInterpolate } from "../../core/dom";
-import { BaseComponent, type ComponentContext } from "../../core/types";
-import { pubSub } from "../../services/pubsub.service";
+import { BaseComponent} from "../../core/types";
+import { pubSub } from "../../core/services/pubsub.service";
+import type { ComponentContext } from "../component.model";
 
 export class CounterComponent extends BaseComponent {
   
@@ -26,7 +27,9 @@ export class CounterComponent extends BaseComponent {
           <span class="text-4xl font-black text-slate-800">{state.count}</span>
           <p class="text-sm text-slate-500 mt-1">Clicks totales</p>
         </div>
-        <button on-click="increment" 
+        <button 
+          id="counter-button-{instanceId}"
+          on-click="increment" 
           class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white 
           font-semibold rounded-lg shadow-md focus:outline-none 
           focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 

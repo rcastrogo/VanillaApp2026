@@ -1,21 +1,12 @@
-import { build } from "./dom";
+import { getComponent } from "./component-registry";
+import { buildAndInterpolate } from "./dom";
 import { createIcon } from "./icons";
-import { getValue, interpolate, resolveArgs } from "./template";
-import type { BaseComponent, ComponentContext, ComponentElement } from "./types";
-import { HeaderComponent } from "../components/header/header.component";
-import { DashboardComponent } from "../components/test/dashboard.component";
-import { UserListComponent } from "../components/test/user-list.component";
-import { loader } from "../services/loader.service";
-import { pubSub } from "../services/pubsub.service";
-import { router, type ComponentProvider } from "../services/router.service";
-
-const COMPONENT_REGISTRY: Record<string, ComponentProvider> = {
-  'app-header': HeaderComponent,
-  'app-dashboard': DashboardComponent,
-  'app-user-list': UserListComponent,
-  // 'app-counter': CounterComponent,
-  'app-counter': () => import('../components/test/counter-component'),
-};
+import { getValue, resolveArgs } from "./template";
+import type { BaseComponent, ComponentElement } from "./types";
+import type { ComponentContext } from "../components/component.model";
+import { loader } from "./services/loader.service";
+import { pubSub } from "./services/pubsub.service";
+import { router} from "./services/router.service";
 
 export function hydrateIcons(root: HTMLElement = document.body): HTMLElement {
   const iconPlaceholders = root.querySelectorAll<HTMLElement>('[data-icon]');
@@ -123,51 +114,13 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
   return container;
 }
 
-// export function hydrateComponents(root: HTMLElement, ctx: ComponentContext): void {
-//   const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
-
-//   placeholders.forEach(el => {
-//     const componentName = el.dataset.component!;
-//     el.removeAttribute('data-component');
-//     // const dataId = el.dataset.props;
-//     const customClasses = el.className.trim();
-
-//     const creator = COMPONENT_REGISTRY[componentName];
-
-//     if (creator) {
-//       let component: BaseComponent;
-//       if (typeof creator === 'function' && creator.prototype && creator.prototype.constructor.name) {
-//         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//         component = new (creator as any)(ctx);
-//       } else {
-//         // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-//         component = (creator as Function)(ctx);
-//       }
-//       // const props = dataId ? DataRegistry.consume(dataId) : {};
-//       component.init?.();
-//       const element = component.render() as ComponentElement;
-//       if (customClasses) {
-//         const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
-//         element.classList.add(...classesArray);
-//       }
-//       // Asegurar vinculación
-//       if (!element.__componentInstance) {
-//         element.__componentInstance = component;
-//         component.element = element;
-//       }
-        
-//       el.replaceWith(element);
-//       component.mounted?.();
-//     }
-//   });
-// }
-
 export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext): Promise<void> {
   const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
 
   for (const el of Array.from(placeholders)) {
     const componentName = el.dataset.component!;
-    const provider = COMPONENT_REGISTRY[componentName];
+    if (!componentName) continue;
+    const provider = getComponent(componentName);
     if (provider) {
       const component = await loader.resolve(provider, ctx);
       el.removeAttribute('data-component');
@@ -192,80 +145,55 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
   }
 }
 
-export function hydrateDirectives(container: HTMLElement, ctx: ComponentContext) {
-  const loops = container.querySelectorAll<HTMLElement>('[data-each]');
-  loops.forEach(el => {
-    const expression = el.dataset.each!; // "user in users"
-    const [itemName, , listName] = expression.split(' ');
-    const list = getValue(listName, ctx) || [];
-    const template = el.innerHTML;
+// export function hydrateDirectives(container: HTMLElement, ctx: ComponentContext) {
+//   const loops = container.querySelectorAll<HTMLElement>('[data-each]');
+//   loops.forEach(el => {
+//     const expression = el.dataset.each!; // "user in users"
+//     const [itemName, , listName] = expression.split(' ');
+//     const list = getValue(listName, ctx) || [];
+//     const template = el.innerHTML;
     
-    el.innerHTML = '';
-    el.removeAttribute('data-each');
+//     el.innerHTML = '';
+//     el.removeAttribute('data-each');
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    list.forEach((item: any) => {
-      const itemCtx = Object.create(ctx);
-      itemCtx[itemName] = item; 
-      const html = interpolate(template, itemCtx);
-      const child = build('div', html, true, itemCtx);
-      el.appendChild(child);
-    });
-  });
-}
-
-
-// /**
-//  * 1. REGISTRO DE DATOS (Para pasar objetos reales por HTML)
-//  */
-// const DataRegistry = {
-//   _storage: new Map<string, any>(),
-//   register(data: any): string {
-//     const id = `data_${Math.random().toString(36).substr(2, 9)}`;
-//     this._storage.set(id, data);
-//     return id;
-//   },
-//   consume(id: string): any {
-//     const data = this._storage.get(id);
-//     this._storage.delete(id);
-//     return data;
-//   }
-// };
-
-// export function buildAndHydrate(template: string, ctx: ComponentContext): HTMLElement {
-  
-//   const html = interpolate(template, ctx);
-//   const container = build('div', html, true, ctx);
-
-//   const hydrateNode = (parent: HTMLElement) => {
-//     const placeholders = parent.querySelectorAll('[data-component]');
-    
-//     placeholders.forEach(placeholder => {
-//       const name = placeholder.getAttribute('data-component');
-//       const dataId = placeholder.getAttribute('data-props'); // El ID del objeto real
-      
-//       const ComponentClass = registry[name || ''];
-//       if (ComponentClass) {
-//         // Recuperamos el objeto real del mapa temporal
-//         const props = dataId ? DataRegistry.consume(dataId) : {};
-        
-//         const instance = new ComponentClass(ctx, props);
-//         const newEl = instance.render();
-
-//         // Asegurar vinculación
-//         if (!newEl.__componentInstance) {
-//           (newEl as any).__componentInstance = instance;
-//           (instance as any).element = newEl;
-//         }
-
-//         // Si el nuevo elemento tiene hijos que hidratar, recursión
-//         hydrateNode(newEl);
-        
-//         placeholder.replaceWith(newEl);
-//       }
+//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//     list.forEach((item: any) => {
+//       const itemCtx = Object.create(ctx);
+//       itemCtx[itemName] = item; 
+//       let html = preProcessTemplate(template, itemCtx);
+//       html = interpolate(html, itemCtx);
+//       const child = build('div', html, true, itemCtx);
+//       el.appendChild(child);
 //     });
-//   };
-
-//   hydrateNode(container);
-//   return container.firstElementChild as HTMLElement;
+//   });
 // }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function hydrateDirectives(container: HTMLElement, ctx: any) {
+  // 1. Buscamos solo los bucles de PRIMER NIVEL (los que no tienen otro data-each encima)
+  Array
+    .from(container.querySelectorAll<HTMLElement>('[data-each]'))
+    .filter(el => !el.parentElement?.closest('[data-each]'))
+    .forEach(repeater => {
+      const expression = repeater.dataset.each!; // "item in tasks"
+      const [itemName, , listName] = expression.split(' ');
+      const list = getValue(listName, ctx) || [];   
+      const templateHTML = repeater.innerHTML;
+      repeater.innerHTML = '';
+      repeater.removeAttribute('data-each');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      list.forEach((item: any, index: number) => {
+        // Creamos un contexto que HEREDA del contexto padre (el componente)
+        // Así, cualquier método como deleteUser se encontrará subiendo por la cadena
+        const itemCtx = Object.create(ctx);   
+        itemCtx[itemName] = item;
+        itemCtx.index = index;
+        itemCtx['#'] = ctx; // Parent context
+        const instance = buildAndInterpolate(templateHTML, itemCtx, false);
+        // RECURSIÓN: Buscamos si dentro de este item hay más bucles (anidados)
+        hydrateDirectives(instance, itemCtx);
+        // Movemos los hijos al contenedor real (el repeater)
+        while (instance.firstChild) repeater.appendChild(instance.firstChild);
+      });
+    });
+}

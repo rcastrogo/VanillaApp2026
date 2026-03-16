@@ -1,7 +1,8 @@
 
 
+import type { ComponentContext } from "../../../components/component.model";
 import { build } from "../../../core/dom";
-import { BaseComponent, type ComponentContext } from "../../../core/types";
+import { BaseComponent} from "../../../core/types";
 
 export default class BaseComponentPage extends BaseComponent {
   

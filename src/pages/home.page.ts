@@ -1,13 +1,13 @@
+import type { ComponentContext, ComponentFactory } from "../components/component.model";
 import { buildAndInterpolate } from "../core/dom";
-import type { ComponentContext } from "../core/types";
-import type { ComponentFactory } from "../services/router.service";
 
 const homePage: ComponentFactory = (ctx:  ComponentContext) => {
   console.log(ctx);
   return {
     render: () => {
       const template = `
-        <div class="my-8 p-8 bg-slate-50 rounded-3xl border border-slate-200 shadow-xl">
+        <div class="my-8 p-8 bg-background  rounded-3xl border border-slate-200 shadow-xl">
+          <div data-component="app-theme-toggle"></div>
           <header class="mb-8">
             <h1 class="text-3xl font-bold text-slate-800" on-publish="USER_UPDATED:global:name | welcome">
               Bienvenido al Sistema

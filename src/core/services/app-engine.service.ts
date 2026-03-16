@@ -2,7 +2,11 @@
 import { loader } from './loader.service';
 import { pubSub } from './pubsub.service';
 import { type Route } from './router.service';
-import type { BaseComponent } from '../core/types';
+import { APP_CONFIG } from '../../app.config';
+import { setupComponents } from '../component-registry';
+import { initObserver } from '../dom-observer';
+import { setupIcons } from '../icons';
+import type { BaseComponent } from '../types';
 
 export const MESSAGE_APP_VIEW_CHANGE = 'APP_VIEW_CHANGE';
 
@@ -23,7 +27,7 @@ class AppEngine {
   private async renderView(route: Route) {
     if (!this.container) return;
     this.component?.destroy?.()
-    this.container.innerHTML = '<div class="loader">Cargando...</div>';
+    this.container.innerHTML = '';
     try {
       const viewFactory = await loader.resolve(route.componentProvider, {});
       this.component?.destroy?.(); 
@@ -44,7 +48,10 @@ class AppEngine {
 
   init() {
     console.log('AppEngine init');
+    setupIcons(APP_CONFIG.icons);
+    setupComponents(APP_CONFIG.components);
     this.initEventListeners();
+    initObserver();
   }
 
 }

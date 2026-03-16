@@ -1,7 +1,6 @@
 import type { User } from "./terms.logic";
-import type { Component } from "../../../components/component.model";
+import type { Component, ComponentContext } from "../../../components/component.model";
 import { buildAndInterpolate } from "../../../core/dom";
-import type { ComponentContext } from "../../../core/types";
 
 export default class TermsPage implements Component {
 

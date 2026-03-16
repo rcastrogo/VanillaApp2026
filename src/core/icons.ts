@@ -2,28 +2,14 @@
 import {
   createElement,
   type IconNode,
-  Timer,
-  Settings,
-  Activity,
-  User,
-  Users,
-  Trash,
-  Plus,
-  Power,
-  Zap
 } from 'lucide';
 
-export const APP_ICONS: Record<string, IconNode> = {
-  timer: Timer,
-  settings: Settings,
-  activity: Activity,
-  user: User,
-  users: Users,
-  trash: Trash,
-  plus: Plus,
-  power: Power,
-  zap: Zap
-};
+// Ya no hay iconos aquí. El core solo tiene la LÓGICA.
+let registeredIcons: Record<string, IconNode> = {};
+
+export function setupIcons(icons: Record<string, IconNode>) {
+  registeredIcons = icons;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
 export function renderIcon(name: string, customClass: string = 'w-6 h-6'): string {
@@ -33,7 +19,7 @@ export function renderIcon(name: string, customClass: string = 'w-6 h-6'): strin
 
 // eslint-disable-next-line @typescript-eslint/no-inferrable-types
 export function createIcon(name: string, customClass: string = 'w-6 h-6'): SVGElement | undefined {
-  const icon = APP_ICONS[name];
+  const icon = registeredIcons[name];
   if (icon) {
     const svg = createElement(icon, { class: customClass, 'stroke-width': '2' });
     return svg;
