@@ -69,13 +69,17 @@ export abstract class BaseComponent implements Component {
 
   private update() {
     if (!this.element) return;
-    const activeElement = document.activeElement as HTMLElement;
-    
+    const activeElement = document.activeElement as HTMLElement;   
     const targetId = activeElement?.id || '';
-
     this.element.__isUpdating = true; 
+
     const newElement = this.render();
-    this.element.replaceWith(newElement);
+    const currentOutlet = this.element.querySelector('#router-outlet');
+    const newOutlet = newElement.querySelector('#router-outlet');
+    if (currentOutlet && newOutlet) {
+      while (currentOutlet.firstChild) newOutlet.appendChild(currentOutlet.firstChild);
+    }
+    this.element.replaceWith(newElement)
     this.bind(newElement);
 
     if (targetId) {
@@ -106,10 +110,25 @@ export abstract class BaseComponent implements Component {
     }
   }
 
-  protected bind(el: ComponentElement): HTMLElement {
-    this.element = el;
-    this.element.__componentInstance = this;
-    return this.element;
+   public static bind(component: BaseComponent, el: HTMLElement): ComponentElement {
+    const element = el as ComponentElement;
+    if(element){
+      element.__componentInstance = component;
+      component.element = element;
+    }
+    return element;
   }
+
+  static renderAndBind<T extends BaseComponent>(instance: T): HTMLElement {
+    const element = instance.render();
+    instance.element = element;
+    (element as ComponentElement).__componentInstance = instance;
+    return element;
+  }
+
+  protected bind(el: HTMLElement): ComponentElement {
+    return BaseComponent.bind(this, el);
+  }
+  
 
 }

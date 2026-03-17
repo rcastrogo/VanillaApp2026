@@ -2,7 +2,7 @@ import { getComponent } from "./component-registry";
 import { buildAndInterpolate } from "./dom";
 import { createIcon } from "./icons";
 import { getValue, resolveArgs } from "./template";
-import type { BaseComponent, ComponentElement } from "./types";
+import { BaseComponent, type ComponentElement } from "./types";
 import type { ComponentContext } from "../components/component.model";
 import { loader } from "./services/loader.service";
 import { pubSub } from "./services/pubsub.service";
@@ -122,19 +122,15 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
     if (!componentName) continue;
     const provider = getComponent(componentName);
     if (provider) {
-      const component = await loader.resolve(provider, ctx);
+      const component = await loader.resolve(provider, ctx) as BaseComponent;
       el.removeAttribute('data-component');
       const customClasses = el.className.trim();
       component.init?.();
       const element = component.render() as ComponentElement;
-
+      BaseComponent.bind(component, element);
       if (customClasses) {
         const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
         element.classList.add(...classesArray);
-      }
-      if (!element.__componentInstance) {
-        element.__componentInstance = component as BaseComponent;
-        component.element = element;
       }
       el.replaceWith(element);
       component.mounted?.();

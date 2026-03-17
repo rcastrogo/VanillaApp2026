@@ -1,6 +1,6 @@
 import { MESSAGE_APP_VIEW_CHANGE } from "./app-engine.service";
 import { pubSub } from "./pubsub.service";
-import type { ComponentCreator } from "../../components/component.model";
+import type { ComponentConstructor, ComponentCreator } from "../../components/component.model";
 
 export type ComponentProvider = 
   | ComponentCreator 
@@ -13,6 +13,8 @@ export interface Route {
   isView?: boolean;
   params?: string[];
   queryValues?: Record<string, string>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  layout?: ComponentConstructor | null;
 }
 
 class RouterService {

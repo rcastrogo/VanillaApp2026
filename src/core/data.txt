@@ -1,0 +1,876 @@
+	Caution: External email. Do not open attachments or click links, unless this email comes from a known sender and you know the content is safe. 
+
+"
+Conversación con Gemini
+Has dicho
+Vercel.json debe estar en src o en el inmediatamente superior para que funcione?
+Gemini ha dicho
+El archivo vercel.json debe estar en la raíz de tu proyecto, es decir, en el nivel más alto de tu estructura de carpetas (el "inmediatamente superior" a src).
+
+Vercel busca este archivo en el directorio principal donde se encuentra tu archivo package.json o tu carpeta .git. Si lo pones dentro de src, Vercel lo ignorará por completo y las redirecciones no funcionarán.
+
+La estructura correcta se vería así:
+Plaintext
+mi-proyecto/
+├── vercel.json        <-- AQUÍ (Raíz del proyecto)
+├── package.json
+├── index.html
+└── src/               <-- Tu código fuente
+    ├── main.js
+    └── components/
+Un detalle crucial si usas un "Build Step" (Vite, Webpack, etc.)
+Si tu proyecto se compila (por ejemplo, con Vite) y genera una carpeta llamada dist o build:
+
+Vercel sigue necesitando el archivo en la raíz del repositorio para saber cómo manejar las rutas antes de servir los archivos.
+
+Asegúrate de que tu index.html sea el punto de entrada que Vercel reconoce.
+
+¿Qué poner exactamente en el vercel.json?
+Para que tu lógica de sync() con el pathname funcione al refrescar, usa esta configuración estándar:
+
+JSON
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+¿Por qué ahí?
+Vercel lee el archivo durante el proceso de despliegue para configurar sus servidores edge. Al estar en la raíz, le confirmas que cualquier ruta que el usuario escriba (como /perfil o /ajustes) debe entregar el index.html, permitiendo que tu función sync() tome el control apenas cargue el navegador.
+
+¿Ya intentaste subir el archivo a la raíz y probar un "F5" en alguna ruta secundaria?
+
+Has dicho
+else if (attrName === 'route-to') {
+el.addEventListener('click', (e) => {
+e.preventDefault();
+const path = attrValue.startsWith('@') ? getValue(attrValue.slice(1), ctx) : attrValue;
+router.navigateTo(path);
+});
+el.removeAttribute(attrName);
+}
+
+Qué efecto tiene eso en un elemento <a> con href
+Gemini ha dicho
+Al usar esa lógica en un elemento <a>, estás anulando el comportamiento nativo del navegador y sustituyéndolo por tu lógica de SPA (Single Page Application).
+
+Aquí te detallo los efectos específicos:
+
+1. El href se vuelve "decorativo"
+Aunque el elemento <a> tenga un href="/contacto", el navegador no recargará la página al hacer clic.
+
+e.preventDefault() detiene la acción por defecto del enlace.
+
+router.navigateTo(path) se encarga de cambiar la URL en la barra de direcciones (usando history.pushState) y disparar tu función sync().
+
+2. Soporte para datos dinámicos (@)
+Tu código añade una capa de inteligencia que un <a> normal no tiene:
+
+Si usas route-to="/perfil", navega a esa cadena fija.
+
+Si usas route-to="@user.id", tu función getValue busca en el contexto (ctx) el valor de user.id para construir la ruta dinámicamente. Esto es ideal para los bucles data-each que ya manejas.
+
+3. El atributo desaparece del DOM
+La línea el.removeAttribute(attrName) limpia el HTML resultante. Al inspeccionar el elemento en el navegador, no verás el atributo route-to, lo que mantiene el DOM más limpio una vez que el evento ya ha sido vinculado.
+
+4. Impacto en SEO y Accesibilidad
+Si olvidas poner el atributo href y solo usas route-to, podrías tener problemas:
+
+SEO: Los bots de Google no verán un enlace rastreable si no hay href.
+
+Accesibilidad: Los usuarios no podrán hacer "Clic derecho > Abrir en nueva pestaña" a menos que el href esté presente y coincida con el destino.
+
+Recomendación de uso
+Para que sea perfecto, te sugiero estructurar tus enlaces así:
+
+HTML
+<a href="/perfil/123" route-to="@user.profileUrl">Ver Perfil</a>
+¿Por qué así?
+
+Si el JS falla o el usuario hace "Abrir en nueva pestaña", el href salva el día.
+
+Si el usuario hace un clic normal, tu evento click intercepta el viaje, usa el valor de @user.profileUrl y hace la transición instantánea sin parpadeos.
+
+¿Tu función MapsTo ya incluye el history.pushState o quieres que revisemos cómo conectarla con el sync() que vimos antes?
+
+Has dicho
+const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
+
+for (const el of Array.from(placeholders)) {
+const componentName = el.dataset.component!;
+if (!componentName) continue;
+const provider = getComponent(componentName);
+if (provider) {
+const component = await loader.resolve(provider, ctx);
+el.removeAttribute('data-component');
+const customClasses = el.className.trim();
+component.init?.();
+const element = component.render() as ComponentElement;
+
+if (customClasses) {
+const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
+element.classList.add(...classesArray);
+}
+if (!element.__componentInstance) {
+element.__componentInstance = component as BaseComponent;
+component.element = element;
+}
+el.replaceWith(element);
+component.mounted?.();
+} else {
+console.error(`Componente ${componentName} no encontrado en el registro.`);
+}
+}
+
+
+Qué hace esa doble enlazado de referencias?
+Gemini ha dicho
+Ese "doble enlazado" de referencias es una técnica fundamental en arquitecturas de componentes personalizados para conectar el mundo del DOM (HTML) con el mundo de la lógica (JavaScript).
+
+Básicamente, estás creando un puente bidireccional para que el elemento sepa quién lo controla y el objeto sepa qué está renderizando.
+
+1. element.__componentInstance = component
+Dirección: Del DOM al Objeto
+Aquí guardas una referencia de la instancia de tu clase (o lógica) directamente dentro del nodo del HTML.
+
+¿Para qué sirve? Te permite recuperar la lógica de un componente teniendo solo el elemento del DOM.
+
+Ejemplo de uso: Si haces un document.querySelector('.mi-boton'), puedes acceder a sus métodos internos haciendo el.__componentInstance.miMetodo().
+
+Debug: Es muy útil en la consola del navegador para inspeccionar el estado interno del componente sin tener que buscar la variable en el código.
+
+2. component.element = element
+Dirección: Del Objeto al DOM
+Aquí guardas el nodo del HTML dentro de la instancia de tu componente.
+
+¿Para qué sirve? Es vital para que el componente pueda manipularse a sí mismo.
+
+Ejemplo de uso: Dentro de un método de tu clase, puedes hacer this.element.querySelector('.titulo') o this.element.classList.add('activo'). Sin esta referencia, el objeto "lógica" no sabría qué parte del HTML le pertenece.
+
+¿Por qué es crucial en tu flujo de replaceWith?
+Como estás usando el.replaceWith(element), el "marcador" original (<div data-component="...">) desaparece del DOM y es sustituido por el resultado de component.render().
+
+Sin este doble enlazado:
+
+Perderías el rastro: Una vez renderizado, no tendrías una forma fácil de saber qué objeto JS creó ese HTML.
+
+Ciclo de vida: Tu código llama a component.mounted?.(). Para que mounted pueda hacer algo útil (como añadir un event listener o medir el ancho de un div), necesita tener acceso a su this.element ya posicionado en el documento.
+
+Un pequeño detalle técnico:
+Estás usando una propiedad "privada" o no estándar (__componentInstance). Esto es una práctica común en frameworks ligeros para evitar colisiones con propiedades nativas del navegador (como id, className, etc.).
+
+Tip: Asegúrate de que ComponentElement sea una extensión de HTMLElement para que TypeScript no se queje al añadirle propiedades personalizadas.
+
+¿Estás teniendo algún problema de fuga de memoria o necesitas que este componente reaccione a cambios en el ctx (contexto) después de ser montado?
+
+Has dicho
+Creo que tengo un problema no cuando cargo o rehitrato componentes si no cuando cargo un componente de ruta
+
+private async renderView(route: Route) {
+    if (!this.container) return;
+    this.component?.destroy?.()
+    this.container.innerHTML = '';
+    try {
+      const viewFactory = await loader.resolve(route.componentProvider, {});
+      this.component?.destroy?.(); 
+      this.component = viewFactory as BaseComponent;
+      this.component.init?.();      
+      this.container.innerHTML = ''
+      this.container.appendChild(this.component.render());      
+      this.component.mounted?.();
+    } catch (error) {
+      console.error("Error cargando la página:", error);
+      this.container.innerHTML = '<p class="text-red-500">Error al cargar la sección.</p>';
+    }
+  }
+
+La reactividad no funciona y creo que es por no hacer el enlace. Puedes verlo?
+Gemini ha dicho
+¡Exacto! Has dado en el clavo. El problema es que en tu función renderView estás inyectando el componente manualmente al DOM, pero te estás saltando los pasos de vinculación que sí haces cuando procesas los data-component.
+
+En tu lógica de componentes anterior, tenías este "pegamento":
+
+element.__componentInstance = component
+
+component.element = element
+
+En renderView, estás haciendo this.container.appendChild(this.component.render()). Si el método render() de tu componente simplemente devuelve un elemento HTML, ese elemento no sabe que pertenece a la instancia del componente, y la instancia no tiene guardada la referencia a su elemento.
+
+El problema: Por qué se rompe la reactividad
+Si tu sistema de reactividad (o tu buildAndInterpolate) intenta actualizar el DOM basándose en cambios de estado, lo hará a través de this.element. Pero en renderView:
+
+this.component.element está undefined (o apunta a un nodo viejo).
+
+Cualquier evento o actualización que dependa de this.element fallará silenciosamente.
+
+La Solución: Sincronizar las referencias en renderView
+Debes replicar la lógica de enlazado justo después de llamar al render() y antes del mounted(). Aquí tienes el código corregido:
+
+TypeScript
+private async renderView(route: Route) {
+    if (!this.container) return;
+
+    // 1. Limpieza previa
+    this.component?.destroy?.();
+    this.container.innerHTML = '';
+
+    try {
+      const viewFactory = await loader.resolve(route.componentProvider, {});
+      
+      // 2. Instanciar el componente
+      this.component = viewFactory as BaseComponent;
+      this.component.init?.();      
+
+      // 3. Renderizar y realizar el "Doble Enlace"
+      const element = this.component.render() as ComponentElement;
+
+      // --- CRUCIAL: Vincular lógica y DOM ---
+      if (!element.__componentInstance) {
+        element.__componentInstance = this.component;
+        this.component.element = element;
+      }
+      // --------------------------------------
+
+      this.container.appendChild(element);      
+      
+      // 4. Notificar que ya está en el DOM
+      this.component.mounted?.();
+
+    } catch (error) {
+      console.error("Error cargando la página:", error);
+      this.container.innerHTML = '<p class="text-red-500">Error al cargar la sección.</p>';
+    }
+}
+¿Por qué esto arregla la reactividad?
+Referencia de actualización: Cuando el estado cambia y el componente quiere re-renderizar solo una parte (o interpolar de nuevo), usará this.element. Al asignarlo en el paso 3, this.element ahora apunta correctamente al nodo que acabas de meter en el container.
+
+Contexto de ejecución: Tu lógica de buildAndInterpolate(template, this) ahora tendrá un this que realmente está conectado al DOM visible.
+
+Memoria: Al llamar a destroy() al principio, aseguras que si el componente anterior tenía listeners o suscripciones de reactividad, se limpien antes de que el recolector de basura se lleve el nodo viejo.
+
+Un pequeño consejo extra: Veo que haces this.component?.destroy?.() dos veces (una al principio y otra justo antes de asignar la nueva instancia). Con la primera al inicio de la función es suficiente para "limpiar la casa".
+
+¿Quieres que revisemos cómo tu buildAndInterpolate usa ese this.element para asegurarnos de que la actualización sea parcial y no destruya todo el componente cada vez?
+
+Has dicho
+const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
+
+for (const el of Array.from(placeholders)) {
+const componentName = el.dataset.component!;
+if (!componentName) continue;
+const provider = getComponent(componentName);
+if (provider) {
+const component = await loader.resolve(provider, ctx);
+el.removeAttribute('data-component');
+const customClasses = el.className.trim();
+component.init?.();
+const element = component.render() as ComponentElement;
+
+if (customClasses) {
+const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
+element.classList.add(...classesArray);
+}
+if (!element.__componentInstance) {
+element.__componentInstance = component as BaseComponent;
+component.element = element;
+}
+el.replaceWith(element);
+component.mounted?.();
+} else {
+console.error(`Componente ${componentName} no encontrado en el registro.`);
+}
+}
+}
+
+Tengo ese método como ya sabrás!
+
+Podría utilizarlo directamente en el cambio de ruta? Se podría además crear un fn para el enlace? Para no DRY?
+Gemini ha dicho
+¡Totalmente! De hecho, es lo más inteligente para mantener la consistencia. Si utilizas la misma lógica para los "subcomponentes" y para las "vistas de ruta", te aseguras de que una página entera se comporte exactamente igual que un pequeño botón reactivo.
+
+Aquí tienes cómo podrías refactorizarlo para evitar repetir código (DRY):
+
+1. Extraer la lógica de Enlace (El "Binder")
+Crea una función utilitaria (o un método privado en tu clase base) que se encargue exclusivamente de pegar el objeto con el DOM:
+
+TypeScript
+private bindComponent(component: BaseComponent, element: ComponentElement): ComponentElement {
+  if (!element.__componentInstance) {
+    element.__componentInstance = component;
+    component.element = element;
+  }
+  return element;
+}
+2. Refactorizar el bucle de componentes
+Ahora tu bucle queda mucho más limpio:
+
+TypeScript
+// ... dentro del loop de placeholders
+const element = component.render() as ComponentElement;
+
+if (customClasses) {
+  element.classList.add(...customClasses.split(/\s+/).filter(c => c.length > 0));
+}
+
+// Usamos la nueva función
+this.bindComponent(component, element);
+
+el.replaceWith(element);
+component.mounted?.();
+3. Utilizarlo en el cambio de ruta (renderView)
+Aquí es donde ganas la reactividad que te faltaba. Al usar la misma lógica de enlace, la "página" ahora es un componente con todas las de la ley:
+
+TypeScript
+private async renderView(route: Route) {
+  if (!this.container) return;
+  
+  this.component?.destroy?.();
+  this.container.innerHTML = '';
+
+  try {
+    const viewFactory = await loader.resolve(route.componentProvider, {});
+    this.component = viewFactory as BaseComponent;
+    
+    this.component.init?.();
+    
+    // Renderizamos y vinculamos usando la misma lógica
+    const element = this.component.render() as ComponentElement;
+    this.bindComponent(this.component, element);
+    
+    this.container.appendChild(element);
+    this.component.mounted?.();
+    
+  } catch (error) {
+    console.error("Error cargando la página:", error);
+    this.container.innerHTML = '...';
+  }
+}
+¿Por qué esto es mejor?
+Consistencia: Si mañana decides cambiar __componentInstance por un Symbol o una WeakMap por seguridad, solo lo cambias en bindComponent.
+
+Reactividad garantizada: Al asegurar que this.component.element apunte al nodo real del DOM en las rutas, cualquier llamada a buildAndInterpolate(template, this) funcionará porque el "scope" (que es this) sabrá exactamente qué trozo de HTML tiene que actualizar.
+
+Encapsulación: El componente de la ruta ahora puede tener sus propios sub-componentes internos con data-component, y como usas el mismo sistema, la hidratación será recursiva y natural.
+
+Una última sugerencia
+Si quieres llevar el DRY al extremo, podrías crear un método mountComponent(component, container, mode: 'replace' | 'append') que encapsule todo el proceso: init -> render -> bind -> DOM action -> mounted.
+
+¿Te gustaría que intentáramos unificarlo en una sola función de montaje universal?
+
+Has dicho
+export abstract class BaseComponent implements Component {
+private static instance = 0;
+
+public element: ComponentElement | null = null;
+protected instanceId = 0;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+protected state: Record<string, any> = {};
+protected ctx: ComponentContext;
+
+private cleanups: CleanupFn[] = [];
+
+constructor(ctx: ComponentContext) {
+this.instanceId = ++BaseComponent.instance;
+this.bindMethods();
+this.ctx = ctx;
+this.state = new Proxy({}, {
+set: (target, prop, value) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(target as any)[prop] = value;
+this.update();
+return true;
+}
+});
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+protected publish(topic: string, data?: any): void {
+pubSub.publish(topic, data, this.instanceId);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+protected subscribe(topic: string, callback: (data: any) => void): void {
+const unsubscribe = pubSub.subscribe(topic, callback, this.instanceId);
+this.addCleanup(unsubscribe);
+}
+
+protected addCleanup(fn: CleanupFn): void {
+this.cleanups.push(fn);
+}
+
+private bindMethods() {
+const proto = Object.getPrototypeOf(this);
+Object.getOwnPropertyNames(proto).forEach(key => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const val = (this as any)[key];
+if (key !== 'constructor' && typeof val === 'function') {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(this as any)[key] = val.bind(this);
+}
+});
+}
+
+private update() {
+if (!this.element) return;
+const activeElement = document.activeElement as HTMLElement;
+const targetId = activeElement?.id || '';
+
+this.element.__isUpdating = true;
+const newElement = this.render();
+this.element.replaceWith(newElement);
+this.bind(newElement);
+
+if (targetId) {
+const target = this.element.querySelector('#' + targetId) as HTMLInputElement;
+if (target) {
+target.focus();
+const len = target.value.length;
+target.setSelectionRange?.(len, len);
+}
+}
+
+this.mounted?.();
+}
+
+abstract render(): HTMLElement;
+
+mounted() { /* empty */ }
+init() { /* empty */ }
+
+public destroy(): void {
+if (this.cleanups.length === 0 && !this.element) return;
+console.log(`[Cleanup] Destruyendo: ${this.constructor.name}`);
+this.cleanups.forEach(fn => fn());
+this.cleanups = [];
+if (this.element) {
+delete this.element.__componentInstance;
+this.element = null;
+}
+}
+
+protected bind(el: ComponentElement): HTMLElement {
+this.element = el;
+this.element.__componentInstance = this;
+return this.element;
+}
+
+}
+
+Podríamis poner ahí la función static para el enlace
+Gemini ha dicho
+¡Exacto! El mejor lugar para esa lógica es dentro de la BaseComponent. Al hacerla static, permites que tanto el Router como el Loader de componentes (el bucle de data-component) la utilicen sin necesidad de instanciar nada, manteniendo un único punto de verdad para el "pegamento" entre el DOM y la clase.
+
+Aquí tienes cómo integrar la función estática y cómo limpiar tu método update para usarla:
+
+1. Actualización de BaseComponent
+Añadimos static bind y ajustamos el método update para que sea más robusto:
+
+TypeScript
+export abstract class BaseComponent implements Component {
+  // ... resto del código (instance, instanceId, state, etc.)
+
+  /**
+   * Vincula una instancia de componente con un elemento del DOM.
+   * Es estática para que el Router o el Loader puedan usarla externamente.
+   */
+  public static bind(component: BaseComponent, el: HTMLElement): ComponentElement {
+    const element = el as ComponentElement;
+    element.__componentInstance = component;
+    component.element = element;
+    return element;
+  }
+
+  // Refactorizamos el método de instancia para que use el estático
+  protected bind(el: HTMLElement): ComponentElement {
+    return BaseComponent.bind(this, el);
+  }
+
+  private update() {
+    // Si no hay elemento o estamos en medio de una actualización, abortamos
+    if (!this.element || this.element.__isUpdating) return;
+    
+    const activeElement = document.activeElement as HTMLElement;
+    const targetId = activeElement?.id || '';
+
+    // Marcamos el inicio de la actualización
+    this.element.__isUpdating = true; 
+    
+    const newElement = this.render();
+    
+    // IMPORTANTE: El elemento viejo se reemplaza por el nuevo
+    const oldElement = this.element;
+    oldElement.replaceWith(newElement);
+    
+    // Vinculamos la instancia al NUEVO elemento
+    this.bind(newElement);
+
+    // Restaurar foco si es necesario
+    if (targetId) {
+      const target = this.element.querySelector('#' + targetId) as HTMLInputElement;
+      if (target) {
+        target.focus();
+        const len = target.value?.length || 0;
+        target.setSelectionRange?.(len, len);
+      }
+    }
+
+    this.mounted?.();
+  }
+
+  // ... rest of the class
+}
+2. Cómo usarlo ahora en tu Router/Loader
+Ahora, desde fuera de la clase (por ejemplo, en tu función renderView o en el bucle de data-component), la llamada es limpia y estandarizada:
+
+En tu Router:
+
+TypeScript
+const element = this.component.render();
+BaseComponent.bind(this.component, element); // Uso de la función estática
+this.container.appendChild(element);
+En tu Loader de componentes:
+
+TypeScript
+const element = component.render();
+BaseComponent.bind(component, element); // Uso de la función estática
+el.replaceWith(element);
+¿Por qué este cambio es clave para Vercel y tu SPA?
+Foco y UX: Tu lógica de target.setSelectionRange en el update es excelente. Al refrescar la página en Vercel, si el componente se monta correctamente y el estado cambia inmediatamente (por ejemplo, al cargar datos de una API), el usuario no perderá el foco si está escribiendo.
+
+Seguridad de Tipos: Al centralizar el as ComponentElement dentro de BaseComponent.bind, evitas tener que hacer castings manuales en todo el resto de tu aplicación.
+
+Ciclo de Vida Limpio: Al desvincular el __componentInstance en el destroy(), previenes que el recolector de basura mantenga nodos del DOM en memoria innecesariamente cuando cambias de ruta.
+
+Un pequeño detalle en tu update():
+He añadido una protección: if (this.element.__isUpdating) return;. Esto evita bucles infinitos si por error el render() o el mounted() disparan otro cambio de estado.
+
+¿Te gustaría que ajustáramos también el BaseComponent para que maneje automáticamente las directivas on-click o data-each que mencionaste al principio mediante esta función bind?
+
+Has dicho
+const element = component.render();
+BaseComponent.bind(component, element); // Uso de la función estática
+el.replaceWith(element);
+
+Esto lo podemos llevar más allá no crees?
+Gemini ha dicho
+Totalmente. Estás a un paso de convertir tu sistema en un micro-framework hecho y derecho.
+
+Podemos encapsular todo ese proceso (renderizado, vinculación, limpieza y montaje) en un único método estático en BaseComponent. Esto no solo limpia el código, sino que garantiza que nadie olvide vincular un componente al DOM.
+
+Aquí tienes la evolución lógica:
+
+1. El método "Universal" de Montaje
+Añadimos mount a BaseComponent. Este método se encarga de todo el ciclo de vida inicial:
+
+TypeScript
+export abstract class BaseComponent implements Component {
+  // ... (código anterior)
+
+  /**
+   * Punto de entrada universal para montar componentes.
+   * Maneja el flujo completo: Init -> Render -> Bind -> DOM -> Mounted.
+   */
+  public static mount(
+    component: BaseComponent, 
+    target: HTMLElement, 
+    mode: 'replace' | 'append' = 'replace'
+  ): HTMLElement {
+    
+    // 1. Inicializar lógica
+    component.init?.();
+
+    // 2. Generar el elemento y vincularlo inmediatamente
+    const element = component.render();
+    this.bind(component, element);
+
+    // 3. Posicionar en el DOM
+    if (mode === 'replace') {
+      target.replaceWith(element);
+    } else {
+      target.appendChild(element);
+    }
+
+    // 4. Disparar ciclo de vida una vez está en el documento
+    component.mounted?.();
+
+    return element;
+  }
+}
+2. Cómo se simplifica tu código ahora
+En el Router (renderView):
+Ya no tienes que manejar los pasos internos, solo le pasas el componente y el contenedor.
+
+TypeScript
+private async renderView(route: Route) {
+    // ... limpieza ...
+    const viewInstance = await loader.resolve(route.componentProvider, {}) as BaseComponent;
+    
+    // Todo el proceso en una línea
+    BaseComponent.mount(viewInstance, this.container, 'append');
+    this.component = viewInstance;
+}
+En el Hydrator (data-component):
+Tu bucle de placeholders queda ridículamente limpio:
+
+TypeScript
+for (const el of Array.from(placeholders)) {
+    const provider = getComponent(el.dataset.component!);
+    if (provider) {
+        const component = await loader.resolve(provider, ctx);
+        
+        // Transferencia de clases (opcional: podrías mover esto dentro de mount)
+        const customClasses = el.className;
+        
+        const element = BaseComponent.mount(component, el, 'replace');
+        
+        if (customClasses) element.classList.add(...customClasses.split(' '));
+    }
+}
+3. ¿Por qué ir "más allá"?
+Al centralizar el montaje en mount(), ganas superpoderes arquitectónicos:
+
+Herencia de Contexto: Podrías modificar mount para que automáticamente pase el ctx (datos, traducciones, etc.) de un componente padre a un hijo.
+
+Soporte de Animaciones: Podrías añadir lógica de entrada/salida (CSS transitions) dentro del mount para que todas tus rutas en Vercel tengan un fade-in suave automáticamente.
+
+Protección de Memoria: Podrías hacer que mount verifique si el target ya tenía un componente anterior y llamar a su .destroy() automáticamente para evitar fugas de memoria.
+
+Un detalle sobre las clases CSS
+Veo que en tu código anterior hacías el.removeAttribute('data-component'). Podrías incluir esa limpieza dentro del mount si el modo es replace, para que el componente "nazca" limpio de atributos de configuración.
+
+¿Te parece si movemos también la lógica de transferencia de clases (customClasses) dentro del mount para que sea 100% automático?
+
+Has dicho
+Con todo esto, si hay reactividad en el componente de ruta, un layout por ejemplo, en mi caso se recrearán todos los componentes hijos. Estos no almacenariam su estado... En principio un layout no podría ser reactivo no? A no ser que todos los componentes compartan el mismo contexto raíz no? Como puedo hacer eso?
+Gemini ha dicho
+Exactamente, has tocado el punto crítico de las SPAs: el "Prop Drilling" y la pérdida de estado por re-renderizado masivo. Si el Layout es reactivo y se re-renderiza completamente, destruye el DOM de sus hijos y, con ello, sus instancias de componentes y cualquier estado local que tuvieran (como el texto en un input o el scroll).
+
+Para solucionar esto sin renunciar a la reactividad en el Layout, necesitas dos pilares: un Estado Global (Store) y una Hidratación Recursiva.
+
+1. El Contexto Raíz (Global Store)
+Para que todos compartan el mismo contexto, debes pasar el mismo objeto ctx desde el Router hacia abajo. En tu BaseComponent, ya tienes un this.ctx. La clave es que ese ctx no sea un objeto vacío, sino una referencia a un Store único.
+
+TypeScript
+// store.ts - Un singleton sencillo
+export const globalStore = {
+  user: { name: 'Invitado' },
+  theme: 'dark',
+  notifications: []
+};
+
+// En tu Router (renderView)
+const ctx = { store: globalStore, router: this }; 
+const viewInstance = await loader.resolve(route.componentProvider, ctx) as BaseComponent;
+BaseComponent.mount(viewInstance, this.container, 'append');
+2. Evitar la "Masacre" de Hijos: Renderizado Diferencial
+Si el Layout cambia (por ejemplo, el nombre del usuario en el header), no quieres que el contenido de la página (this.container) se destruya. Aquí tienes tres estrategias:
+
+A. El "Slot" estático
+Define el contenedor de la ruta fuera del componente reactivo del Layout.
+
+Layout: Solo maneja Header y Sidebar.
+
+Router: Inyecta la vista en un div#main-content que el Layout nunca toca en su método update().
+
+B. Re-hidratación tras el update
+Si el Layout debe envolver a los hijos y es reactivo, su método update() debe volver a buscar y montar los componentes hijos después de refrescar su HTML. Para que no pierdan el estado, los datos deben venir del ctx.store.
+
+3. Implementación de un "Provider" de Contexto
+Puedes modificar tu BaseComponent para que, al renderizar, siempre pase el contexto a sus hijos. Esto permite que un componente hijo recupere su estado del store global incluso si es recreado.
+
+TypeScript
+// En tu método de hidratación (el que busca [data-component])
+async function hydrate(root: HTMLElement, ctx: ComponentContext) {
+  const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
+  
+  for (const el of Array.from(placeholders)) {
+    // Pasamos el MISMO ctx que recibió el padre
+    const component = await loader.resolve(provider, ctx); 
+    BaseComponent.mount(component, el, 'replace');
+  }
+}
+4. ¿Cómo mantener el estado local?
+Si un componente tiene estado que no está en el store global (ej. lo que alguien está escribiendo en ese momento), tienes dos opciones:
+
+Levantar el estado: Mover ese state temporal al ctx.store. Así, cuando el componente se destruye y renace, en su init() lee el valor guardado en el store.
+
+Memoización del DOM: Antes de que el Layout haga el replaceWith en su update(), podrías "salvar" los nodos hijos que tengan estado y reinsertarlos. (Esto es más complejo y es lo que hacen frameworks como React o Vue con el Virtual DOM).
+
+Mi recomendación para tu arquitectura:
+Haz que tu Layout sea un componente que solo se renderiza una vez.
+
+Crea un MainLayout que se monte al inicio de la app.
+
+Dentro del MainLayout, deja un <div id="router-outlet"></div>.
+
+Tu Router solo hará appendChild o replaceWith dentro de ese router-outlet.
+
+De esta forma:
+
+El Layout puede ser reactivo (para el usuario, notificaciones, etc.).
+
+La Ruta cambia independientemente.
+
+Ambos acceden al mismo ctx.store, por lo que si el Layout cambia el "Tema" a oscuro, el componente de la ruta se entera porque comparte el mismo objeto de contexto.
+
+¿Te gustaría que diseñáramos un Store reactivo simple que dispare el update() de los componentes automáticamente cuando cambie algo? Solo tendríamos que retocar un poco tu Proxy actual.
+
+Has dicho
+Layout sea un componente que solo se renderiza una vez.
+
+¿Con eso quieres decir que no implemente el proxy del state que desencadena update y render?
+Gemini ha dicho
+No exactamente. El Proxy y el update son geniales y debes mantenerlos, pero la clave está en qué parte del DOM permites que el Layout destruya y reconstruya cuando su estado cambia.
+
+Si el Layout hace un this.element.replaceWith(newElement) de todo su cuerpo, aniquila cualquier componente hijo que el Router haya inyectado dentro.
+
+Aquí tienes la estrategia para mantener la reactividad sin destruir la vista actual:
+
+1. El concepto del "Punto de Inyección" (Slot)
+En lugar de que el Layout renderice todo como un bloque monolítico, debes definir una zona "sagrada" que el Layout no machaque al actualizarse.
+
+2. Modifica el update para que sea "Conservador"
+Puedes ajustar tu lógica de update para que, si existe un contenedor de ruta (un "outlet"), lo preserve o lo mueva al nuevo renderizado.
+
+Opción A: El Layout no envuelve la ruta (Estructura en paralelo)
+Es la más sencilla. En tu index.html:
+
+HTML
+<div id="layout-header"></div> <main id="router-outlet"></main> <div id="layout-footer"></div> ```
+Aquí el Header puede tener su `Proxy` y actualizarse mil veces; el `router-outlet` no se enterará porque está fuera de su alcance.
+
+**Opción B: El Layout envuelve la ruta (Uso de un marcador)**
+Si tu Layout es un componente que contiene el menú lateral y el marco de la página, haz esto en su `render()`:
+
+```javascript
+render() {
+  return buildAndInterpolate(`
+    <div class="layout">
+      <nav>
+        <span>Hola, {user.name}</span>
+      </nav>
+      <div id="router-outlet"></div> 
+    </div>
+  `, this.state);
+}
+Y en tu BaseComponent, modifica el update para que "rescate" el contenido del outlet antes de borrar:
+
+JavaScript
+private update() {
+  if (!this.element) return;
+
+  // 1. ¿Hay algo en el outlet que debamos salvar?
+  const outlet = this.element.querySelector('#router-outlet');
+  const savedContent = outlet ? Array.from(outlet.childNodes) : [];
+
+  // 2. Render normal
+  const newElement = this.render();
+  
+  // 3. Reinyectar lo salvado en el nuevo render
+  const newOutlet = newElement.querySelector('#router-outlet');
+  if (newOutlet && savedContent.length > 0) {
+    savedContent.forEach(node => newOutlet.appendChild(node));
+  }
+
+  // 4. El resto de tu lógica de bind y replace...
+  this.element.replaceWith(newElement);
+  this.bind(newElement);
+}
+3. Compartir el contexto (El "Store")
+Para que el Layout y la Ruta compartan datos (y que la reactividad de uno afecte al otro), ambos deben apuntar al mismo objeto.
+
+Cuando instancies tus componentes, no les pases un {} vacío, pásales un ctx global:
+
+JavaScript
+// App.ts
+const globalContext = {
+  state: new Proxy({ user: 'Alex' }, {
+    set: (target, prop, value) => {
+      target[prop] = value;
+      // Aquí podrías avisar a todos los componentes que se actualicen
+      pubSub.publish('GLOBAL_STATE_CHANGE', target);
+      return true;
+    }
+  })
+};
+
+// Al montar cualquier cosa:
+const view = await loader.resolve(provider, globalContext);
+Resumen: ¿Debes quitar el Proxy?
+¡No! El Proxy es tu mejor herramienta. Lo que debes hacer es:
+
+Layout: Sigue usando su state interno para cosas visuales (abrir/cerrar menú).
+
+Estado Global: Usa un objeto compartido en el ctx para datos reales (usuario, tema).
+
+Router: Asegúrate de que el Router siempre inyecte las vistas en un nodo que el Layout sepa respetar.
+
+¿Quieres que veamos cómo implementar ese "rescate" de nodos hijos en el update de forma automática para que no tengas que preocuparte por el Router?
+
+Has dicho
+El concepto de router-outlet se parece a los portals de cdk?
+Gemini ha dicho
+¡Exacto! Vas por muy buen camino. Aunque los nombres cambian según el framework, la filosofía es la misma: desacoplar dónde se define un componente de dónde se renderiza físicamente.
+
+Si vienes de Angular (CDK) o React, aquí tienes la analogía para que termines de conectar los cables:
+
+1. La analogía: Router-Outlet vs. Portals
+CDK Portals: Son un sistema para proyectar dinámicamente una "pieza" de UI (un componente o un template) en un contenedor externo (PortalOutlet).
+
+Router-Outlet: Es, en esencia, un PortalOutlet permanente. Es un hueco en tu Layout que dice: "Yo no sé qué va aquí dentro, pero el que tenga el mando (el Router) que me lo inyecte cuando quiera".
+
+2. ¿Por qué esto es vital para tu arquitectura "Vanilla"?
+Si usas un router-outlet, resuelves el problema de la "Masacre de Hijos" que mencionamos antes de dos formas:
+
+A. Desacoplamiento de Ciclos de Vida
+Cuando el Layout se actualiza (por su propio state), solo se refresca a sí mismo. Si el router-outlet está fuera de su lógica de render(), el componente de la ruta (la página actual) ni se entera, manteniendo su estado intacto.
+
+B. Inyección Manual (Estilo Portal)
+Tu Router actúa como el PortalHost. Cuando cambia la URL:
+
+Busca el elemento #router-outlet en el DOM.
+
+Limpia lo que había (llamando a destroy()).
+
+Crea la nueva vista y hace un appendChild.
+
+3. Cómo implementarlo de forma elegante
+Para que tu sistema sea robusto, puedes crear una utilidad de "Teletransporte" (muy parecida a la de CDK) dentro de tu BaseComponent o tu Router:
+
+JavaScript
+// En tu Router
+async renderView(route) {
+  const container = document.getElementById('router-outlet');
+  if (!container) return;
+
+  // 1. Limpiar el "Outlet"
+  this.currentView?.destroy();
+  container.innerHTML = '';
+
+  // 2. Resolver el componente (El "Portal")
+  const view = await loader.resolve(route.componentProvider, this.ctx);
+  
+  // 3. Montar (Usando el método static que creamos)
+  BaseComponent.mount(view, container, 'append');
+  this.currentView = view;
+}
+4. ¿Y si el Layout tiene que ser reactivo?
+Si el Layout necesita cambiar algo (ej: el color de la sidebar) y eso requiere re-renderizar, para no perder el "Portal" (la ruta), puedes usar la técnica de "Preservación de Nodo":
+
+En tu BaseComponent.update(), antes de hacer el replaceWith, busca si el nodo que vas a reemplazar contiene al #router-outlet. Si es así, desengancha el contenido del outlet, haz el update, y vuelve a engancharlo. Es como mover un mueble antes de pintar la pared y volver a ponerlo en su sitio.
+
+Conclusión
+Tanto los Portals como tu Router buscan lo mismo: Jerarquía Lógica != Jerarquía del DOM.
+Tener un Layout fijo en Vercel que no se destruya al navegar es lo que hará que tu app se sienta "nativa" y no como una web de los 90 que parpadea en cada clic.
+
+¿Quieres que veamos cómo implementar ese "desenganche" (detaching) en el update para que el Layout sea 100% reactivo sin tocar la ruta?
+
+
+
+
+
+Gemini es una IA y puede cometer errores, incluso sobre personas. Tu privacidad y GeminiSe abre en una ventana nueva
+"
+https://gemini.google.com/?hl=es#:~:text=Conversaci%C3%B3n%20con%20Gemini,una%20ventana%20nueva

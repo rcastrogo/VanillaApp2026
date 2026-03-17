@@ -1,8 +1,7 @@
-import type { ComponentContext, ComponentFactory } from "../components/component.model";
+import type { ComponentFactory } from "../components/component.model";
 import { buildAndInterpolate } from "../core/dom";
 
-const homePage: ComponentFactory = (ctx:  ComponentContext) => {
-  console.log(ctx);
+const homePage: ComponentFactory = () => {
   return {
     render: () => {
       const template = `
@@ -39,9 +38,7 @@ const homePage: ComponentFactory = (ctx:  ComponentContext) => {
 
       return buildAndInterpolate(template, this);
     },
-    mounted: () => {
-      // document.getElementById('5555')?.addEventListener('click', () => alert('Ok!'));
-    }
+    mounted: () => { /* empty */ }
   };
 };
 

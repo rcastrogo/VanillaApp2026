@@ -59,31 +59,3 @@ export class HeaderComponent extends BaseComponent {
 
   mounted() { /* empty */ }
 }
-
-export default (ctx: ComponentContext) => new HeaderComponent(ctx);
-
-
-// export class HeaderComponent extends BaseComponent {
-  
-//   init() {
-//     this.state.notifications = ['Bienvenido', 'Tienes un mensaje'];
-    
-//     // Suscripción auto-gestionada (se limpiará sola en destroy)
-//     this.subscribe('NEW_NOTIF', (msg) => {
-//       this.state.notifications = [...this.state.notifications, msg];
-//     });
-//   }
-
-//   render() {
-//     const ctx = { ...this.ctx, ...this.state };
-//     const html = `
-//       <div class="header">
-//         <span>Notif: {notifications.length}</span>
-//         <ul data-each="n in notifications">
-//           <li class="p-1 text-xs border-b">{n}</li>
-//         </ul>
-//       </div>
-//     `;
-//     return build('div', interpolate(html, ctx), true, ctx);
-//   }
-// }

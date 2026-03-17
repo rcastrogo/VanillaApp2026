@@ -5,6 +5,7 @@ import {
 import { HeaderComponent } from './components/header/header.component';
 import { UserListComponent } from './components/test/user-list.component';
 import { ThemeToggleComponent } from './components/theme-toggle.component';
+import { FooterComponent } from './components/footer.component';
 
 export const APP_CONFIG = {
   icons: {
@@ -21,6 +22,7 @@ export const APP_CONFIG = {
     zap:Zap,
   },
   components: {
+    'app-footer': FooterComponent,
     'app-header': HeaderComponent,
     'app-user-list': UserListComponent,
     'app-theme-toggle': ThemeToggleComponent,

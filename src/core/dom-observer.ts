@@ -7,7 +7,7 @@ export const initObserver = () => {
         if (node instanceof HTMLElement) {
           const deepClean = (el: ComponentElement) => {
             if (el.__componentInstance && !el.__isUpdating) {
-              el.__componentInstance.destroy();
+              el.__componentInstance.destroy?.();
             }
             Array.from(el.children).forEach(child => deepClean(child as HTMLElement));
           };

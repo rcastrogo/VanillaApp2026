@@ -1,5 +1,7 @@
 import type { ComponentContext } from './components/component.model';
 import { router } from './core/services/router.service';
+import AdminLayout from './pages/admin.layout';
+import DefaultLayout from './pages/default.layout';
 import homePage from './pages/home.page';
 import IndexPage from './pages/samples/component-based/index.page';
 import TemplatePage from './pages/samples/functional/template.page';
@@ -8,8 +10,13 @@ export function configureRouter(){
   router
     .addRoute({ 
       name: 'home', 
-      path: /^\/$/, 
+      path: /home$/, 
       componentProvider: homePage
+    })
+    .addRoute({ 
+      name: 'home', 
+      path: /^\/$/, 
+      componentProvider: DefaultLayout
     })
     .addRoute({ 
       name: 'template', 
@@ -20,6 +27,18 @@ export function configureRouter(){
       name: 'index', 
       path: /index$/, 
       componentProvider: IndexPage
+    })
+     .addRoute({ 
+      name: 'index-1', 
+      path: /index-1$/, 
+      componentProvider: IndexPage,
+      layout: null,
+    })
+    .addRoute({ 
+      name: 'index-2', 
+      path: /index-2$/, 
+      componentProvider: IndexPage,
+      layout: AdminLayout,
     })
     .addRoute({ 
       name: 'extend-base-component', 

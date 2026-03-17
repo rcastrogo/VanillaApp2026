@@ -6,14 +6,13 @@
           Compañía 
           <i data-icon="user" class="size-5"></i>
         </h3>
-        <ul class="space-y-2">
-          <li><button route-to="/dashboard" class="hover:text-gray-300">Dashboard</button></li>
-          <li><button route-to="/about" class="hover:text-gray-300">About</button></li>
-          <li><button route-to="/index" class="hover:text-gray-300">Index</button></li>
-          <li><button route-to="/" class="hover:text-gray-300">Home</button></li>
-          <li><button route-to="/extend-base-component" class="hover:text-gray-300">Extend-base-component</button></li>          
-          <li><button route-to="/usuarios" class="hover:text-gray-300">Usuarios</button></li>
-          <li><button route-to="/template" class="hover:text-gray-300">Template</button></li>
+        <button route-to="/index-1" class="">Index-1</button>
+        <button route-to="/index-2" class="">Index-1</button>
+        <button route-to="/index" class="">Index-1</button>
+
+
+        <ul data-each="route in routes" class="space-y-2">
+          <li><button route-to="{route.path}" class=">{route.name}</button></li>
         </ul>
       </div>
       <div>
