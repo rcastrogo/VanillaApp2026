@@ -1,4 +1,4 @@
-import type { ComponentContext, ComponentInitValue } from "./component.model";
+import type { ComponentContext } from "./component.model";
 import { buildAndInterpolate } from "../core/dom";
 import { BaseComponent } from "../core/types";
 

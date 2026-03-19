@@ -1,7 +1,7 @@
 
 import { loader } from './loader.service';
 import { pubSub } from './pubsub.service';
-import { type Route, router } from './router.service';
+import { type Route } from './router.service';
 import { APP_CONFIG } from '../../app.config';
 import DefaultLayout from '../../pages/layouts/default.layout';
 import { setupComponents } from '../component-registry';
