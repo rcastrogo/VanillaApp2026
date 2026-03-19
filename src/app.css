@@ -1,3 +1,6 @@
+
+div[data-component] * { display: none ;}
+
 .tool-bar-button {
     @apply p-1 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 hover:cursor-pointer transition border 
            flex items-center; 

@@ -1,4 +1,4 @@
-import { MESSAGE_APP_VIEW_CHANGE } from "./app-engine.service";
+import { AppMessages } from "./app-engine.service";
 import { pubSub } from "./pubsub.service";
 import type { ComponentConstructor, ComponentCreator } from "../../components/component.model";
 
@@ -13,7 +13,6 @@ export interface Route {
   isView?: boolean;
   params?: string[];
   queryValues?: Record<string, string>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   layout?: ComponentConstructor | null;
 }
 
@@ -66,7 +65,7 @@ class RouterService {
       route.queryValues = Object.fromEntries(searchParams.entries());
       document.title = route.name;
       // Aquí puedes parsear los query strings si tienes la utilidad pol.parseQueryString
-      pubSub.publish(MESSAGE_APP_VIEW_CHANGE, route);
+      pubSub.publish(AppMessages.Router.ViewChanged, route);
     }
   }
 }

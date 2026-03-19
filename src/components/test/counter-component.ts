@@ -1,19 +1,18 @@
 import { buildAndInterpolate } from "../../core/dom";
-import { BaseComponent} from "../../core/types";
 import { pubSub } from "../../core/services/pubsub.service";
+import { BaseComponent} from "../../core/types";
 import type { ComponentContext } from "../component.model";
 
 export class CounterComponent extends BaseComponent {
   
   constructor(ctx: ComponentContext) {
     super(ctx);
-    Object.assign(this.state, { count: 1 });
+    super.setState({ count: 0 });
   }
 
   increment() {
     this.state.count++;
     pubSub.publish('COUNT_UPDATED', { id: this.instanceId, val: this.state.count });
-    console.log(this.state.count);
   }
 
   render() {

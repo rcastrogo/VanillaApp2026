@@ -125,7 +125,7 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
       const component = await loader.resolve(provider, ctx) as BaseComponent;
       el.removeAttribute('data-component');
       const customClasses = el.className.trim();
-      component.init?.();
+      component.init?.({parent: el});
       const element = component.render() as ComponentElement;
       BaseComponent.bind(component, element);
       if (customClasses) {
@@ -141,29 +141,6 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
   }
 }
 
-// export function hydrateDirectives(container: HTMLElement, ctx: ComponentContext) {
-//   const loops = container.querySelectorAll<HTMLElement>('[data-each]');
-//   loops.forEach(el => {
-//     const expression = el.dataset.each!; // "user in users"
-//     const [itemName, , listName] = expression.split(' ');
-//     const list = getValue(listName, ctx) || [];
-//     const template = el.innerHTML;
-    
-//     el.innerHTML = '';
-//     el.removeAttribute('data-each');
-
-//     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//     list.forEach((item: any) => {
-//       const itemCtx = Object.create(ctx);
-//       itemCtx[itemName] = item; 
-//       let html = preProcessTemplate(template, itemCtx);
-//       html = interpolate(html, itemCtx);
-//       const child = build('div', html, true, itemCtx);
-//       el.appendChild(child);
-//     });
-//   });
-// }
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hydrateDirectives(container: HTMLElement, ctx: any) {
   // 1. Buscamos solo los bucles de PRIMER NIVEL (los que no tienen otro data-each encima)
@@ -177,19 +154,47 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
       const templateHTML = repeater.innerHTML;
       repeater.innerHTML = '';
       repeater.removeAttribute('data-each');
+      // Si la lista está vacía, dejamos un ancla invisible      
+      if (list.length === 0) {
+        repeater.appendChild(
+          document.createComment(`anchor:each-${listName}`)
+        );
+        return;
+      }
+      // // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // list.forEach((item: any, index: number) => {
+      //   // Creamos un contexto que HEREDA del contexto padre (el componente)
+      //   // Así, cualquier método como deleteUser se encontrará subiendo por la cadena
+      //   const itemCtx = Object.create(ctx);   
+      //   itemCtx[itemName] = item;
+      //   itemCtx.index = index;
+      //   itemCtx['#'] = ctx; // Parent context
+      //   const instance = buildAndInterpolate(templateHTML, itemCtx, false);
+      //   // RECURSIÓN: Buscamos si dentro de este item hay más bucles (anidados)
+      //   hydrateDirectives(instance, itemCtx);
+      //   // Movemos los hijos al contenedor real (el repeater)
+      //   while (instance.firstChild) repeater.appendChild(instance.firstChild);
+      // });
+
+      // 1. Creamos el saco virtual fuera del bucle
+      const fragment = document.createDocumentFragment();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       list.forEach((item: any, index: number) => {
-        // Creamos un contexto que HEREDA del contexto padre (el componente)
-        // Así, cualquier método como deleteUser se encontrará subiendo por la cadena
-        const itemCtx = Object.create(ctx);   
+        // Si el item es un elemento del DOM, lo añadimos directamente
+        if (item instanceof Node) {
+          fragment.appendChild(item);
+          return;
+        }
+        const itemCtx = Object.create(ctx);   
         itemCtx[itemName] = item;
         itemCtx.index = index;
-        itemCtx['#'] = ctx; // Parent context
+        itemCtx['#'] = ctx; 
         const instance = buildAndInterpolate(templateHTML, itemCtx, false);
-        // RECURSIÓN: Buscamos si dentro de este item hay más bucles (anidados)
         hydrateDirectives(instance, itemCtx);
-        // Movemos los hijos al contenedor real (el repeater)
-        while (instance.firstChild) repeater.appendChild(instance.firstChild);
+        while (instance.firstChild) {
+          fragment.appendChild(instance.firstChild);
+        }
       });
+      repeater.appendChild(fragment);
     });
 }

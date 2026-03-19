@@ -39,11 +39,10 @@ export class HeaderComponent extends BaseComponent {
   
   constructor(ctx: ComponentContext) {
     super(ctx)
-    console.log(this.instanceId);
   }
 
   init() {
-    console.log('Inicializando componente HeaderComponent: ' + this.instanceId);
+    // console.log('Inicializando componente HeaderComponent: ' + this.instanceId);
   }
 
   render(): HTMLElement {

@@ -1,4 +1,4 @@
-import type { User } from "./terms.logic";
+
 import type { Component, ComponentContext } from "../../../components/component.model";
 import { buildAndInterpolate } from "../../../core/dom";
 
@@ -11,7 +11,6 @@ export default class TermsPage implements Component {
   }
 
   render() {
-    const users: User[] = this.ctx.users || [];
     const template = `
       <div class="max-w-2xl mx-auto my-8 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">        
         <div class="bg-linear-to-r from-slate-800 to-slate-900 p-6">
@@ -47,12 +46,11 @@ export default class TermsPage implements Component {
               </span>
             </li>
           </ul>
-
-          ${(!users || users.length === 0) ? `
+          @if(users.length===3)
             <div class="py-12 text-center">
               <p class="text-slate-400 text-sm italic">No hay registros cargados</p>
             </div>
-          ` : ''}
+          @endif
         </div>
       </div>
     `;

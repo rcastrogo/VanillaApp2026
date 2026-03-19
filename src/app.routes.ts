@@ -1,8 +1,8 @@
 import type { ComponentContext } from './components/component.model';
 import { router } from './core/services/router.service';
-import AdminLayout from './pages/admin.layout';
-import DefaultLayout from './pages/default.layout';
 import homePage from './pages/home.page';
+import AdminLayout from './pages/layouts/admin.layout';
+import DefaultLayout from './pages/layouts/default.layout';
 import IndexPage from './pages/samples/component-based/index.page';
 import TemplatePage from './pages/samples/functional/template.page';
 

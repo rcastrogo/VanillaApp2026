@@ -1,6 +1,6 @@
-import type { ComponentContext } from "../components/component.model";
-import { buildAndInterpolate } from "../core/dom";
-import { BaseComponent } from "../core/types";
+import type { ComponentContext } from "../../components/component.model";
+import { buildAndInterpolate } from "../../core/dom";
+import { BaseComponent } from "../../core/types";
 
 export default class AdminLayout extends BaseComponent {
 
@@ -17,6 +17,6 @@ export default class AdminLayout extends BaseComponent {
 
       </div>
     `;
-    return  buildAndInterpolate(template, this);
+    return buildAndInterpolate(template, this);
   }
 }

@@ -1,4 +1,4 @@
-import type { Component, ComponentContext, ComponentCreator } from "../components/component.model";
+import type { Component, ComponentContext, ComponentCreator, ComponentInitValue } from "../components/component.model";
 import { pubSub } from "./services/pubsub.service";
 
 export interface ModuleNamespace { 
@@ -14,17 +14,23 @@ export interface ComponentElement extends HTMLElement {
   __isUpdating?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ComponentState = Record<string, any>;
+
 export abstract class BaseComponent implements Component {
   
   private static instance = 0;
 
   public element: ComponentElement | null = null;
   protected instanceId = 0;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected state: Record<string, any> = {};
+  protected state: ComponentState = {};
   protected ctx: ComponentContext;
 
+  protected props: Record<string, string | undefined> = {};
+  protected children: Node[] = [];
+
   private cleanups: CleanupFn[] = [];
+  private isInitializing = false;
 
   constructor(ctx: ComponentContext) {
     this.instanceId = ++BaseComponent.instance;
@@ -34,10 +40,21 @@ export abstract class BaseComponent implements Component {
       set: (target, prop, value) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (target as any)[prop] = value;
-        this.update();
+        if (!this.isInitializing) {
+          this.update();
+        }
         return true;
       }
     });
+  }
+
+  protected setState(state: ComponentState){
+    this.isInitializing = true;
+    Object.assign(this.state, state);
+    this.isInitializing = false;
+    if (this.element) {
+      this.update();
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,8 +68,8 @@ export abstract class BaseComponent implements Component {
     this.addCleanup(unsubscribe);
   }
 
-  protected addCleanup(fn: CleanupFn): void {
-    this.cleanups.push(fn);
+  protected addCleanup(fn: CleanupFn | CleanupFn[]): void {
+    this.cleanups = this.cleanups.concat(fn);
   }
 
   private bindMethods() {
@@ -69,45 +86,40 @@ export abstract class BaseComponent implements Component {
 
   private update() {
     if (!this.element) return;
-    const activeElement = document.activeElement as HTMLElement;   
-    const targetId = activeElement?.id || '';
-    this.element.__isUpdating = true; 
-
+    this.element.__isUpdating = true;
     const newElement = this.render();
     const currentOutlet = this.element.querySelector('#router-outlet');
     const newOutlet = newElement.querySelector('#router-outlet');
     if (currentOutlet && newOutlet) {
-      while (currentOutlet.firstChild) newOutlet.appendChild(currentOutlet.firstChild);
+      newOutlet.replaceWith(currentOutlet);
     }
-    this.element.replaceWith(newElement)
-    this.bind(newElement);
-
-    if (targetId) {
-      const target = this.element.querySelector('#' + targetId) as HTMLInputElement;
-      if (target) {
-        target.focus();
-        const len = target.value.length;
-        target.setSelectionRange?.(len, len);
-      }
+ 
+    const fragment = document.createDocumentFragment();
+    while (newElement.firstChild) {
+      fragment.appendChild(newElement.firstChild);
     }
 
+    this.element.innerHTML = '';
+    this.element.appendChild(fragment);
+    this.bind(this.element);
     this.mounted?.();
+
+    Promise.resolve().then(() => {
+      if (this.element) this.element.__isUpdating = false;
+    });
+
   }
 
   abstract render(): HTMLElement;
 
   mounted() { /* empty */ }
-  init() { /* empty */ }
+  init(_ctx?: ComponentInitValue) { /* empty */ }
 
   public destroy(): void {
     if (this.cleanups.length === 0 && !this.element) return;
-    console.log(`[Cleanup] Destruyendo: ${this.constructor.name}`);
+    // console.log(`[Cleanup] Destruyendo: ${this.constructor.name}`);
     this.cleanups.forEach(fn => fn());
     this.cleanups = [];
-    if (this.element) {
-      delete this.element.__componentInstance;
-      this.element = null;
-    }
   }
 
    public static bind(component: BaseComponent, el: HTMLElement): ComponentElement {
@@ -130,5 +142,4 @@ export abstract class BaseComponent implements Component {
     return BaseComponent.bind(this, el);
   }
   
-
 }

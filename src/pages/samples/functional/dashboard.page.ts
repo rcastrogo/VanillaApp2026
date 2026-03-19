@@ -2,7 +2,7 @@
 import type { ComponentContext, ComponentFactory } from '../../../components/component.model';
 import { $, build } from '../../../core/dom';
 import { loader } from '../../../core/services/loader.service';
-import type { BaseComponent, ComponentElement } from '../../../core/types';
+import { BaseComponent} from '../../../core/types';
 
 const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
 
@@ -18,6 +18,7 @@ const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
         <div class="footer">
         </div>
       `;
+      element.id = 'kk';
       return element;
     },
     mounted: async () => {
@@ -34,12 +35,7 @@ const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
         const container = $('#widget-container').one();
         if (container && widget) {
           widget.init?.();
-          const element = widget.render() as ComponentElement;
-          if (!element.__componentInstance) {
-            element.__componentInstance = widget as BaseComponent;
-            widget.element = element;
-          }
-          container.replaceWith(element);
+          container.replaceWith(BaseComponent.renderAndBind(widget as BaseComponent));
           widget.mounted?.();
         }
 

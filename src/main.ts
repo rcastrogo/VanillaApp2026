@@ -8,7 +8,7 @@ import { router } from './core/services/router.service';
 function initApp(){
   appEngine.init();  
   configureRouter();
-  router.sync();
+  router.sync();  
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

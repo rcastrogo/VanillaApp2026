@@ -6,7 +6,7 @@ export class UserListComponent extends BaseComponent {
 
   constructor(ctx: ComponentContext) {
     super(ctx);
-    Object.assign(this.state, {     
+    super.setState({     
       users: [
         { id: 1, name: 'Alice Freeman', role: 'Admin', initial: 'A' },
         { id: 2, name: 'Bob Vance', role: 'User', initial: 'B' },
@@ -35,7 +35,6 @@ export class UserListComponent extends BaseComponent {
   }
 
   deleteUser(_el: HTMLElement, _ev: Event, id: number) {
-    console.log('deleteUser');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.state.users = this.state.users.filter((u: any) => u.id !== Number(id));
   }
@@ -47,7 +46,6 @@ export class UserListComponent extends BaseComponent {
   filteredUsers = [];
 
   render() {
-    console.log('list-control')
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.filteredUsers = this.state.users.filter((u: any) => 
       this.state.searchQuery.length ? u.name.toLowerCase().includes(this.state.searchQuery) : true

@@ -2,6 +2,7 @@ import { hydrateComponents, hydrateDirectives, hydrateEventListeners, hydrateIco
 import { interpolate } from "./template";
 import type { ComponentContext } from "../components/component.model";
 
+
 export function build<T extends HTMLElement>(
   tagName: string,
   options: Partial<T> | string = {},
@@ -10,6 +11,9 @@ export function build<T extends HTMLElement>(
 ): T | HTMLElement {
   const el = document.createElement(tagName);
   if (typeof options === 'string') {
+    if (!options.trim()) {
+      return el; 
+    }
     el.innerHTML = options;
   } else {
     const { className, ...rest } = options;
@@ -24,7 +28,9 @@ export function build<T extends HTMLElement>(
   if (ctx) hydrateComponents(el, ctx);
   // 4. Listeners (al final, para que los componentes hidratados no pierdan sus eventos)
   if (ctx) hydrateEventListeners(el, ctx);
-  return returnFirstChild ? (el.firstElementChild as HTMLElement) : el;
+  // Forzamos que siempre devuelva UN nodo
+  if (returnFirstChild) return (el.firstElementChild as HTMLElement) || el;
+  return el;
 }
 
 export function buildAndInterpolate<T extends HTMLElement>(

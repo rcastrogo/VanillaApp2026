@@ -1,12 +1,13 @@
 
-
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
   if: (cond:boolean, cls: string) => (cond === undefined ? undefined : cond ? cls : ''),
   show: (cond:boolean) => (cond === undefined ? undefined : cond ? '' : 'display: none'),
   hide: (cond:boolean) => (cond === undefined ? undefined : cond ? 'display: none' : ''),
-  iif: (cond:boolean, t: string, f:string) => (cond === undefined ? undefined : cond ? t : f),
+  iif: (cond: boolean | string | number | null | undefined, t: string, f: string) => 
+  (cond === undefined || cond === null) 
+    ? f 
+    : (cond === 'false' || cond === '0' ? false : Boolean(cond)) ? t : f,
   upper: (val:string) => val?.toUpperCase(),
   lower: (val:string) => val?.toLowerCase(),
   undefined: (val:string) => val ? val : 'valor no definido'
@@ -56,7 +57,7 @@ export function interpolate(template: string, context: any): string {
       if (typeof result === 'function') return result.apply(context);
       return result !== undefined && result !== null ? String(result) : match;
     } catch(e) {
-      console.log(String(e), match);
+      console.error(String(e), match);
       return match;
     }
   });

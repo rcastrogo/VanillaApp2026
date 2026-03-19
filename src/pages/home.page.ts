@@ -32,6 +32,30 @@ const homePage: ComponentFactory = () => {
               Configuración
             </button>
           </div>
+
+          <div 
+            data-component="app-collapsible" 
+            data-title="Esto funciona!"
+            data-expanded="true"
+            >
+            <h1 class="text-3xl">Contenido del collapsible</h1>
+            <p class="bg-red-500">
+              Este es el primer párrafo.
+            </p>
+            <p>
+              Este es el segundo párrafo.
+            </p>          
+          </div>
+
+          <div 
+            data-component="app-collapsible" 
+            data-expanded="false"
+            data-title="Configuración de eventos"
+            >
+              <h1 class="text-5xl bg-blue-600">Contenido del collapsible Configuración de eventos</h1>
+              este teradf kdajfkdsfasdfas    
+          </div>
+
           <div data-component="app-dashboard"></div>
         </div>
       `;

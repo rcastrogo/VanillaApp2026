@@ -5,7 +5,7 @@ import { BaseComponent } from "../core/types";
 export class FooterComponent extends BaseComponent {
   constructor(ctx: ComponentContext) {
     super(ctx);
-    Object.assign(this.state, {
+    super.setState({
       currentYear: new Date().getFullYear()
     });
   }
@@ -43,7 +43,10 @@ export class FooterComponent extends BaseComponent {
               <ul class="space-y-4">
                 <li><a route-to="/dashboard" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">Dashboard</a></li>
                 <li><a route-to="/usuarios" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">Usuarios</a></li>
-              </ul>
+                <li><a route-to="/home" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">Home</a></li>
+                <li><a route-to="/about" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">About</a></li>
+              
+                </ul>
             </div>
 
             <div>

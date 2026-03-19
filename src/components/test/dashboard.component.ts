@@ -7,7 +7,7 @@ export class DashboardComponent extends BaseComponent {
 
   constructor(ctx: ComponentContext) {
     super(ctx);
-    Object.assign(this.state, {
+    super.setState({
       showCounters: true,
       lastGlobalUpdate: 'Esperando actividad...'
     });
