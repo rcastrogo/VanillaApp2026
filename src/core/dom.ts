@@ -51,16 +51,16 @@ export function buildAndInterpolate<T extends HTMLElement>(
   );
 }
 
-export function $<T extends HTMLElement>(selector: string, context: HTMLElement | Document = document) {
+export function $<T extends HTMLElement>(selector: string, context?: HTMLElement | undefined | null) {
   return {
     one: (): T | null => {
-      return context.querySelector<T>(selector);
+      return (context || document).querySelector<T>(selector);
     },
     all: (): T[] => {
-      return Array.from(context.querySelectorAll<T>(selector));
+      return Array.from((context || document).querySelectorAll<T>(selector));
     },
     exists: (): boolean => {
-      return context.querySelector(selector) !== null;
+      return (context || document).querySelector(selector) !== null;
     }
   };
 }

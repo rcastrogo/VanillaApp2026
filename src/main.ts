@@ -1,4 +1,5 @@
 
+import '@maptiler/sdk/dist/maptiler-sdk.css';
 import './styles.css';
 
 import { configureRouter } from './app.routes';
@@ -8,7 +9,7 @@ import { router } from './core/services/router.service';
 function initApp(){
   appEngine.init();  
   configureRouter();
-  router.sync();  
+  router.sync();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);

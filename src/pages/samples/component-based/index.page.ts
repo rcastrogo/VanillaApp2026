@@ -1,3 +1,4 @@
+
 import type { Component, ComponentContext } from "../../../components/component.model";
 
 export default class IndexPage implements Component {
@@ -37,7 +38,6 @@ export default class IndexPage implements Component {
     return this.element;
   }
 
-  mounted() {
-    console.log("Home montado y listo");
-  }
+  mounted() { /* empty */ }
+
 }

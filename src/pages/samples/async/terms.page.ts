@@ -1,6 +1,8 @@
 
+import { APP_CONFIG } from "../../../app.config";
 import type { Component, ComponentContext } from "../../../components/component.model";
-import { buildAndInterpolate } from "../../../core/dom";
+import { $, build, buildAndInterpolate } from "../../../core/dom";
+import { BaseComponent } from "../../../core/types";
 
 export default class TermsPage implements Component {
 
@@ -51,6 +53,8 @@ export default class TermsPage implements Component {
               <p class="text-slate-400 text-sm italic">No hay registros cargados</p>
             </div>
           @endif
+          <div data-component="app-map">
+          </div>
         </div>
       </div>
     `;
@@ -61,3 +65,46 @@ export default class TermsPage implements Component {
     console.log("TermsPage montado con usuarios cargados");
   }
 }
+
+class MapComponent extends BaseComponent {
+
+  init(): void { /* empty */ }
+
+  render(): HTMLElement {
+    const template = `
+      <div class="p-4 rounded-lg shadow-md 
+        border
+        transition-colors duration-300
+        border-slate-200 bg-white 
+        dark:border-slate-700 dark:bg-slate-800 
+        dark:shadow-lg">
+        <div class="h-80" id="map-container"></div>
+      </div>
+    `;
+    return build('div', template)
+  }
+
+  async mounted() {
+    const maptiler = await import('@maptiler/sdk');
+    maptiler.config.apiKey = 'WTPEuorKYkIIZEuHL6x8';
+    const container = $('#map-container', this.element).one();
+
+    if (container) {
+      const map = new maptiler.Map({
+        container: container, 
+        style: maptiler.MapStyle.STREETS,
+        center: [-3.70379, 40.41678],
+        zoom: 14
+      });
+      console.log('Mapa inicializado correctamente' + map.getPrimaryLanguage());
+    }   
+    
+    return; 
+  }
+
+}
+
+// Registro explícito fuera de la clase
+Promise.resolve().then(() => {
+  APP_CONFIG.registerComponent('app-map', MapComponent);
+});

@@ -1,8 +1,8 @@
 import type { ComponentContext, ComponentInitValue } from "./component.model";
 import { APP_CONFIG } from "../app.config";
 import { build, buildAndInterpolate } from "../core/dom";
-import { BaseComponent } from "../core/types";
 import { useState } from "../core/state.utils";
+import { BaseComponent } from "../core/types";
 
 export class CollapsibleComponent extends BaseComponent {
 
@@ -58,37 +58,37 @@ export class CollapsibleComponent extends BaseComponent {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function useSelector(stateProxy: any, prop: string, callback: (val: any) => void) {
-  if (!stateProxy.__subscribers) {
-    stateProxy.__subscribers = {};
-  }
+// // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// export function useSelector(stateProxy: any, prop: string, callback: (val: any) => void) {
+//   if (!stateProxy.__subscribers) {
+//     stateProxy.__subscribers = {};
+//   }
 
-  if (!stateProxy.__subscribers[prop]) {
-    stateProxy.__subscribers[prop] = [];
-  }
-  stateProxy.__subscribers[prop].push(callback);
-}
+//   if (!stateProxy.__subscribers[prop]) {
+//     stateProxy.__subscribers[prop] = [];
+//   }
+//   stateProxy.__subscribers[prop].push(callback);
+// }
 
-export function createReactiveState<T extends object>(initial: T): T {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-  const subscribers: Record<string, Function[]> = {};
+// export function createReactiveState<T extends object>(initial: T): T {
+//   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+//   const subscribers: Record<string, Function[]> = {};
 
-  return new Proxy(initial, {
-    get(target, prop) {
-      if (prop === '__subscribers') return subscribers;
-      return target[prop as keyof T];
-    },
-    set(target, prop, value) {
-      if (target[prop as keyof T] === value) return true;
-      target[prop as keyof T] = value;
-      if (subscribers[prop as string]) {
-        subscribers[prop as string].forEach(cb => cb(value));
-      }
-      return true;
-    }
-  });
-}
+//   return new Proxy(initial, {
+//     get(target, prop) {
+//       if (prop === '__subscribers') return subscribers;
+//       return target[prop as keyof T];
+//     },
+//     set(target, prop, value) {
+//       if (target[prop as keyof T] === value) return true;
+//       target[prop as keyof T] = value;
+//       if (subscribers[prop as string]) {
+//         subscribers[prop as string].forEach(cb => cb(value));
+//       }
+//       return true;
+//     }
+//   });
+// }
 
 class ClockComponent extends BaseComponent {
 

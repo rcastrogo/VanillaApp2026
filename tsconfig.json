@@ -6,9 +6,10 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
     "skipLibCheck": true,
+    "baseUrl": ".",
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "node", //"bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -20,11 +21,10 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
-  },
-  "baseUrl": ".", 
-  "paths": {
-    "~/*": ["src/*"]
+    "noUncheckedSideEffectImports": true,
+    "paths": {
+      "~/*": ["src/*"]
+    }
   },
   "include": ["src"],
 }
