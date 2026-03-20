@@ -1,246 +1,82 @@
 
-HTML
-<div data-component="UserProfile" data-name="Gabi" data-role="Admin"></div>
-En la lógica de tu Componente:
 
 TypeScript
-class UserProfile extends BaseComponent {
-  render() {
-    // Recuperamos las props directamente del elemento que se está hidratando
-    const name = this.element.getAttribute('data-name') || 'Invitado';
-    const role = this.element.getAttribute('data-role') || 'User';
-
-    return build('div', `
-      <h1>${name}</h1>
-      <p>Role: ${role}</p>
-      <div id="children-container"></div>
-    `);
+const translations = {
+  es: {
+    welcome: "Bienvenido, {name}!",
+    logout: "Cerrar sesión",
+    items: "Tienes {count} productos"
+  },
+  en: {
+    welcome: "Welcome, {name}!",
+    logout: "Log out",
+    items: "You have {count} items"
   }
-}
-2. Pasar Children (Transfusión de Nodos)
-Para que los hijos que escribes dentro del div original no se pierdan al renderizar el componente, debes realizar una "captura" antes de que el innerHTML del componente sobrescriba el contenido.
-
-En el HTML:
-
-HTML
-<div data-component="Card">
-  <button on-click="sayHi">Click me!</button> </div>
-En tu lógica de Hidratación (hydrateComponents):
-Para que esto funcione, tu función de hidratación debe mover los hijos del nodo original al nuevo contenedor del componente.
+};
+2. El Servicio I18n
+Necesitas un objeto global o un "Helper" que gestione el idioma actual y realice la sustitución de variables.
 
 TypeScript
-function hydrateComponents(el: HTMLElement, ctx: ComponentContext) {
-  const componentName = el.getAttribute('data-component');
-  if (!componentName) return;
+class I18n {
+  private currentLang = 'es';
 
-  // 1. CAPTURA: Guardamos los hijos originales antes de limpiar el elemento
-  const children = Array.from(el.childNodes);
-  el.innerHTML = ''; 
-
-  // 2. INSTANCIA: Creamos el componente (suponiendo que tienes un mapa de clases)
-  const ComponentClass = ComponentRegistry[componentName];
-  const instance = new ComponentClass(el); 
-
-  // 3. RENDER: El componente genera su estructura interna
-  const shadow = instance.render(); 
-  el.appendChild(shadow);
-
-  // 4. TRANSFUSIÓN: Buscamos dónde queremos meter los hijos originales
-  const slot = el.querySelector('[data-slot]') || el; 
-  children.forEach(child => slot.appendChild(child));
-
-  instance.bind(el);
-}
-3. Ejemplo Práctico: El "Slot"
-Si quieres tener control total de dónde caen los hijos, puedes usar un atributo marcador como data-slot.
-
-Template del Componente Card:
-
-TypeScript
-render() {
-  return build('div', { className: 'card-wrapper' }, `
-    <div class="card-header">Título de la Card</div>
-    <div class="card-body" data-slot>
-       </div>
-  `);
-}
-Resumen de la estrategia
-Props: Usa this.element.getAttribute('data-prop-name'). Es simple, estándar y no requiere parseo complejo.
-
-Children: En el proceso de hidratación, guarda los childNodes en una constante antes de renderizar el componente, y luego hazles un appendChild dentro del nuevo contenedor.
-
-Esto permite que tus componentes sean reutilizables y que el HTML actúe como una "plantilla de configuración".
-
-¿Te gustaría que viéramos cómo tipar estas props para que TypeScript te ayude con el autocompletado dentro del componente?
-
-Has dicho
-Y no podríamos pasar los chiles por el init o el mount del componente?
-Gemini ha dicho
-¡Totalmente! De hecho, pasar los hijos (children) en el momento de la instanciación (init) o justo después del primer renderizado (mount) es una arquitectura mucho más limpia porque el componente tiene el control total sobre dónde y cuándo colocarlos.
-
-Para un framework experimental, lo más eficiente es capturarlos antes de limpiar el DOM e inyectarlos en el ciclo de vida.
-
-1. Captura y Pasaje en el Constructor (init)
-Podemos modificar tu lógica de hidratación para que "secuestre" los hijos antes de que el componente tome el control del elemento.
-
-TypeScript
-function hydrateComponents(el: HTMLElement, ctx: ComponentContext) {
-  const componentName = el.getAttribute('data-component');
-  if (!componentName) return;
-
-  // 1. CAPTURA: Guardamos los nodos que el usuario escribió en el HTML
-  const children = Array.from(el.childNodes);
-  
-  // Limpiamos el elemento para que el componente empiece de cero
-  el.innerHTML = '';
-
-  // 2. INYECCIÓN: Pasamos los hijos al constructor
-  const ComponentClass = ComponentRegistry[componentName];
-  const instance = new ComponentClass(el, children); // <-- Pasamos el array de nodos
-
-  // El componente ahora decide qué hacer con ellos en su render() o mounted()
-}
-2. Cómo recibirlos en el Componente
-En tu clase base o en el componente específico, guardas esos hijos y decides dónde ponerlos. Esto es similar a cómo funciona el props.children en React o los slots en Web Components.
-
-TypeScript
-class MyCard extends BaseComponent {
-  private children: Node[];
-
-  constructor(el: HTMLElement, children: Node[]) {
-    super(el);
-    this.children = children;
+  setLanguage(lang: string) {
+    this.currentLang = lang;
+    // Aquí podrías disparar un evento global para que todos los componentes se actualicen
+    window.dispatchEvent(new CustomEvent('langChange'));
   }
 
-  render() {
-    // Creamos la cáscara del componente
-    const container = build('div', { className: 'card' }, `
-      <div class="card-header">Título</div>
-      <div class="card-content" id="slot"></div>
-    `);
+  // El método "t" (translate)
+  t(key: string, params: Record<string, any> = {}) {
+    let text = translations[this.currentLang][key] || key;
 
-    // Inyectamos los hijos capturados en el lugar correcto
-    const slot = container.querySelector('#slot');
-    if (slot) {
-      this.children.forEach(child => slot.appendChild(child));
-    }
+    // Interpolación simple: reemplaza {name} por el valor en params
+    Object.keys(params).forEach(param => {
+      text = text.replace(`{${param}}`, params[param]);
+    });
 
-    return container;
+    return text;
   }
 }
-3. ¿Y las Props? (El enfoque "HTML-First")
-Para las props, lo más sencillo es recuperarlas del el (el elemento original) durante el init. Así el componente nace ya sabiendo quién es.
 
-TypeScript
-class BaseComponent {
-  protected props: Record<string, string> = {};
+export const i18n = new I18n();
+3. Integración con tu buildAndInterpolate
+Para que no tengas que llamar a i18n.t() manualmente en cada componente, puedes crear una directiva de traducción o una sintaxis especial en tus templates.
 
-  constructor(public element: HTMLElement, public children: Node[] = []) {
-    // Extraemos todos los data-attributes automáticamente
-    const dataset = this.element.dataset;
-    for (const key in dataset) {
-      this.props[key] = dataset[key]!;
-    }
-  }
-}
-Por qué este enfoque es mejor:
-Reactividad: Si el componente se re-renderiza (tu función update), ya tienes los children guardados en una variable de clase. No tienes que volver a buscarlos en el DOM.
-
-Flexibilidad: El componente puede decidir no renderizar los hijos si una condición no se cumple (ej: un componente Acordeón cerrado).
-
-Simplicidad: Mantienes el HTML declarativo pero la lógica de manipulación se queda dentro de la clase JS.
-
-Ejemplo de uso final:
-HTML:
+Opción A: Directiva data-t
+Puedes añadir una hidratación que busque etiquetas con traducción:
 
 HTML
-<div data-component="Modal" data-title="Confirmar Borrado">
-  <p>¿Estás seguro de que quieres eliminar este usuario?</p>
-  <button on-click="delete">Sí, borrar</button>
-</div>
-JS (Componente):
+<button data-t="logout"></button>
+<p data-t="welcome" data-t-params='{"name": "Gabi"}'></p>
+En tu lógica de hidratación:
 
 TypeScript
-render() {
-  return build('div', { className: 'modal' }, `
-    <div class="modal-header">${this.props.title}</div>
-    <div class="modal-body"></div> `);
+function hydrateI18n(el: HTMLElement) {
+  const keys = el.querySelectorAll('[data-t]');
+  keys.forEach(node => {
+    const key = node.getAttribute('data-t');
+    const params = JSON.parse(node.getAttribute('data-t-params') || '{}');
+    node.textContent = i18n.t(key, params);
+  });
 }
-¿Te gustaría que ajustáramos tu clase BaseComponent para que esta extracción de props y children sea automática para todos tus componentes?
+Opción B: Interpolación Directa {{t:key}}
+Si tu sistema de strings ya detecta llaves, puedes añadir un prefijo:
 
-Has dicho
-Si
-Gemini ha dicho
-Esta es una excelente forma de estructurar tu BaseComponent. Al automatizar la captura de props (vía dataset) y de children (vía childNodes) en la base, tus componentes hijos quedan muy limpios y se centran solo en la lógica y el template.
-
-Aquí tienes cómo quedaría la estructura base para que todo funcione "por arte de magia":
-
-1. La Clase Base Evolucionada
 TypeScript
-export class BaseComponent {
-  protected props: Record<string, string> = {};
-  protected children: Node[] = [];
-
-  constructor(public element: HTMLElement) {
-    // 1. Capturar Props (de data-attributes)
-    // dataset convierte data-user-id en userId automáticamente
-    this.props = { ...this.element.dataset };
-
-    // 2. Capturar Children antes de que se borren
-    // Usamos Array.from para tener una copia real y no un live-list
-    this.children = Array.from(this.element.childNodes);
-
-    // 3. Limpiar el elemento original para el render
-    this.element.innerHTML = '';
-  }
-
-  // Método que los hijos implementarán
-  render(): HTMLElement | Node {
-    return document.createElement('div');
-  }
-
-  // Tu lógica de bind, update, etc...
+// Dentro de tu función de interpolar strings
+function interpolateString(template: string, ctx: any) {
+  return template.replace(/{{t:(.*?)}}/g, (_, key) => i18n.t(key.trim()));
 }
-2. Implementación en un Componente Hijo
-Ahora, cuando crees un componente, ya no tienes que preocuparte por buscar datos en el DOM; simplemente los usas desde this.props o this.children.
+4. ¿Cómo manejar el cambio de idioma sin recargar?
+Dado que tienes un método update() en tus componentes, puedes hacer que todos los componentes activos se re-rendericen cuando el idioma cambie.
 
 TypeScript
-class CustomCard extends BaseComponent {
-  render() {
-    // Usamos las props capturadas
-    const title = this.props.title || 'Sin título';
-    
-    const container = build('div', { className: 'card' }, `
-      <div class="card-header">
-        <h3>${title}</h3>
-      </div>
-      <div class="card-body" id="slot"></div>
-    `);
+// En tu BaseComponent
+constructor(el: HTMLElement) {
+  // ... tu lógica de props y children ...
 
-    // Inyectamos los hijos donde queramos
-    const slot = container.querySelector('#slot');
-    if (slot) {
-      this.children.forEach(child => slot.appendChild(child));
-    }
-
-    return container;
-  }
-}
-3. Ajuste en la Hidratación (hydrateComponents)
-Tu orquestador solo necesita instanciar el componente y añadir el resultado del render al elemento original.
-
-TypeScript
-function hydrateComponents(el: HTMLElement, ctx: ComponentContext) {
-  const name = el.getAttribute('data-component');
-  const ComponentClass = ComponentRegistry[name];
-
-  if (ComponentClass) {
-    // El constructor de BaseComponent ya se encarga de capturar todo
-    const instance = new ComponentClass(el);
-    const view = instance.render();
-    
-    el.appendChild(view);
-    instance.bind(el);
-    instance.mounted?.();
-  }
+  window.addEventListener('langChange', () => {
+    this.update(); // Forzamos el re-renderizado con el nuevo idioma
+  });
 }

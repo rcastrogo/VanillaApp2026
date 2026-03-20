@@ -3,6 +3,7 @@ import { buildAndInterpolate } from "../core/dom";
 import { BaseComponent } from "../core/types";
 
 export class FooterComponent extends BaseComponent {
+  
   constructor(ctx: ComponentContext) {
     super(ctx);
     super.setState({

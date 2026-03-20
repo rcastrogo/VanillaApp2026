@@ -1,3 +1,4 @@
+import { APP_CONFIG } from "../app.config";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
@@ -10,15 +11,41 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
     : (cond === 'false' || cond === '0' ? false : Boolean(cond)) ? t : f,
   upper: (val:string) => val?.toUpperCase(),
   lower: (val:string) => val?.toLowerCase(),
-  undefined: (val:string) => val ? val : 'valor no definido'
+  undefined: (val:string) => val ? val : 'valor no definido',
+  t: function(key: string) {
+    const lang = APP_CONFIG.i18n.lng.strore.lng;
+    const text = getValue(`${lang}.${key}`, APP_CONFIG.i18n);
+    if (!text) return key;
+    if (text.includes('{')) {
+      return interpolate(text, this);
+    }
+    return text;
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  debug: function(val: any) {
+    console.log("Valor actual:", val);
+    console.log("Scope completo:", this);
+    return val;
+  }
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getValue(key: string | undefined, scope: any): any {
   if (!key || key === 'this') return scope;
   const parts = key.split('|').map(p => p.trim());
-  const path = parts.shift();
+  const path = parts.shift() || '';
   const filters = parts;
+
+  // Soporte sintaxis t:key -> 'key' | t
+  if (path.startsWith('t:')) {
+    filters.unshift('t');
+    return applyfilters(filters, path.slice(2),  scope)
+  } 
+  // Soporte literales con comillas
+  if (path.startsWith("'") && path.endsWith("'")) {
+    return applyfilters(filters, path.slice(1, -1),  scope)
+  } 
+
   const tokens = (path || '').split(/\.|\[|\]/).filter(t => t !== '');
   let target = scope || self;
   for (const propName of tokens) {
@@ -34,18 +61,24 @@ export function getValue(key: string | undefined, scope: any): any {
       break;
     }
   }
-  return filters.reduce((value, filterExpr) => {
+  return applyfilters(filters, target,  scope);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applyfilters(filters: string[], value: any, scope: any){
+  return filters.reduce((value, filterExpr: string) => {
     const [filterName, ...args] = filterExpr.split(':').map(s => s.trim());
     const fn = getValue(filterName, scope) || GLOBAL_FUNCTIONS[filterName];
     if (typeof fn === 'function') {
       const parsedArgs = args.map(arg =>
         arg.startsWith('@') ? getValue(arg.slice(1), scope) : arg
       );
-      return fn(value, ...parsedArgs);
+      return fn.apply(scope, [value, ...parsedArgs]);
+      // return fn(value, ...parsedArgs);
     }
     console.warn(`Filtro "${filterName}" no encontrado.`);
     return value;
-  }, target);
+  }, value);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

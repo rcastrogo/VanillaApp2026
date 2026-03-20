@@ -25,7 +25,6 @@ export class HeaderComponent extends BaseComponent {
     },
     showMessage: (el: HTMLElement, _e: Event, id: string) => {
       console.log('Settings clicked!', { element: el, instance: id });      
-      // Disparamos cambios reactivos
       this.publish('SYSTEM_MSG', `Configuración abierta para ID: ${id}`);
       this.publish('NOTIFICATIONS_COUNT', 'bg-yellow-400 text-black animate-bounce');
     },
@@ -41,11 +40,12 @@ export class HeaderComponent extends BaseComponent {
     super(ctx)
   }
 
-  init() {
-    // console.log('Inicializando componente HeaderComponent: ' + this.instanceId);
-  }
+  init() { 
+    this.setState({});
+   }
+  mounted() { /* empty */ }
 
-  render(): HTMLElement {
+  render(){
     const cxt = {
       ...this.appDescription,
       instanceId: this.instanceId,
@@ -56,5 +56,4 @@ export class HeaderComponent extends BaseComponent {
     return this.element;
   }
 
-  mounted() { /* empty */ }
 }

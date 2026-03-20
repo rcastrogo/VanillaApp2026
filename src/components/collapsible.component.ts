@@ -1,6 +1,8 @@
 import type { ComponentContext, ComponentInitValue } from "./component.model";
-import { buildAndInterpolate } from "../core/dom";
+import { APP_CONFIG } from "../app.config";
+import { build, buildAndInterpolate } from "../core/dom";
 import { BaseComponent } from "../core/types";
+import { useState } from "../core/state.utils";
 
 export class CollapsibleComponent extends BaseComponent {
 
@@ -8,14 +10,14 @@ export class CollapsibleComponent extends BaseComponent {
     super(ctx);
   }
 
-  init(ctx: ComponentInitValue) { 
-    if(ctx && ctx.parent){
+  init(ctx: ComponentInitValue) {
+    if (ctx && ctx.parent) {
       this.props = { ...ctx.parent.dataset };
-      this.children = Array.from(ctx.parent.childNodes); 
+      this.children = Array.from(ctx.parent.childNodes);
     }
     this.setState({
       expanded: this.props.expanded === 'true' || false,
-      title : this.props.title || 'Texto por defecto'
+      title: this.props.title || 'Texto por defecto'
     });
   }
 
@@ -46,6 +48,7 @@ export class CollapsibleComponent extends BaseComponent {
         >
         </div>
         @if(state.expanded)
+          <div data-component="app-collapsible-clock"></div>
         @endif    
         @if(state.expanded === false) 
         @endif    
@@ -55,6 +58,74 @@ export class CollapsibleComponent extends BaseComponent {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useSelector(stateProxy: any, prop: string, callback: (val: any) => void) {
+  if (!stateProxy.__subscribers) {
+    stateProxy.__subscribers = {};
+  }
+
+  if (!stateProxy.__subscribers[prop]) {
+    stateProxy.__subscribers[prop] = [];
+  }
+  stateProxy.__subscribers[prop].push(callback);
+}
+
+export function createReactiveState<T extends object>(initial: T): T {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+  const subscribers: Record<string, Function[]> = {};
+
+  return new Proxy(initial, {
+    get(target, prop) {
+      if (prop === '__subscribers') return subscribers;
+      return target[prop as keyof T];
+    },
+    set(target, prop, value) {
+      if (target[prop as keyof T] === value) return true;
+      target[prop as keyof T] = value;
+      if (subscribers[prop as string]) {
+        subscribers[prop as string].forEach(cb => cb(value));
+      }
+      return true;
+    }
+  });
+}
+
+class ClockComponent extends BaseComponent {
 
 
+  private _state = useState({ seconds: 0, date: '' });
 
+  init(): void {
+    const { put } = this._state;
+    const intervalId = setInterval(() => {
+      put('date', new Date().toTimeString().split(' ')[0])
+    }, 1_000);
+    this.addCleanup(() => clearInterval(intervalId));
+  }
+
+  render(): HTMLElement {
+
+    const { on } = this._state;
+
+    const view = build('div', `
+      <div class="p-4 rounded-lg shadow-md border border-slate-200 bg-white transition-colors duration-300 dark:border-slate-700 dark:bg-slate-800 dark:shadow-lg">
+        <div class="flex items-center gap-3">
+          <i data-icon="timer" class="text-blue-500 dark:text-blue-400 size-6"></i>
+          <span class="font-mono text-xl font-bold text-slate-700 dark:text-slate-100" id="date-slot">
+            --:--:--
+          </span>
+        </div>
+      </div>
+    `);
+
+    on('date', val => view.querySelector('#date-slot')!.textContent = val);
+
+    return view;
+  }
+
+}
+
+// Registro explícito fuera de la clase
+Promise.resolve().then(() => {
+  APP_CONFIG.registerComponent('app-collapsible-clock', ClockComponent);
+});
