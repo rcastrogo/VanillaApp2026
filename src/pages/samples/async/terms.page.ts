@@ -92,7 +92,7 @@ class MapComponent extends BaseComponent {
     if (container) {
       const map = new maptiler.Map({
         container: container, 
-        style: maptiler.MapStyle.STREETS,
+        style: maptiler.MapStyle.TOPO,
         center: [-3.70379, 40.41678],
         zoom: 14
       });

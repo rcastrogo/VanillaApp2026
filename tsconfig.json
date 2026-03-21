@@ -9,7 +9,7 @@
     "baseUrl": ".",
 
     /* Bundler mode */
-    "moduleResolution": "node", //"bundler",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",

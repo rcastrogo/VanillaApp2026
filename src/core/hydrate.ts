@@ -151,7 +151,7 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
       const expression = repeater.dataset.each!; // "item in tasks"
       const [itemName, , listName] = expression.split(' ');
       const list = getValue(listName, ctx) || [];   
-      const templateHTML = repeater.innerHTML;
+      const templateHTML = repeater.innerHTML.replaceAll('~', '|');
       repeater.innerHTML = '';
       repeater.removeAttribute('data-each');
       // Si la lista está vacía, dejamos un ancla invisible      

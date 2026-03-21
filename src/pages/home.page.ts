@@ -6,12 +6,14 @@ const homePage: ComponentFactory = () => {
     render: () => {
       const template = `
         <div class="my-8 p-8 bg-background  rounded-3xl border border-slate-200 shadow-xl">
-          <div data-component="app-theme-toggle"></div>
+         
           <header class="mb-8">
             <h1 class="text-3xl font-bold text-slate-800" on-publish="USER_UPDATED:global:name | welcome">
               Bienvenido al Sistema
             </h1>
             <p class="text-slate-500 mt-2">Gestión de operaciones y monitorización de red.</p>
+            <div data-component="app-theme-toggle"></div>
+            <div data-component="app-language-selector"></div>             
           </header>
           <div data-component="app-header"></div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">         

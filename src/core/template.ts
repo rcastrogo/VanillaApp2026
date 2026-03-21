@@ -12,14 +12,8 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
   upper: (val:string) => val?.toUpperCase(),
   lower: (val:string) => val?.toLowerCase(),
   undefined: (val:string) => val ? val : 'valor no definido',
-  t: function(key: string) {
-    const lang = APP_CONFIG.i18n.lng.strore.lng;
-    const text = getValue(`${lang}.${key}`, APP_CONFIG.i18n);
-    if (!text) return key;
-    if (text.includes('{')) {
-      return interpolate(text, this);
-    }
-    return text;
+  t: function(key: string, ...extras) {
+    return APP_CONFIG.i18n.t(key, {...this, extraArgs : extras});
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   debug: function(val: any) {
@@ -38,12 +32,17 @@ export function getValue(key: string | undefined, scope: any): any {
 
   // Soporte sintaxis t:key -> 'key' | t
   if (path.startsWith('t:')) {
+    const [key, ...args] = path.slice(2).split(':');
     filters.unshift('t');
-    return applyfilters(filters, path.slice(2),  scope)
+    filters[0] += ':' + args.join(':');
+    return applyfilters(filters, key,  scope)
   } 
   // Soporte literales con comillas
   if (path.startsWith("'") && path.endsWith("'")) {
-    return applyfilters(filters, path.slice(1, -1),  scope)
+    const [key, ...args] = path.slice(1, -1).split(':');
+    filters.unshift('t');    
+    filters[0] += ':' + args.join(':');
+    return applyfilters(filters, key,  scope)
   } 
 
   const tokens = (path || '').split(/\.|\[|\]/).filter(t => t !== '');
@@ -55,7 +54,7 @@ export function getValue(key: string | undefined, scope: any): any {
       target = getValue(propName, target['#']);
     } else if (propName in self) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      target = (self as any)[propName];
+      target = (self as any)[propName];    
     } else {
       target = undefined;
       break;
@@ -66,19 +65,22 @@ export function getValue(key: string | undefined, scope: any): any {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyfilters(filters: string[], value: any, scope: any){
-  return filters.reduce((value, filterExpr: string) => {
-    const [filterName, ...args] = filterExpr.split(':').map(s => s.trim());
-    const fn = getValue(filterName, scope) || GLOBAL_FUNCTIONS[filterName];
-    if (typeof fn === 'function') {
-      const parsedArgs = args.map(arg =>
-        arg.startsWith('@') ? getValue(arg.slice(1), scope) : arg
-      );
-      return fn.apply(scope, [value, ...parsedArgs]);
-      // return fn(value, ...parsedArgs);
-    }
-    console.warn(`Filtro "${filterName}" no encontrado.`);
-    return value;
-  }, value);
+  return filters
+    .reduce((value, filterExpr: string) => {
+      const [filterName, ...args] = filterExpr.split(':').map(s => s.trim());
+      const fn = getValue(filterName, scope) || GLOBAL_FUNCTIONS[filterName];
+      if (typeof fn === 'function') {
+        const parsedArgs = args.map(arg =>
+          arg.startsWith('@') ? getValue(arg.slice(1), scope) : arg
+        );
+        return fn.apply(scope, [value, ...parsedArgs]);
+        // return fn(value, ...parsedArgs);
+      }
+      console.warn(`Filtro "${filterName}" no encontrado.`);
+      return value;
+    },
+    value
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
