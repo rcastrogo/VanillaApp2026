@@ -26,10 +26,8 @@ export default class DefaultLayout extends BaseComponent {
           <div data-component="app-header"></div>
         </header>
         <h1 class="text-5xl hidden">{state.time}</h1>
-
         <main id="router-outlet" class="grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         </main>
-
         <footer class="mt-auto border-t border-slate-200 dark:border-slate-800">
           <div data-component="app-footer"></div>
         </footer>

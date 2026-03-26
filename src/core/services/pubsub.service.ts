@@ -2,7 +2,7 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type PubSubCallback<T = any> = (payload?: T) => void;
 
-export class PubSub {
+class PubSub {
 
   private topics = new Map<string, Map<string | symbol, Set<PubSubCallback>>>();
   private readonly GLOBAL_SCOPE = Symbol('global');

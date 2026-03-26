@@ -6,7 +6,8 @@ export type ComponentContext = any;
 export type ComponentConstructor = new (ctx: ComponentContext) => Component;
 export type ComponentFactory = (ctx: ComponentContext) => Component;
 export type ComponentCreator = ComponentConstructor | ComponentFactory;
-export interface ComponentInitValue { parent?: HTMLElement}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface ComponentInitValue { parent?: HTMLElement, data?: any}
 
 export interface Component {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -118,7 +118,11 @@ class ClockComponent extends BaseComponent {
       </div>
     `);
 
-    on('date', val => view.querySelector('#date-slot')!.textContent = val);
+    on(
+      'date', 
+      value => {
+        view.querySelector('#date-slot')!.textContent = value;
+      });
 
     return view;
   }

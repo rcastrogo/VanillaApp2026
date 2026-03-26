@@ -1,6 +1,6 @@
 import en from './en';
 import es from './es';
-import { useState } from '../core/state.utils';
+import { useState, type StateCallback } from '../core/state.utils';
 import { getValue, interpolate } from '../core/template';
 
 export type Language = 'es' | 'en';
@@ -10,19 +10,24 @@ interface TranslationSchema{
 };
 
 const translations: Record<string, TranslationSchema> = { es, en };
-const i18nState = useState({ lng: 'es' as Language });
+const lang = (localStorage.getItem('language') || 'es') as Language;
+const i18nState = useState({ lang });
 
 export const i18nService = {
-  setLng(newLng: Language) {
-    if (translations[newLng]) i18nState.put('lng', newLng);
+  setLang(newLng: Language) {
+    if (translations[newLng]) {
+      i18nState.put('lang', newLng);
+      localStorage.setItem('language', newLng);
+    }
   },
-
   get currentLng() {
-    return i18nState.strore.lng;
+    return i18nState.store.lang;
   },
-
+  changed(callback: StateCallback<string>) {
+    return i18nState.on('lang', callback);
+  },
   t(key: string, ctx: unknown ): string {
-    const lang = i18nState.strore.lng;
+    const lang = i18nState.store.lang;
     const text = getValue(key, translations[lang]);
     if (!text) return key;
     if (text.includes('{')) return interpolate(text, ctx);

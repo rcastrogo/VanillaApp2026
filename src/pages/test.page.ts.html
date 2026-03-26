@@ -1,0 +1,29 @@
+<div class="min-h-screen flex flex-col bg-background">
+  <!-- HEADER -->
+  <header class="w-full bg-card border-b sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap gap-2 items-center justify-between">
+      <h1 class="text-lg font-semibold">
+        <i data-icon="activity" class="inline-flex"></i> Report Playground
+      </h1>
+      <div class="flex flex-wrap gap-2">
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:dynamic">Dynamic</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:js">JS</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:js-2">JS-2</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:code">Code</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:registered">Registered</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:text">Text</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:component">Comp.</button>
+        <button class="app-button py-1 px-2 sm:py-2 sm:px-3" on-click="showReport:jamones">Jamones</button>
+      </div>
+    </div>
+  </header>
+  <!-- CONTENT -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4">
+    <!-- Loader -->
+    <div data-component="app-loader" class="mb-4"></div>
+    <!-- Container -->
+    <div id="report-slot" class="rounded-xl shadow p-4">
+    </div>
+  </main>
+
+</div>

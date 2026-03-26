@@ -24,29 +24,52 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function existsBaseProp(name: string, scope: any){
+  return name in scope || name in GLOBAL_FUNCTIONS || name in self || scope['#']
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getValue(key: string | undefined, scope: any): any {
   if (!key || key === 'this') return scope;
   const parts = key.split('|').map(p => p.trim());
   const path = parts.shift() || '';
   const filters = parts;
 
+  // ===========================================================================
+  // Traducciones
   // Soporte sintaxis t:key -> 'key' | t
+  // ===========================================================================
   if (path.startsWith('t:')) {
     const [key, ...args] = path.slice(2).split(':');
     filters.unshift('t');
     filters[0] += ':' + args.join(':');
-    return applyfilters(filters, key,  scope)
-  } 
+    return applyfilters(filters, key, scope)
+  }
+  // ===========================================================================
+  // Traducciones
+  // ===========================================================================
   // Soporte literales con comillas
   if (path.startsWith("'") && path.endsWith("'")) {
     const [key, ...args] = path.slice(1, -1).split(':');
     filters.unshift('t');    
     filters[0] += ':' + args.join(':');
     return applyfilters(filters, key,  scope)
-  } 
-
-  const tokens = (path || '').split(/\.|\[|\]/).filter(t => t !== '');
+  }
+  // ==========================================================================
+  // Interpolaciones internas (ej: language.{lang} -> language.es)
+  // ==========================================================================
+  const resolvedKey = (path || '').replace(/{([^{}]+)}/g, (_, innerKey) => {
+    return getValue(innerKey.trim(), scope);
+  });
+  const tokens = (resolvedKey || '').split(/\.|\[|\]/).filter(t => t !== '');
+  // ==========================================================================
+  // Determinar si existe la propiedad base para no romper la interpolación
+  // ==========================================================================
   let target = scope || self;
+  if (!existsBaseProp(tokens[0] || '', scope)) return undefined; 
+  // ==========================================================================
+  // Determinar el valor de la propiedad
+  // ==========================================================================
   for (const propName of tokens) {
     if (target !== null && typeof target === 'object' && propName in target) {
       target = target[propName];
@@ -74,7 +97,6 @@ function applyfilters(filters: string[], value: any, scope: any){
           arg.startsWith('@') ? getValue(arg.slice(1), scope) : arg
         );
         return fn.apply(scope, [value, ...parsedArgs]);
-        // return fn(value, ...parsedArgs);
       }
       console.warn(`Filtro "${filterName}" no encontrado.`);
       return value;
@@ -131,8 +153,8 @@ export function evaluateExpression(expression: string, context: any): any {
       }
     `);
     return fn(context);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
+    console.log(e)
     return false;
   }
 }

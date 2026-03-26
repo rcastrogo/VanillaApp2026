@@ -24,17 +24,19 @@ export class LanguageSelector extends BaseComponent {
   }
 
   changeLanguage(_el: HTMLElement, _e: Event, newLang: Language) {
-    APP_CONFIG.i18n.setLng(newLang);
+    APP_CONFIG.i18n.setLang(newLang);
     this.state.isMenuOpen = false;
   }
 
   translate(lang: string){
-    console.log(lang);
     return APP_CONFIG.i18n.t(`language.${lang}`, {});
   }
 
 
   init(): void {
+    this.addCleanup(
+      APP_CONFIG.i18n.changed(() => this.invalidate())
+    );
     super.setState({
       isMenuOpen: false,
     });  
@@ -61,18 +63,21 @@ export class LanguageSelector extends BaseComponent {
           <div class="absolute right-0 z-50 mt-2 min-w-30 
             overflow-hidden rounded-md border bg-popover p-1 
             shadow-lg animate-in fade-in zoom-in-95">
-            <div data-each="lang in availableLangs" class="pt-1">
+            <div 
+              data-each="lang in availableLangs" 
+              class="pt-1"
+              >
               <button 
-                on-click="changeLanguage:@lang"
+                on-click="changeLanguage:{lang}:@lang"
                 class="relative flex w-full cursor-pointer select-none 
                   items-center justify-center rounded-sm px-2 py-1.5 mb-1 text-sm 
-                  outline-none transition-colors hover:bg-accent 
-                  @if(current.lang === lang)bg-accent text-accent-foreground@endif
+                  border-none outline-none focus:ring-2 transition-colors hover:bg-accent 
+                  @if(current.lang === lang) bg-accent text-accent-foreground @endif
                 "
               >
                 <span class="text-sm block md:hidden uppercase">{ lang }</span>
                 <span class="text-sm hidden md:block">
-                  {lang ~ translate}
+                  {lang | translate}
                 </span>
               </button>
             </div>

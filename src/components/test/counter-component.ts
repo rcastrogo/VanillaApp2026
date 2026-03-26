@@ -1,13 +1,23 @@
+import { APP_CONFIG } from "../../app.config";
 import { buildAndInterpolate } from "../../core/dom";
 import { pubSub } from "../../core/services/pubsub.service";
 import { BaseComponent} from "../../core/types";
-import type { ComponentContext } from "../component.model";
+import type { ComponentContext, ComponentInitValue } from "../component.model";
 
 export class CounterComponent extends BaseComponent {
   
+  // private subs!: StateCallback<void>;
+
   constructor(ctx: ComponentContext) {
     super(ctx);
-    super.setState({ count: 0 });
+  }
+
+  init(ctx: ComponentInitValue): void {
+    const count = ctx && ctx.parent ? ctx.parent.dataset.value ?? 0 : 0;   
+    super.setState({ count });    
+    this.addCleanup(
+      APP_CONFIG.i18n.changed(() => this.invalidate())
+    );
   }
 
   increment() {
@@ -24,7 +34,8 @@ export class CounterComponent extends BaseComponent {
         </div>
         <div class="text-center py-4">
           <span class="text-4xl font-black text-slate-800">{state.count}</span>
-          <p class="text-sm text-slate-500 mt-1">Clicks totales</p>
+          <p class="text-sm text-slate-500 mt-1">{'clicks'}</p>
+          <p class="text-sm text-slate-500 mt-1" data-t="clicks"></p>
         </div>
         <button 
           id="counter-button-{instanceId}"
@@ -33,7 +44,7 @@ export class CounterComponent extends BaseComponent {
           font-semibold rounded-lg shadow-md focus:outline-none 
           focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
           transition-colors">
-          Incrementar
+          {t:ui.actions.increment}
         </button>
       </div>
     `;

@@ -16,6 +16,9 @@ export class LoaderComponent extends BaseComponent {
       title: 'Hola'
     });    
     this.addCleanup([
+      pubSub.subscribe(AppMessages.HttpClient.Loading, () => this.state.showLoader = true),
+      pubSub.subscribe(AppMessages.HttpClient.Loaded, () => this.state.showLoader = false),
+
       pubSub.subscribe(AppMessages.Router.Loading, () => this.state.showLoader = true),
       pubSub.subscribe(AppMessages.Router.Loaded, () => this.state.showLoader = false),
       pubSub.subscribe(AppMessages.Router.Error, () => this.state.showLoader = false)

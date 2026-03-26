@@ -2,12 +2,18 @@ import type { ComponentContext } from './components/component.model';
 import { router } from './core/services/router.service';
 import homePage from './pages/home.page';
 import AdminLayout from './pages/layouts/admin.layout';
-import DefaultLayout from './pages/layouts/default.layout';
 import IndexPage from './pages/samples/component-based/index.page';
 import TemplatePage from './pages/samples/functional/template.page';
+import testPage from './pages/test.page';
 
 export function configureRouter(){
   router
+    .addRoute({ 
+      name: 'test', 
+      path: /test/, 
+      componentProvider: testPage,
+      layout: null,
+    })
     .addRoute({ 
       name: 'home', 
       path: /home$/, 
@@ -16,7 +22,7 @@ export function configureRouter(){
     .addRoute({ 
       name: 'home', 
       path: /^\/$/, 
-      componentProvider: DefaultLayout
+      componentProvider: homePage
     })
     .addRoute({ 
       name: 'template', 
@@ -74,5 +80,10 @@ export function configureRouter(){
         };
         return { default: creator };
       }      
+    })
+    .addRoute({
+      name: 'simpson',
+      path: /simpson$/,
+      componentProvider: () => import('./components/test/the-simpsons-component')
     });
 }

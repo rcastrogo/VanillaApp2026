@@ -1,15 +1,17 @@
 
-<header class="bg-teal-600 text-white shadow-lg p-4 flex items-center justify-between">
+<header class="bg-card shadow-lg p-4 flex items-center justify-between">
   <div class="flex items-center gap-4">
     <h1 class="text-xl font-bold italic tracking-tight">
       {title | upper}
     </h1>
     <div data-component="app-theme-toggle"></div>
+    <div data-component="app-language-selector"></div>
     <div data-component="app-collapsible-clock"></div>
     
     <nav class="flex gap-2 text-sm">
       <button route-to="/dashboard" class="hover:underline">Dashboard</button>
-      <button route-to="@profilePath" class="hover:underline text-teal-200">Mi Perfil</button>
+      <button route-to="/home" class="hover:underline text-teal-200">inicio</button>
+      <button route-to="/simpson" class="hover:underline text-teal-200">Los Simpsons</button>
     </nav>
   </div>
 

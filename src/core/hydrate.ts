@@ -3,10 +3,18 @@ import { buildAndInterpolate } from "./dom";
 import { createIcon } from "./icons";
 import { getValue, resolveArgs } from "./template";
 import { BaseComponent, type ComponentElement } from "./types";
+import { APP_CONFIG } from "../app.config";
 import type { ComponentContext } from "../components/component.model";
 import { loader } from "./services/loader.service";
 import { pubSub } from "./services/pubsub.service";
 import { router} from "./services/router.service";
+
+export function hydrateElement(element: HTMLElement, ctx: ComponentContext) {
+  hydrateIcons(element);
+  hydrateEventListeners(element, ctx);
+  hydrateComponents(element, ctx);
+  hydrateDirectives(element, ctx)
+}
 
 export function hydrateIcons(root: HTMLElement = document.body): HTMLElement {
   const iconPlaceholders = root.querySelectorAll<HTMLElement>('[data-icon]');
@@ -143,6 +151,13 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function hydrateDirectives(container: HTMLElement, ctx: any) {
+  // LÓGICA PARA TRADUCCIONES
+  container.querySelectorAll<HTMLElement>('[data-t]').forEach(el => {
+    const key = el.dataset.t!;
+    const cleanKey = key.startsWith('t:') ? key.slice(2) : key;
+    el.textContent = APP_CONFIG.i18n.t(cleanKey, ctx);    
+    el.setAttribute('data-i18n-key', cleanKey);
+  });
   // 1. Buscamos solo los bucles de PRIMER NIVEL (los que no tienen otro data-each encima)
   Array
     .from(container.querySelectorAll<HTMLElement>('[data-each]'))
@@ -161,21 +176,6 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
         );
         return;
       }
-      // // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // list.forEach((item: any, index: number) => {
-      //   // Creamos un contexto que HEREDA del contexto padre (el componente)
-      //   // Así, cualquier método como deleteUser se encontrará subiendo por la cadena
-      //   const itemCtx = Object.create(ctx);   
-      //   itemCtx[itemName] = item;
-      //   itemCtx.index = index;
-      //   itemCtx['#'] = ctx; // Parent context
-      //   const instance = buildAndInterpolate(templateHTML, itemCtx, false);
-      //   // RECURSIÓN: Buscamos si dentro de este item hay más bucles (anidados)
-      //   hydrateDirectives(instance, itemCtx);
-      //   // Movemos los hijos al contenedor real (el repeater)
-      //   while (instance.firstChild) repeater.appendChild(instance.firstChild);
-      // });
-
       // 1. Creamos el saco virtual fuera del bucle
       const fragment = document.createDocumentFragment();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -185,7 +185,7 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
           fragment.appendChild(item);
           return;
         }
-        const itemCtx = Object.create(ctx);   
+        const itemCtx = Object.create(ctx);
         itemCtx[itemName] = item;
         itemCtx.index = index;
         itemCtx['#'] = ctx; 

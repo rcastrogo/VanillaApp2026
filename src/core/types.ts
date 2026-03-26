@@ -1,5 +1,15 @@
-import type { Component, ComponentContext, ComponentCreator, ComponentInitValue } from "../components/component.model";
+import type { 
+  Component, 
+  ComponentContext, 
+  ComponentCreator, 
+  ComponentInitValue 
+} from "../components/component.model";
 import { pubSub } from "./services/pubsub.service";
+
+export interface Identifiable { id: number | string }
+export type SortDirection = 'asc' | 'desc' | null;
+export type SortState = [string, SortDirection] | undefined;
+export type SortProperties = string | string[];
 
 export interface ModuleNamespace { 
   default?: ComponentCreator; 
@@ -32,7 +42,7 @@ export abstract class BaseComponent implements Component {
   private cleanups: CleanupFn[] = [];
   private isInitializing = false;
 
-  constructor(ctx: ComponentContext) {
+  constructor(ctx?: ComponentContext) {
     this.instanceId = ++BaseComponent.instance;
     this.bindMethods();
     this.ctx = ctx;
@@ -47,6 +57,7 @@ export abstract class BaseComponent implements Component {
       }
     });
   }
+
 
   protected setState(state: ComponentState){
     this.isInitializing = true;
@@ -82,6 +93,10 @@ export abstract class BaseComponent implements Component {
         (this as any)[key] = val.bind(this);
       }
     });
+  }
+
+  protected invalidate() {
+    this.update();
   }
 
   private update() {

@@ -13,7 +13,8 @@ const homePage: ComponentFactory = () => {
             </h1>
             <p class="text-slate-500 mt-2">Gestión de operaciones y monitorización de red.</p>
             <div data-component="app-theme-toggle"></div>
-            <div data-component="app-language-selector"></div>             
+            <div data-component="app-language-selector"></div>
+            <div data-component="app-language-selector"></div>              
           </header>
           <div data-component="app-header"></div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">         

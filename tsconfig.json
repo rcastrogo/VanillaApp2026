@@ -6,7 +6,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
     "skipLibCheck": true,
-    "baseUrl": ".",
+    "baseUrl": "./",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -23,7 +23,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
-      "~/*": ["src/*"]
+      "@/*": ["src/*"]
     }
   },
   "include": ["src"],

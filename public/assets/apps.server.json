@@ -1,0 +1,242 @@
+[
+  {
+    "url": "https://crmpyme-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "CRMB2B",
+    "login": "rm@loginb2b.orain.es",
+    "pass": "Noviembre",
+    "favorite": true
+  },
+  {
+    "url": "https://crmpyme-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "CRMVENTAS",
+    "login": "user01@test.es",
+    "pass": "Clave01",
+    "favorite": false
+  },
+  {
+    "url": "https://crmpyme-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "CRMCLIENTES",
+    "login": "user02@test.es",
+    "pass": "Clave02",
+    "favorite": false
+  },
+  {
+    "url": "https://crmpyme-test.contoso.com/",
+    "env": "N/A",
+    "name": "TESTCRM",
+    "login": "test01@test.es",
+    "pass": "Test123",
+    "favorite": true
+  },
+  {
+    "url": "https://contoso-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "CONTSUPPORT",
+    "login": "support1@contoso.com",
+    "pass": "Pass01",
+    "favorite": false
+  },
+  {
+    "url": "https://contoso-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "CONTSALES",
+    "login": "sales1@contoso.com",
+    "pass": "Pass02",
+    "favorite": false
+  },
+  {
+    "url": "https://contoso-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "CONTBI",
+    "login": "bi1@contoso.com",
+    "pass": "Pass03",
+    "favorite": true
+  },
+  {
+    "url": "https://fabric-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "FABRICCRM",
+    "login": "admin01@fabric.es",
+    "pass": "Fabric01",
+    "favorite": false
+  },
+  {
+    "url": "https://fabric-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "FABRICTEST",
+    "login": "tester01@fabric.es",
+    "pass": "Fabric02",
+    "favorite": true
+  },
+  {
+    "url": "https://fabric-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "FABRICB2B",
+    "login": "b2b01@fabric.es",
+    "pass": "Fabric03",
+    "favorite": false
+  },
+  {
+    "url": "https://orain-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "ORAINCRM",
+    "login": "rm@orain.es",
+    "pass": "ClaveOrain1",
+    "favorite": false
+  },
+  {
+    "url": "https://orain-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "ORAINPORTAL",
+    "login": "portal@orain.es",
+    "pass": "ClaveOrain2",
+    "favorite": true
+  },
+  {
+    "url": "https://orain-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "ORAINSEG",
+    "login": "seg@orain.es",
+    "pass": "ClaveOrain3",
+    "favorite": false
+  },
+  {
+    "url": "https://demo-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "DEMOCRM",
+    "login": "demo01@demo.es",
+    "pass": "Demo01",
+    "favorite": true
+  },
+  {
+    "url": "https://demo-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "DEMOPROD",
+    "login": "demo02@demo.es",
+    "pass": "Demo02",
+    "favorite": false
+  },
+  {
+    "url": "https://demo-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "DEMOQA",
+    "login": "qa01@demo.es",
+    "pass": "Demo03",
+    "favorite": false
+  },
+  {
+    "url": "https://lab-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "LABCRM",
+    "login": "lab01@lab.es",
+    "pass": "Lab01",
+    "favorite": false
+  },
+  {
+    "url": "https://lab-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "LABINT",
+    "login": "lab02@lab.es",
+    "pass": "Lab02",
+    "favorite": true
+  },
+  {
+    "url": "https://lab-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "LABDEV",
+    "login": "lab03@lab.es",
+    "pass": "Lab03",
+    "favorite": false
+  },
+  {
+    "url": "https://alpha-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "ALPHACRM",
+    "login": "alpha1@alpha.es",
+    "pass": "Alpha01",
+    "favorite": true
+  },
+  {
+    "url": "https://alpha-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "ALPHATEST",
+    "login": "alpha2@alpha.es",
+    "pass": "Alpha02",
+    "favorite": false
+  },
+  {
+    "url": "https://alpha-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "ALPHAPROD",
+    "login": "alpha3@alpha.es",
+    "pass": "Alpha03",
+    "favorite": true
+  },
+  {
+    "url": "https://beta-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "BETACRM",
+    "login": "beta1@beta.es",
+    "pass": "Beta01",
+    "favorite": false
+  },
+  {
+    "url": "https://beta-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "BETATEST",
+    "login": "beta2@beta.es",
+    "pass": "Beta02",
+    "favorite": true
+  },
+  {
+    "url": "https://beta-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "BETAPROD",
+    "login": "beta3@beta.es",
+    "pass": "Beta03",
+    "favorite": false
+  },
+  {
+    "url": "https://gamma-ent1.contoso.com/",
+    "env": "ENT1",
+    "name": "GAMMACRM",
+    "login": "gamma1@gamma.es",
+    "pass": "Gamma01",
+    "favorite": false
+  },
+  {
+    "url": "https://gamma-ent2.contoso.com/",
+    "env": "ENT2",
+    "name": "GAMMATEST",
+    "login": "gamma2@gamma.es",
+    "pass": "Gamma02",
+    "favorite": false
+  },
+  {
+    "url": "https://gamma-ent3.contoso.com/",
+    "env": "ENT3",
+    "name": "GAMMAPROD",
+    "login": "gamma3@gamma.es",
+    "pass": "Gamma03",
+    "favorite": true
+  },
+  {
+    "url": "https://sandbox.contoso.com/",
+    "env": "N/A",
+    "name": "SANDBOX",
+    "login": "sbx01@sandbox.es",
+    "pass": "Sbx01",
+    "favorite": false
+  },
+  {
+    "url": "https://experimental.contoso.com/",
+    "env": "N/A",
+    "name": "EXPERIMENTALCRM",
+    "login": "exp01@exp.es",
+    "pass": "Exp01",
+    "favorite": true
+  }
+]

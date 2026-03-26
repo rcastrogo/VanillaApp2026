@@ -1,5 +1,5 @@
 
-type StateCallback<V> = (value: V) => void;
+export type StateCallback<V> = (value: V) => void;
 
 export function useState<T extends object>(initial: T) {
 
@@ -22,12 +22,21 @@ export function useState<T extends object>(initial: T) {
     state[prop] = value;
   };
 
-  const changed = <K extends keyof T>(prop: K, callback: StateCallback<T[K]>): void => {
+  const changed = <K extends keyof T>(prop: K, callback: StateCallback<T[K]>): (() => void) => {
     if (!subscribers[prop]) {
       subscribers[prop] = [];
     }
     subscribers[prop]!.push(callback);
+    return () => {
+      if (subscribers[prop]) {
+        // console.log('clean useState subscription');
+        subscribers[prop] = subscribers[prop]!.filter(sub => sub !== callback);
+        if (subscribers[prop]!.length === 0) {
+          delete subscribers[prop];
+        }
+      }
+    };
   };
 
-  return { strore : state, put : setState, on : changed };
+  return { store : state, put : setState, on : changed };
 }

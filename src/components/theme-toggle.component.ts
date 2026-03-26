@@ -1,6 +1,10 @@
+import { APP_CONFIG } from "../app.config";
 import type { ComponentContext } from "./component.model";
 import { buildAndInterpolate } from "../core/dom";
+import { AppMessages } from "../core/services/app-engine.service";
+import { pubSub } from "../core/services/pubsub.service";
 import { BaseComponent } from "../core/types";
+
 
 export class ThemeToggleComponent extends BaseComponent {
 
@@ -12,14 +16,24 @@ export class ThemeToggleComponent extends BaseComponent {
     const savedTheme = localStorage.getItem('theme');
     const isDark = savedTheme === 'dark' || 
       (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    super.setState({
+    this.setState({
       isDarkMode: isDark
-    });  
+    });
+    this.addCleanup(
+      [
+        APP_CONFIG.i18n.changed(() => this.invalidate()),
+        pubSub.subscribe(AppMessages.App.ThemeChanged, (isDarkMode) => {
+          this.state.isDarkMode = Boolean(isDarkMode);
+          this.invalidate();
+        })
+      ]
+    );
   }
 
   toggleTheme() {
     this.state.isDarkMode = !this.state.isDarkMode;
     this.applyTheme(this.state.isDarkMode);
+    pubSub.publish(AppMessages.App.ThemeChanged, this.state.isDarkMode);
   }
 
   private applyTheme(isDark: boolean) {
@@ -57,15 +71,15 @@ export class ThemeToggleComponent extends BaseComponent {
               iif: bg-slate-800 border-slate-700 text-yellow-200 
                  : bg-white border-slate-200 text-slate-600 hover:bg-slate-50
           }">
-          
+        
           @if(state.isDarkMode)
             <i data-icon="sun" class="size-5"></i>
-            <span class="hidden text-sm font-bold">Modo Claro</span>
+            <span class= text-sm font-bold">{t:theme.light}</span>
           @endif
 
           @if(!state.isDarkMode)
             <i data-icon="moon" class="size-5 text-indigo-500"></i>
-            <span class="hidden text-sm font-bold text-slate-700">Modo Oscuro</span>
+            <span class="text-sm font-bold text-slate-700">{t:theme.dark}</span>
           @endif
 
         </button>

@@ -1,26 +1,44 @@
 
 
 
+import { APP_CONFIG } from '../../../app.config';
 import type { ComponentContext, ComponentFactory } from '../../../components/component.model';
 import { interpolate } from '../../../core//template';
-import { $, build } from '../../../core/dom';
+import { $, build, buildAndInterpolate } from '../../../core/dom';
 import { loader } from '../../../core/services/loader.service';
+import type { StateCallback } from '../../../core/state.utils';
 import { BaseComponent} from '../../../core/types';
 
 const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
 
-  let element: HTMLElement;
+  let element!: HTMLElement;
+  let subs: StateCallback<void>;
+
+  function updateTranslations() {
+    if (!element) return;
+    $('[data-i18n-key]', element).all().forEach(el => {
+      const key = el.getAttribute('data-i18n-key')!;
+      el.textContent = APP_CONFIG.i18n.t(key, { name: 'Fulanito'});
+    });
+  }
 
   return {
+    destroy : function(){
+      subs?.();
+    },
+    init: function(){
+      subs = APP_CONFIG.i18n.changed(() => updateTranslations());
+    },
     render: () => {
-      element = document.createElement('div');
-      element.innerHTML = `
-        <h1>Dashboard</h1>
-        <button id="load-widget">Cargar Counter</button>        
+      const template = `
+        <div data-component="app-language-selector"></div>     
+        <h1 class="text-3xl" data-t="dashboard"></h1>
+        <p data-t="welcome"></p>
+        <button id="load-widget" data-t="t:ui.actions.loadCounter"></button>        
         <div id="widget-container"></div>
-        <div class="footer">
-        </div>
+        <div class="footer"></div>
       `;
+      element = buildAndInterpolate(template, { name: 'Fulanito'}, false);
       return element;
     },
     mounted: async () => {

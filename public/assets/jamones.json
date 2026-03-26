@@ -1,0 +1,322 @@
+  [
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2022,
+      "unidades": 45,
+      "kgs": 315.5,
+      "importe": 14197.50,
+      "descripcion": "Jamón ibérico de bellota con curación mínima de 24 meses"
+    },
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2023,
+      "unidades": 38,
+      "kgs": 262.8,
+      "importe": 11563.20,
+      "descripcion": "Jamón ibérico de cebo de campo con curación 18 meses"
+    },
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2021,
+      "unidades": 52,
+      "kgs": 364.0,
+      "importe": 18200.00,
+      "descripcion": "Jamón ibérico de bellota 100%, curación 36 meses"
+    },
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Ibérico",
+      "denominacion": "Guijuelo",
+      "temporada": 2022,
+      "unidades": 27,
+      "kgs": 191.7,
+      "importe": 9585.00,
+      "descripcion": "Jamón ibérico D.O. Guijuelo, alimentación mixta"
+    },
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2022,
+      "unidades": 67,
+      "kgs": 482.4,
+      "importe": 12060.00,
+      "descripcion": "Jamón serrano de calidad superior, curación 15 meses"
+    },
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2023,
+      "unidades": 72,
+      "kgs": 525.6,
+      "importe": 13140.00,
+      "descripcion": "Jamón serrano tradicional, curación 12 meses"
+    },
+    {
+      "proveedor": "Jamones García",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2021,
+      "unidades": 58,
+      "kgs": 417.6,
+      "importe": 11275.20,
+      "descripcion": "Jamón serrano reserva, curación 18 meses"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Ibérico",
+      "denominacion": "Guijuelo",
+      "temporada": 2022,
+      "unidades": 32,
+      "kgs": 224.0,
+      "importe": 11200.00,
+      "descripcion": "Jamón ibérico de bellota D.O. Guijuelo, 30 meses curación"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Ibérico",
+      "denominacion": "Guijuelo",
+      "temporada": 2023,
+      "unidades": 28,
+      "kgs": 196.0,
+      "importe": 8820.00,
+      "descripcion": "Jamón ibérico de cebo D.O. Guijuelo, 18 meses curación"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Ibérico",
+      "denominacion": "Guijuelo",
+      "temporada": 2021,
+      "unidades": 41,
+      "kgs": 299.3,
+      "importe": 16461.50,
+      "descripcion": "Jamón ibérico gran reserva, 42 meses curación"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Ibérico",
+      "denominacion": "Pedroches",
+      "temporada": 2022,
+      "unidades": 19,
+      "kgs": 133.0,
+      "importe": 5985.00,
+      "descripcion": "Jamón ibérico D.O. Pedroches, cebo campo"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Serrano",
+      "denominacion": "Alpujarra",
+      "temporada": 2022,
+      "unidades": 54,
+      "kgs": 391.5,
+      "importe": 8221.50,
+      "descripcion": "Jamón serrano de montaña, curación mínima 14 meses"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Serrano",
+      "denominacion": "Alpujarra",
+      "temporada": 2023,
+      "unidades": 49,
+      "kgs": 357.7,
+      "importe": 7154.00,
+      "descripcion": "Jamón serrano suave, curación 10 meses"
+    },
+    {
+      "proveedor": "Embutidos Martínez",
+      "tipo": "Serrano",
+      "denominacion": "Alpujarra",
+      "temporada": 2021,
+      "unidades": 63,
+      "kgs": 459.9,
+      "importe": 10347.75,
+      "descripcion": "Jamón serrano artesano, curación 16 meses"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Ibérico",
+      "denominacion": "Pedroches",
+      "temporada": 2022,
+      "unidades": 23,
+      "kgs": 163.3,
+      "importe": 8165.00,
+      "descripcion": "Jamón ibérico de recebo, D.O. Los Pedroches"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Ibérico",
+      "denominacion": "Pedroches",
+      "temporada": 2023,
+      "unidades": 19,
+      "kgs": 131.1,
+      "importe": 5899.50,
+      "descripcion": "Jamón ibérico joven, D.O. Los Pedroches"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Ibérico",
+      "denominacion": "Pedroches",
+      "temporada": 2021,
+      "unidades": 31,
+      "kgs": 226.3,
+      "importe": 12446.50,
+      "descripcion": "Jamón ibérico de bellota, D.O. Pedroches"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2022,
+      "unidades": 16,
+      "kgs": 112.0,
+      "importe": 5040.00,
+      "descripcion": "Jamón ibérico de cebo, IGP Dehesa Extremadura"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Serrano",
+      "denominacion": "Sierra Nevada",
+      "temporada": 2022,
+      "unidades": 41,
+      "kgs": 295.2,
+      "importe": 5904.00,
+      "descripcion": "Jamón serrano con denominación de origen protegida"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Serrano",
+      "denominacion": "Sierra Nevada",
+      "temporada": 2023,
+      "unidades": 36,
+      "kgs": 262.8,
+      "importe": 5256.00,
+      "descripcion": "Jamón serrano de calidad estándar"
+    },
+    {
+      "proveedor": "Cárnicas del Sur",
+      "tipo": "Serrano",
+      "denominacion": "Sierra Nevada",
+      "temporada": 2021,
+      "unidades": 47,
+      "kgs": 338.4,
+      "importe": 7106.40,
+      "descripcion": "Jamón serrano extra, curación 14 meses"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2022,
+      "unidades": 29,
+      "kgs": 203.0,
+      "importe": 10150.00,
+      "descripcion": "Jamón ibérico de cebo, con hierbas aromáticas"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2023,
+      "unidades": 31,
+      "kgs": 213.9,
+      "importe": 9625.50,
+      "descripcion": "Jamón ibérico de bellota 50% raza ibérica"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Ibérico",
+      "denominacion": "Dehesa de Extremadura",
+      "temporada": 2021,
+      "unidades": 35,
+      "kgs": 252.0,
+      "importe": 13860.00,
+      "descripcion": "Jamón ibérico de bellota 75%, curación 28 meses"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Ibérico",
+      "denominacion": "Guijuelo",
+      "temporada": 2022,
+      "unidades": 22,
+      "kgs": 154.0,
+      "importe": 8470.00,
+      "descripcion": "Jamón ibérico D.O. Guijuelo, cebo"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2022,
+      "unidades": 63,
+      "kgs": 453.6,
+      "importe": 10206.00,
+      "descripcion": "Jamón serrano con curación superior a 18 meses"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2023,
+      "unidades": 58,
+      "kgs": 423.4,
+      "importe": 8881.40,
+      "descripcion": "Jamón serrano ahumado tradicional"
+    },
+    {
+      "proveedor": "Ibéricos del Oeste",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2021,
+      "unidades": 71,
+      "kgs": 518.3,
+      "importe": 12439.20,
+      "descripcion": "Jamón serrano bodega, curación 20 meses"
+    },
+    {
+      "proveedor": "Jamones del Norte",
+      "tipo": "Serrano",
+      "denominacion": "Teruel",
+      "temporada": 2022,
+      "unidades": 44,
+      "kgs": 308.0,
+      "importe": 7700.00,
+      "descripcion": "Jamón D.O. Teruel, curación mínima 14 meses"
+    },
+    {
+      "proveedor": "Jamones del Norte",
+      "tipo": "Serrano",
+      "denominacion": "Teruel",
+      "temporada": 2023,
+      "unidades": 39,
+      "kgs": 273.0,
+      "importe": 6142.50,
+      "descripcion": "Jamón D.O. Teruel, curación 12 meses"
+    },
+    {
+      "proveedor": "Jamones del Norte",
+      "tipo": "Serrano",
+      "denominacion": "Teruel",
+      "temporada": 2021,
+      "unidades": 51,
+      "kgs": 367.2,
+      "importe": 10098.00,
+      "descripcion": "Jamón D.O. Teruel reserva, 18 meses"
+    },
+    {
+      "proveedor": "Jamones del Norte",
+      "tipo": "Serrano",
+      "denominacion": "Trévelez",
+      "temporada": 2022,
+      "unidades": 33,
+      "kgs": 237.6,
+      "importe": 5464.80,
+      "descripcion": "Jamón serrano de Granada 8, curación tradicional"
+    }
+  ]

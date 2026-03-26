@@ -7,6 +7,7 @@ import DefaultLayout from '../../pages/layouts/default.layout';
 import { setupComponents } from '../component-registry';
 import { initObserver } from '../dom-observer';
 import { setupIcons } from '../icons';
+import { setupReports } from '../report-registry';
 import { BaseComponent } from '../types';
 
 export const AppMessages = {
@@ -19,6 +20,13 @@ export const AppMessages = {
   Auth: {
     Login:       'auth:login',
     Logout:      'auth:logout'
+  },
+  HttpClient: {
+    Loading:     'http-request:loading',
+    Loaded:      'http-request:loaded',  
+  },
+  App : {
+    ThemeChanged: 'app-theme-changed'
   }
 } as const;
 
@@ -87,6 +95,7 @@ class AppEngine {
     console.log('AppEngine init');
     setupIcons(APP_CONFIG.icons);
     setupComponents(APP_CONFIG.components);
+    setupReports(APP_CONFIG.reports);
     this.initEventListeners();
     initObserver();
   }
