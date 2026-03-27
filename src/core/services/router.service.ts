@@ -22,6 +22,7 @@ class RouterService {
 
   public routes: Route[] = [];
   public currentRoute?: Route;
+  private fallbackRoute?: Route;
 
   private constructor() {
     window.onpopstate = () => this.sync();
@@ -37,6 +38,16 @@ class RouterService {
     return this;
   }
 
+  setFallback(componentProvider: ComponentProvider, layout?: ComponentConstructor | null, name = "404"): this {
+    this.fallbackRoute = {
+      name,
+      path: /^.*$/,
+      componentProvider,
+      layout: layout ?? null
+    };
+    return this;
+  }
+
   private getRoute(urlPath: string): Route | undefined {
     for (const route of this.routes) {
       const match = route.path.exec(urlPath);
@@ -48,24 +59,32 @@ class RouterService {
     return undefined;
   }
 
+  // navigateTo(path: string) {
+  //   const route = this.getRoute(path);
+  //   if (route) {
+  //     window.history.pushState(null, route.name, path);
+  //     this.sync();
+  //   }
+  // }
+
   navigateTo(path: string) {
-    const route = this.getRoute(path);
-    if (route) {
-      window.history.pushState(null, route.name, path);
-      this.sync();
-    }
+    // Cambiado: siempre navega y deja que sync resuelva (ruta o fallback)
+    window.history.pushState(null, "", path);
+    this.sync();
   }
 
   sync() {
-    const path = window.location.pathname.replace(document.baseURI, '');
-    const route = this.getRoute(path || '/');
-    if (route) {
+    // const path = window.location.pathname.replace(document.baseURI, '');
+    const path = window.location.pathname || "/";
+    const route = this.getRoute(path);
+    const resolvedRoute = route ?? this.fallbackRoute;
+    if (resolvedRoute) {
       this.currentRoute = route;
       const searchParams = new URLSearchParams(window.location.search);
-      route.queryValues = Object.fromEntries(searchParams.entries());
-      document.title = route.name;
+      resolvedRoute.queryValues = Object.fromEntries(searchParams.entries());
+      document.title = resolvedRoute.name;
       // Aquí puedes parsear los query strings si tienes la utilidad pol.parseQueryString
-      pubSub.publish(AppMessages.Router.ViewChanged, route);
+      pubSub.publish(AppMessages.Router.ViewChanged, resolvedRoute);
     }
   }
 }

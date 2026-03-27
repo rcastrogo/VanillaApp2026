@@ -18,15 +18,9 @@ export class FooterComponent extends BaseComponent {
           
           <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div class="col-span-1 md:col-span-1">
-              <div class="flex items-center gap-2 mb-4">
-                <div class="p-2 bg-indigo-500 rounded-lg">
-                  <i data-icon="zap" class="size-5 text-white"></i>
-                </div>
-                <span class="text-xl font-black tracking-tighter text-slate-800 dark:text-white">
-                  Vanilla<span class="text-indigo-500">2026</span>
-                </span>
-              </div>
+              <div data-component="app-logo" class="text-2xl justify-start"></div>
               <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
+              
                 Construyendo el futuro de la web con vanilla JS y mucha cafeína.
               </p>
               <div class="flex gap-4">

@@ -7,7 +7,7 @@ export interface DefaultMediatorValue {
   hasComponents: boolean;
 }
 export class DefaultMediator implements Mediator {
-  
+
   private hasComponents = false;
   private buffer = '';
   private documentFragment: DocumentFragment;
@@ -30,7 +30,7 @@ export class DefaultMediator implements Mediator {
       this.hasComponents = true;
       const el = content.component.render?.();
       if(el) this.documentFragment.appendChild(el);      
-      this.buffer += `<div data-replace-locator=""></div>`;     
+      this.buffer += `<div data-replace-locator=""></div>`;  
     }
   }
 
@@ -48,4 +48,39 @@ export class DefaultMediator implements Mediator {
     this.documentFragment = document.createDocumentFragment();
     this.flush();
   }
+  
+  applyResult(
+    container: HTMLElement,
+    value: DefaultMediatorValue,
+    hydrate?: () => void
+  ) {
+    container.innerHTML = value.html;
+    const fragment = value.documentFragment;
+    const hasNodes = fragment && fragment.hasChildNodes();
+    // ===================================================================
+    // Caso: solo html
+    // ===================================================================
+    if (!hasNodes) {
+      hydrate?.();
+      return;
+    }
+    // ===================================================================
+    // Caso: solo components
+    // ===================================================================
+    if (!value.html) {
+      container.append(fragment);
+      return;
+    }
+    // ===================================================================
+    // Caso: HTML + components
+    // ===================================================================
+    hydrate?.();
+    const targets = container.querySelectorAll('[data-replace-locator]');
+    targets.forEach(target => {
+      const child = fragment.firstChild;
+      if (!child) return;
+      target.replaceWith(child);
+    });
+  }
+
 }

@@ -171,6 +171,22 @@ function groupByNested<T extends Record<string, any>>(
   return result;
 }
 
+/**
+ * Builds a sorting function for an array of objects based on a specified property and direction.
+ * The sorting handles undefined, null, and empty string values by ranking them before other values.
+ * @template T - The type of objects to sort
+ * @param {keyof T} prop - The property name to sort by
+ * @param {'asc' | 'desc'} [direction='asc'] - The sorting direction, either 'asc' for ascending or 'desc' for descending
+ * @returns {(a: T, b: T) => number} A comparison function that can be used with Array.prototype.sort()
+ * @example
+ * const data = [
+ *  { name: 'Alice', age: 30 },
+ *  { name: 'Bob', age: null }
+ * ];
+ * const sorter = buildSorter('age', 'asc');
+ * data.sort(sorter);
+ * // data is now sorted with Bob (null) before Alice (30)
+ */
 function buildSorter<T>(prop: keyof T, direction: 'asc' | 'desc' = 'asc') {
   const factor = direction === 'asc' ? 1 : -1;
   const rank = (v: unknown): number => {

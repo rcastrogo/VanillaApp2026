@@ -11,10 +11,11 @@ export class CollapsibleComponent extends BaseComponent {
   }
 
   init(ctx: ComponentInitValue) {
-    if (ctx && ctx.parent) {
-      this.props = { ...ctx.parent.dataset };
-      this.children = Array.from(ctx.parent.childNodes);
-    }
+    super.init(ctx);
+    // if (ctx && ctx.parent) {
+    //   this.props = { ...ctx.parent.dataset };
+    //   this.children = Array.from(ctx.parent.childNodes);
+    // }
     this.setState({
       expanded: this.props.expanded === 'true' || false,
       title: this.props.title || 'Texto por defecto'
@@ -48,7 +49,7 @@ export class CollapsibleComponent extends BaseComponent {
         >
         </div>
         @if(state.expanded)
-          <div data-component="app-collapsible-clock"></div>
+          <div data-component="app-collapsible-clock"></div>     
         @endif    
         @if(state.expanded === false) 
         @endif    

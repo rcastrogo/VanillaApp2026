@@ -35,33 +35,13 @@ export default class BaseComponentPage extends BaseComponent {
   mediator = new DefaultMediator((value: DefaultMediatorValue) => {
     if (!this.element) return;
     const container = $('#report-slot', this.element).one();
-    if (!container) return;
-    container.innerHTML = value.html;
-    // ===================================================================
-    // Caso: solo html
-    // ===================================================================
-    const fragment = value.documentFragment;
-    const hasChildNodes = fragment && fragment.hasChildNodes();
-    if (!hasChildNodes ) {
-      this.hydrate(container);
-      return;
-    }
-    // ===================================================================
-    // Caso: solo components
-    // ===================================================================
-    if (!value.html) {
-      container.append(fragment);
-      return;
-    }
-    // ===================================================================
-    // Caso: HTML + components
-    // ===================================================================
-    this.hydrate(container);
-    const targets = $('div[data-replace-locator]', container).all() || [];
-    targets.forEach((target, i) => {
-      const child = fragment.children[i];
-      if (child) target.replaceWith(child);
-    });
+    if (container) {
+      this.mediator.applyResult(
+        container, 
+        value,
+        () => this.hydrate(container)
+      );
+    }    
   });
 
   showReport(_el: HTMLButtonElement, _ev: Event, key: string){

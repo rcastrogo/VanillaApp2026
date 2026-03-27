@@ -43,6 +43,7 @@ export abstract class BaseComponent implements Component {
   private isInitializing = false;
 
   constructor(ctx?: ComponentContext) {
+    this.parsePropsAndChildren(ctx);
     this.instanceId = ++BaseComponent.instance;
     this.bindMethods();
     this.ctx = ctx;
@@ -51,7 +52,7 @@ export abstract class BaseComponent implements Component {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (target as any)[prop] = value;
         if (!this.isInitializing) {
-          this.update();
+          this.update(prop as string);
         }
         return true;
       }
@@ -99,10 +100,14 @@ export abstract class BaseComponent implements Component {
     this.update();
   }
 
-  private update() {
+  private update(changedProp?: string) {
     if (!this.element) return;
     this.element.__isUpdating = true;
-    const newElement = this.render();
+    const newElement = this.render(changedProp);
+    if(!newElement){
+      this.element.__isUpdating = false;
+      return;
+    }
     const currentOutlet = this.element.querySelector('#router-outlet');
     const newOutlet = newElement.querySelector('#router-outlet');
     if (currentOutlet && newOutlet) {
@@ -125,10 +130,19 @@ export abstract class BaseComponent implements Component {
 
   }
 
-  abstract render(): HTMLElement;
+  abstract render(changedProp?: string): HTMLElement;
 
   mounted() { /* empty */ }
-  init(_ctx?: ComponentInitValue) { /* empty */ }
+  init(ctx?: ComponentInitValue) { 
+    this.parsePropsAndChildren(ctx);
+  }
+
+  private parsePropsAndChildren(ctx?: ComponentInitValue){
+    if (ctx && ctx.parent) {
+      this.props = { ...ctx.parent.dataset };
+      this.children = Array.from(ctx.parent.childNodes);
+    }    
+  }
 
   public destroy(): void {
     if (this.cleanups.length === 0 && !this.element) return;

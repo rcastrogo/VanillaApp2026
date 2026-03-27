@@ -13,7 +13,8 @@ export class CounterComponent extends BaseComponent {
   }
 
   init(ctx: ComponentInitValue): void {
-    const count = ctx && ctx.parent ? ctx.parent.dataset.value ?? 0 : 0;   
+    super.init(ctx);
+    const count = ~~(this.props.value || 0); 
     super.setState({ count });    
     this.addCleanup(
       APP_CONFIG.i18n.changed(() => this.invalidate())
@@ -25,7 +26,8 @@ export class CounterComponent extends BaseComponent {
     pubSub.publish('COUNT_UPDATED', { id: this.instanceId, val: this.state.count });
   }
 
-  render() {
+  render(changedProp?: string): HTMLElement {
+    if(changedProp) console.log(changedProp);
     const template = `
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 m-2 transition-all hover:shadow-md">
         <div class="flex items-center justify-between mb-3">

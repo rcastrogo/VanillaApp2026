@@ -45,7 +45,6 @@ class SectionComponent extends BaseComponent {
  private actx!: JamonRenderContext;
 
   init(ctx: ComponentInitValue) {
-    console.log(ctx);
     this.ctx = ctx;
     this.actx = ctx.data as JamonRenderContext;
   }
@@ -122,8 +121,9 @@ class SectionComponent extends BaseComponent {
   // GROUP HEADER
   // ----------------------------
   private renderGroupHeader(ctx: GroupHeaderRenderContext<DatoJamon>) {
+    const fontSize = ctx.id === 'G1' ? 'text-3xl' : 'text-2xl';
     return `
-      <div class="bg-blue-50 text-blue-800 px-4 py-2 mt-4 rounded-md font-semibold text-sm border border-blue-100">
+      <div class=" px-4 py-2 mt-4 rounded-md font-semibold ${fontSize} border-b-2">
         ${ctx.name}: <span class="font-bold">${ctx.current}</span>
       </div>
     `;
@@ -133,7 +133,6 @@ class SectionComponent extends BaseComponent {
   // GROUP FOOTER (SUBTOTAL)
   // ----------------------------
   private renderGroupFooter(ctx: GroupFooterRenderContext<DatoJamon>) {
-    console.log(ctx);
     const totalImporte = ctx.data?.summary.importe.sum ?? 0;
     const totalKgs = ctx.data?.summary.kgs.sum ?? 0;
 

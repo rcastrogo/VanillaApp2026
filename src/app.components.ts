@@ -3,11 +3,13 @@ import { FooterComponent } from './components/footer.component';
 import { HeaderComponent } from './components/header/header.component';
 import { LanguageSelector } from './components/language-selector.component';
 import { LoaderComponent } from './components/loader.component';
+import { LogoComponent } from './components/logo.component';
 import { UserListComponent } from './components/test/user-list.component';
 import { ThemeToggleComponent } from './components/theme-toggle.component';
 import type { ComponentProvider } from './core/services/router.service';
 
   const components = {
+    'app-logo': LogoComponent,
     'app-footer': FooterComponent,
     'app-header': HeaderComponent,
     'app-user-list': UserListComponent,
