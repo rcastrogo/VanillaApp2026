@@ -26,6 +26,7 @@ export function configureRouter(){
     .addNamed('IndexPage', 'index', IndexPage)
     .add('usuarios', asyncLoaderSample)
     .add('component/test/list', () => import('./components/test/user-list.component'))
+    .add('landing', () => import('./features/landing/landing.page'))
     .notFound(() => import('./pages/not-found.page'));
 
   router.addRoute({
