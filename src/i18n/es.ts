@@ -41,5 +41,10 @@ export default {
     noResults: "No se encontró a nadie con ese nombre en Springfield.",
     totalResults: "{state.characters.length} personajes cargados.",
     totalFilteredResults: "{count} personajes filtrados."
+  },
+  landingPage: {
+    header: {
+      description: "Demo de componentes y funcionalidades del mini-framework reactivo. Cada sección muestra un aspecto diferente del sistema."
+    } 
   }
 };

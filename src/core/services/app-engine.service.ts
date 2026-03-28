@@ -15,7 +15,8 @@ export const AppMessages = {
     ViewChanged: 'router:view-changed',
     Loading:     'router:loading',
     Loaded:      'router:loaded',
-    Error:       'router:error'
+    Error:       'router:error',
+    Navigate:    'router-navigate-to',
   },
   Auth: {
     Login:       'auth:login',

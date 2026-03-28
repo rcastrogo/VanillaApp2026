@@ -41,5 +41,10 @@ export default {
     noResults: "No one with that name was found in Springfield.",
     totalResults: "{state.characters.length} characters loaded.",
     totalFilteredResults: "{count} characters filtered."
+  },
+  landingPage: {
+    header: {
+      description: "Demo of components and features of the reactive mini-framework. Each section showcases a different aspect of the system."
+    } 
   }
 }

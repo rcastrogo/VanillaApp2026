@@ -6,6 +6,13 @@ import type {
 } from "../components/component.model";
 import { pubSub } from "./services/pubsub.service";
 
+export type ArgType = 'string' | 'number' | 'boolean' | 'null' | 'undefined';
+export type NavigateEventArg = {
+  event: string;
+  target: HTMLElement;
+  args: ArgType[];
+} | string;
+
 export interface Identifiable { id: number | string }
 export type SortDirection = 'asc' | 'desc' | null;
 export type SortState = [string, SortDirection] | undefined;

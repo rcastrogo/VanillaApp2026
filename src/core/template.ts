@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "../app.config";
+import type { ArgType } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
@@ -135,7 +136,7 @@ export function resolveArgs(args: string[], context: any): any[] {
     if (lower === 'undefined') return undefined;
     const num = Number(arg);
     return (arg.trim() !== '' && !isNaN(num)) ? num : arg;
-  });
+  }) as ArgType[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

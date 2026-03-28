@@ -1,8 +1,11 @@
-import { buildAndInterpolate } from '../../core/dom';
-import { BaseComponent } from '../../core/types';
-import { useState } from '../../core/state.utils';
 import type { ComponentContext } from '../../components/component.model';
+import { $, buildAndInterpolate } from '../../core/dom';
 import { pubSub } from '../../core/services/pubsub.service';
+import { useState } from '../../core/state.utils';
+import { BaseComponent } from '../../core/types';
+
+import { APP_CONFIG } from '@/app.config';
+import { router } from '@/core/services/router.service';
 
 /**
  * Landing Page — Banco de pruebas de componentes y funcionalidades
@@ -33,6 +36,7 @@ export default class LandingPage extends BaseComponent {
   // ── Lifecycle ─────────────────────────────────────────────────────────────
 
   init() {
+
     // State reactivo de la página
     this.setState({
       counter: 0,
@@ -57,17 +61,28 @@ export default class LandingPage extends BaseComponent {
 
     // Suscribirse a COUNT_UPDATED para el log de PubSub
     this.addCleanup(
-      pubSub.subscribe<{ id: number; val: number }>('COUNT_UPDATED', (payload) => {
-        this.pubSubLog = [
-          `[COUNT_UPDATED] contador #${payload?.id} → ${payload?.val}`,
-          ...this.pubSubLog.slice(0, 4),
-        ];
-        this.state.pubSubMessages = [...this.pubSubLog];
-      })
-    );
+      [
+        APP_CONFIG.i18n.changed(() => this.updateTranslations()),
+        pubSub.subscribe<{ id: number; val: number }>('COUNT_UPDATED', (payload) => {
+          this.pubSubLog = [
+            `[COUNT_UPDATED] contador #${payload?.id} → ${payload?.val}`,
+            ...this.pubSubLog.slice(0, 4),
+          ];
+          this.state.pubSubMessages = [...this.pubSubLog];
+        })
+      ]
+  );
   }
 
   // ── Acciones de la página ─────────────────────────────────────────────────
+
+  updateTranslations() {
+    if (!this.element) return;
+    $('[data-i18n-key]', this.element).all().forEach(el => {
+      const key = el.getAttribute('data-i18n-key')!;
+      el.textContent = APP_CONFIG.i18n.t(key, {});
+    });
+  }
 
   incrementCounter() {
     this.state.counter++;
@@ -82,6 +97,10 @@ export default class LandingPage extends BaseComponent {
     pubSub.publish('LANDING_MSG', { text: msg });
     this.pubSubLog = [msg, ...this.pubSubLog.slice(0, 4)];
     this.state.pubSubMessages = [...this.pubSubLog];
+  }
+
+  navigateTo(_el: HTMLInputElement, _e: Event, route: string) {
+    router.navigateTo(route);
   }
 
   onNameInput(el: HTMLInputElement) {
@@ -101,9 +120,7 @@ export default class LandingPage extends BaseComponent {
           <h1 class="text-4xl font-black text-slate-800 dark:text-white mb-2">
             🧩 Landing Page — Banco de Pruebas
           </h1>
-          <p class="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto">
-            Demo de componentes y funcionalidades del mini-framework reactivo.
-            Cada sección muestra un aspecto diferente del sistema.
+          <p data-t="landingPage.header.description" class="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto">
           </p>
         </header>
 
@@ -334,25 +351,25 @@ export default class LandingPage extends BaseComponent {
             </p>
             <div class="flex flex-wrap gap-2">
               <a
-                route-to="/home"
+                route-to="home"
                 class="inline-block px-4 py-2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800 font-medium rounded-xl hover:bg-slate-900 dark:hover:bg-white transition-all text-sm cursor-pointer"
               >
                 🏠 Inicio (route-to)
               </a>
               <button
-                on-click="publish:NAVIGATE:global:dashboard"
+                on-click="publish:router-navigate-to:global:dashboard"
                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all text-sm"
               >
                 📊 Dashboard (PubSub)
               </button>
               <button
-                on-click="publish:NAVIGATE:global:test"
+                route-to="test"
                 class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all text-sm"
               >
                 🧪 Test / Reports
               </button>
               <button
-                on-click="publish:NAVIGATE:global:about"
+                on-click="navigateTo:about"
                 class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl transition-all text-sm"
               >
                 ℹ️ About
@@ -364,7 +381,7 @@ export default class LandingPage extends BaseComponent {
 
         <!-- ── Footer informativo ──────────────────────────────── -->
         <footer class="mt-10 text-center text-xs text-slate-400 dark:text-slate-600">
-          VanillaApp2026 · Mini-framework reactivo · Landing Page de pruebas
+          <div data-component="app-logo" class="inline-flex"></div>Mini-framework reactivo · Landing Page de pruebas
         </footer>
 
       </div>

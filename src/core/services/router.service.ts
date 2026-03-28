@@ -1,6 +1,7 @@
 import { AppMessages } from "./app-engine.service";
 import { pubSub } from "./pubsub.service";
 import type { ComponentConstructor, ComponentCreator } from "../../components/component.model";
+import type { NavigateEventArg } from "../types";
 
 export type ComponentProvider = 
   | ComponentCreator 
@@ -25,7 +26,14 @@ class RouterService {
   private fallbackRoute?: Route;
 
   private constructor() {
-    window.onpopstate = () => this.sync();
+    window.onpopstate = ()=> this.sync();
+    pubSub.subscribe<NavigateEventArg>(AppMessages.Router.Navigate, arg => {
+      if (typeof arg === 'string') {
+        this.navigateTo(arg);
+      } else if(arg) {       
+        this.navigateTo(arg.args[0]);  
+      }
+    });
   }
 
   static getInstance(): RouterService {
@@ -58,14 +66,6 @@ class RouterService {
     }
     return undefined;
   }
-
-  // navigateTo(path: string) {
-  //   const route = this.getRoute(path);
-  //   if (route) {
-  //     window.history.pushState(null, route.name, path);
-  //     this.sync();
-  //   }
-  // }
 
   navigateTo(path: string) {
     // Cambiado: siempre navega y deja que sync resuelva (ruta o fallback)
