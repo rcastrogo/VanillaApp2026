@@ -11,7 +11,7 @@ export class LogoComponent extends BaseComponent {
 
   render() {
     const template = `
-      <div class="flex items-center gap-2 text-2xl w-full justify-center">
+      <div route-to="/" class="cursor-pointer flex items-center gap-2 text-2xl w-full justify-center">
         <div class="p-2 bg-indigo-500 rounded-lg">
           <i data-icon="zap" class="size-5 text-white"></i>
         </div>

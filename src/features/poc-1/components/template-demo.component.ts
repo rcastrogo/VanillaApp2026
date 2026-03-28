@@ -30,8 +30,8 @@ export class TemplateDemoComponent extends BaseComponent {
         </h2>
         <p class="text-sm text-slate-500 dark:text-slate-400">
           Interpolación con <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">{expr}</code>,
-          directivas DSL <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">@if</code>
-          y <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">@each</code>.
+          directivas DSL <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">
+          y <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">
         </p>
 
         <div class="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 space-y-2">
@@ -40,7 +40,6 @@ export class TemplateDemoComponent extends BaseComponent {
         </div>
 
         <div>
-          <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Lista con <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">@each</code>:</p>
           <ul class="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1">
             @each(item in state.items)
               <li>{item}</li>
@@ -49,7 +48,8 @@ export class TemplateDemoComponent extends BaseComponent {
         </div>
 
         <div>
-          <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Condicional con <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">@if</code>:</p>
+          <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Condicional con <code class="bg-slate-100 dark:bg-slate-700 px-1 rounded text-xs">
+         
           @if(state.user.role === 'admin')
             <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 text-xs font-bold rounded-full">
               <i data-icon="shield" class="size-3"></i> Admin
@@ -68,11 +68,11 @@ export class TemplateDemoComponent extends BaseComponent {
 
         @if(state.showExtra)
           <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 text-sm text-blue-800 dark:text-blue-300">
-            ¡Contenido condicional visible gracias a <strong>@if / @else / @endif</strong>!
+            ¡Contenido condicional visible gracias a <strong>if / else / endif</strong>!
           </div>
         @endif
       </div>
     `;
-    return buildAndInterpolateDSL(dslTemplate, this) as HTMLElement;
+    return buildAndInterpolateDSL(dslTemplate, this);
   }
 }

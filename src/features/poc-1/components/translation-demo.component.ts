@@ -1,7 +1,7 @@
+import { APP_CONFIG } from '@/app.config';
 import type { ComponentContext } from '@/components/component.model';
 import { $ } from '@/core/dom';
 import { buildAndInterpolate } from '@/core/dom';
-import { APP_CONFIG } from '@/app.config';
 import { BaseComponent } from '@/core/types';
 import type { Language } from '@/i18n';
 

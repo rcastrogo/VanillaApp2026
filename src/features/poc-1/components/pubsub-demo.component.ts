@@ -14,7 +14,6 @@ export class PubSubDemoComponent extends BaseComponent {
   init() {
     this.setState({
       log: [] as string[],
-      input: '',
     });
 
     this.subscribe(POC1_TOPIC, (payload: { text: string }) => {
@@ -23,20 +22,23 @@ export class PubSubDemoComponent extends BaseComponent {
     });
   }
 
+  message = '';
   handleInput(el: HTMLInputElement) {
-    this.state.input = el.value;
+    this.message = el.value;
   }
 
   sendGlobal() {
-    const text = this.state.input || '(mensaje vacío)';
+    const text = this.message || '(mensaje vacío)';
     pubSub.publish(POC1_TOPIC, { text: `Global → ${text}` });
-    this.state.input = '';
+    this.message = '';
+    this.invalidate();
   }
 
   sendLocal() {
-    const text = this.state.input || '(mensaje vacío)';
+    const text = this.message || '(mensaje vacío)';
     this.publish(POC1_TOPIC, { text: `Local → ${text}` });
-    this.state.input = '';
+    this.message = '';
+    this.invalidate();
   }
 
   clearLog() {
@@ -60,8 +62,8 @@ export class PubSubDemoComponent extends BaseComponent {
         <div class="flex gap-2">
           <input
             type="text"
-            value="{state.input}"
-            on-keyup="handleInput"
+            value="{message}"
+            on-change="handleInput"
             placeholder="Escribe un mensaje..."
             class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm
                    bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200

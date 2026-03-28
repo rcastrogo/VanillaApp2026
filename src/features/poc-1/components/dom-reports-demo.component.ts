@@ -1,18 +1,23 @@
+import { reportDefinition as poc1ReportDef } from '../reports/poc1-demo.report';
+
 import type { ComponentContext } from '@/components/component.model';
 import { buildAndInterpolate } from '@/core/dom';
 import ReportEngine from '@/core/report-engine/engine';
 import { DefaultMediator, type DefaultMediatorValue } from '@/core/report-engine/mediator';
 import { BaseComponent } from '@/core/types';
 import { getAllAsync, type SecureEndPoint } from '@/services/endpoint.service';
-import { reportDefinition as poc1ReportDef } from '../reports/poc1-demo.report';
+
 
 export class DomReportsDemoComponent extends BaseComponent {
+
+  lastReportHtml = '';
 
   private mediator = new DefaultMediator((value: DefaultMediatorValue) => {
     if (!this.element) return;
     const slot = this.element.querySelector('#poc1-report-slot');
     if (slot) {
       slot.innerHTML = value.html;
+      this.lastReportHtml = value.html;
     }
   });
 
@@ -69,7 +74,12 @@ export class DomReportsDemoComponent extends BaseComponent {
         <div id="poc1-report-slot"
           class="mt-2 max-h-96 overflow-y-auto border border-slate-200 dark:border-slate-600 rounded-lg p-4 text-sm bg-slate-50 dark:bg-slate-700">
           <p class="text-slate-400 dark:text-slate-500 text-xs italic">
-            Pulsa "Generar informe" para ver los resultados aquí.
+            @if(!lastReportHtml)
+              Pulsa "Generar informe" para ver los resultados aquí.
+            @endif
+            @if(lastReportHtml)
+              {lastReportHtml}
+            @endif
           </p>
         </div>
       </div>

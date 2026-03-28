@@ -26,69 +26,117 @@ function parseDSL(template: string): Node[] {
   while (i < template.length) {
     // INTERPOLATION { ... }
     if (template[i] === "{") {
-      const end = template.indexOf("}", i);
+      const end = template.indexOf("}", i + 1); // Buscar desde i+1
+      if (end === -1) {
+        // Si no encuentra el cierre, trata como texto
+        current().children.push({ type: "text", content: template.slice(i) });
+        break;
+      }
       const expr = template.slice(i + 1, end).trim();
       current().children.push({ type: "interp", expr });
       i = end + 1;
       continue;
     }
+    
     // DIRECTIVES
     if (template[i] === "@") {
+      let matched = false;
+      
       // @if
       if (template.startsWith("@if(", i)) {
-        const end = template.indexOf(")", i);
+        const end = template.indexOf(")", i + 4); // Buscar desde i+4
+        if (end === -1) {
+          // Si no encuentra el paréntesis de cierre, trata como texto
+          current().children.push({ type: "text", content: "@if(" });
+          i += 4;
+          continue;
+        }
         const condition = template.slice(i + 4, end);
         const node = { type: "if", condition, then: [] as Node[] };
         current().children.push(node);
 
         stack.push({ type: "if", node, children: node.then });
         i = end + 1;
-        continue;
+        matched = true;
       }
       // @else
-      if (template.startsWith("@else", i)) {
+      else if (template.startsWith("@else", i)) {
         const ctx = stack[stack.length - 1];
-        if (ctx.type === "if") {
+        if (ctx?.type === "if") {
           ctx.node.else = [];
           ctx.children = ctx.node.else;
         }
         i += 5;
-        continue;
+        matched = true;
       }
       // @endif
-      if (template.startsWith("@endif", i)) {
-        stack.pop();
+      else if (template.startsWith("@endif", i)) {
+        if (stack.length > 1) { // Proteger contra stack vacío
+          stack.pop();
+        }
         i += 6;
-        continue;
+        matched = true;
       }
       // @each
-      if (template.startsWith("@each(", i)) {
-        const end = template.indexOf(")", i);
+      else if (template.startsWith("@each(", i)) {
+        const end = template.indexOf(")", i + 6); // Buscar desde i+6
+        if (end === -1) {
+          // Si no encuentra el paréntesis de cierre, trata como texto
+          current().children.push({ type: "text", content: "@each(" });
+          i += 6;
+          continue;
+        }
         const exp = template.slice(i + 6, end);
-        const [item, list] = exp.split(" in ").map(s => s.trim());
+        const parts = exp.split(" in ");
+        if (parts.length !== 2) {
+          // Sintaxis inválida, trata como texto
+          current().children.push({ type: "text", content: template.slice(i, end + 1) });
+          i = end + 1;
+          continue;
+        }
+        const [item, list] = parts.map(s => s.trim());
 
         const node = { type: "each", item, list, body: [] as Node[] };
         current().children.push(node);
 
         stack.push({ type: "each", node, children: node.body });
         i = end + 1;
-        continue;
+        matched = true;
       }
       // @endeach
-      if (template.startsWith("@endeach", i)) {
-        stack.pop();
+      else if (template.startsWith("@endeach", i)) {
+        if (stack.length > 1) { // Proteger contra stack vacío
+          stack.pop();
+        }
         i += 8;
-        continue;
+        matched = true;
       }
+      
+      // Si no coincide con ninguna directiva, trata el @ como texto
+      if (!matched) {
+        current().children.push({ type: "text", content: "@" });
+        i += 1;
+      }
+      continue;
     }
+    
     // TEXT
-    let nextSpecial = template.slice(i).search(/[@{]/);
-    if (nextSpecial === -1) nextSpecial = template.length - i;
-
-    const text = template.slice(i, i + nextSpecial);
-    current().children.push({ type: "text", content: text });
-
-    i += nextSpecial;
+    let nextSpecial = i;
+    while (nextSpecial < template.length && 
+           template[nextSpecial] !== '@' && 
+           template[nextSpecial] !== '{') {
+      nextSpecial++;
+    }
+    
+    if (nextSpecial > i) {
+      const text = template.slice(i, nextSpecial);
+      current().children.push({ type: "text", content: text });
+      i = nextSpecial;
+    } else {
+      // Fallback de seguridad: si no avanza, incrementar manualmente
+      current().children.push({ type: "text", content: template[i] });
+      i++;
+    }
   }
 
   return root;
