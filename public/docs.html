@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOM + Hydrate + Template Engine - VanillaApp2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+
+    (function() {
+      const theme = localStorage.getItem('theme');
+
+      const isDark =
+        theme === 'dark' ||
+        (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      const root = document.documentElement;
+      root.classList.remove('light', 'dark'); // 🔥 importante
+      if (isDark) {
+        root.classList.add('dark');
+      } else {
+        root.classList.add('light');
+      }
+    })();
+  </script>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <header class="mb-12">
+      <div class="flex items-center gap-2 text-2xl justify-start mb-4">
+        <span class="text-5xl font-black tracking-tighter text-slate-800 dark:text-white">
+          VanillaApp<span class="text-indigo-500">2026</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-3 mb-4">
+        <div>
+          <h1 class="text-3xl font-black tracking-tight">DOM + Hydrate + Template Engine</h1>
+          <p class="text-slate-600 dark:text-slate-400">Guía completa del sistema de renderizado de VanillaApp2026</p>
+        </div>
+      </div>
+      <div class="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-lg p-4">
+        <p class="text-sm">
+          Esta documentación cubre <strong>dom.ts</strong>, <strong>hydrate.ts</strong>, <strong>template.ts</strong> y
+          <strong>template-compiler.ts</strong>
+        </p>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="mb-8 sticky top-4 z-10">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 shadow-sm">
+        <div class="flex flex-wrap gap-2">
+          <a href="#build-functions"
+            class="text-sm px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/70 transition-colors">build()
+            & buildAndInterpolate()</a>
+          <a href="#interpolation"
+            class="text-sm px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors">Interpolación
+            & Pipes</a>
+          <a href="#control-flow"
+            class="text-sm px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/70 transition-colors">Control
+            de Flujo</a>
+          <a href="#dsl"
+            class="text-sm px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors">DSL
+            Compilado</a>
+          <a href="#hydration"
+            class="text-sm px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 hover:bg-teal-200 dark:hover:bg-teal-900/70 transition-colors">Hidratación</a>
+          <a href="#cheatsheet"
+            class="text-sm px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-900/70 transition-colors">Cheatsheet</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Section 1: Build Functions -->
+    <section id="build-functions" class="mb-12">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span
+            class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">1</span>
+          build() y buildAndInterpolate()
+        </h2>
+
+        <div class="space-y-6">
+          <!-- build() explanation -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-indigo-600 dark:text-indigo-400">build(tagName, options,
+              returnFirstChild, ctx)</h3>
+            <p class="text-slate-700 dark:text-slate-300 mb-4">
+              Crea un elemento y ejecuta hidratación en este orden:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
+                <ol class="space-y-2 text-sm">
+                  <li class="flex items-center gap-2">
+                    <span
+                      class="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                    <span>hydrateDirectives() - traducciones y data-each</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span
+                      class="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                    <span>hydrateIcons() - reemplaza [data-icon]</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span
+                      class="w-5 h-5 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                    <span>hydrateComponents() - [data-component]</span>
+                  </li>
+                  <li class="flex items-center gap-2">
+                    <span
+                      class="w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                    <span>hydrateEventListeners() - on-*, route-to</span>
+                  </li>
+                </ol>
+              </div>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-4">
+                <pre class="text-sm text-green-400 overflow-x-auto"><code>import { build } from "@/core/dom";
+
+const el = build("div", {
+  className: "p-4 bg-slate-100 rounded",
+  innerHTML: `&lt;button class="btn"&gt;OK&lt;/button&gt;`
+}, true);</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- buildAndInterpolate() explanation -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-purple-600 dark:text-purple-400">buildAndInterpolate(template,
+              ctx, returnFirstChild, options)</h3>
+            <p class="text-slate-700 dark:text-slate-300 mb-4">
+              Patrón típico: <strong>interpola</strong> primero, luego <strong>hidrata</strong>. Usado en todos los
+              componentes.
+            </p>
+            <div class="bg-slate-900 dark:bg-black rounded-lg p-4">
+              <pre class="text-sm text-green-400 overflow-x-auto"><code>import { buildAndInterpolate } from "@/core/dom";
+import { BaseComponent } from "@/core/types";
+
+export class HelloComponent extends BaseComponent {
+  render() {
+    const template = `
+      &lt;div class="p-4 rounded border"&gt;
+        &lt;h2 class="font-bold"&gt;Hola {user.name|upper}&lt;/h2&gt;
+        &lt;p class="text-sm"&gt;Edad: {user.age}&lt;/p&gt;
+      &lt;/div&gt;
+    `;
+    return buildAndInterpolate(template, this);
+  }
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Interpolation -->
+    <section id="interpolation" class="mb-12">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span
+            class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">2</span>
+          Interpolación y getValue()
+        </h2>
+
+        <div class="space-y-6">
+          <!-- Basic interpolation -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-purple-600 dark:text-purple-400">Interpolación básica con {}</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-2">Ejemplos de paths:</h4>
+                <div class="space-y-2 text-sm font-mono bg-slate-50 dark:bg-slate-900/50 p-3 rounded">
+                  <div>{user.name}</div>
+                  <div>{user.profile.email}</div>
+                  <div>{items[0].title}</div>
+                  <div>{language.{lang}} <span class="text-slate-500">// interpolación interna</span></div>
+                </div>
+              </div>
+              <div>
+                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-2">Comportamiento:</h4>
+                <ul class="space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <li>• Si no existe: deja {expr} sin sustituir</li>
+                  <li>• Si es función: la ejecuta con apply()</li>
+                  <li>• Soporta acceso a 'self' (global browser)</li>
+                  <li>• Fallback a scope padre con '#'</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pipes/Filters -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-indigo-600 dark:text-indigo-400">Pipes / Filtros con |</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-2">Filtros globales disponibles:</h4>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2 text-sm">
+                    <code
+                      class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">upper</code>
+                    <code
+                      class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">lower</code>
+                    <span class="text-slate-500">→ mayús/minús</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <code
+                      class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded">if:clase</code>
+                    <span class="text-slate-500">→ clase condicional</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <code
+                      class="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded">show</code>
+                    <code
+                      class="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded">hide</code>
+                    <span class="text-slate-500">→ display: none</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <code
+                      class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded">iif:true:false</code>
+                    <span class="text-slate-500">→ ternario</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <code
+                      class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded">undefined</code>
+                    <code
+                      class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded">debug</code>
+                    <span class="text-slate-500">→ utils</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-2">Ejemplos de uso:</h4>
+                <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                  <pre class="text-sm text-green-400"><code>&lt;div class="p-2 {isActive|if:'bg-green-200'}"&gt;
+  &lt;h3&gt;{title|upper}&lt;/h3&gt;
+  &lt;div style="{isLoading|show}"&gt;Cargando...&lt;/div&gt;
+  &lt;span&gt;{status|iif:'✅ Activo':'❌ Inactivo'}&lt;/span&gt;
+&lt;/div&gt;</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Translations -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-teal-600 dark:text-teal-400">Traducciones integradas</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-2">Sintaxis soportada:</h4>
+                <div class="space-y-2 text-sm font-mono bg-slate-50 dark:bg-slate-900/50 p-3 rounded">
+                  <div>{t:home.title}</div>
+                  <div>{'home.title'} <span class="text-slate-500">// literal</span></div>
+                  <div>&lt;span data-t="home.title"&gt;&lt;/span&gt; <span class="text-slate-500">// directiva</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-2">Comportamiento:</h4>
+                <ul class="space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <li>• Usa APP_CONFIG.i18n.t()</li>
+                  <li>• Pasa el scope como contexto</li>
+                  <li>• Soporta argumentos con :</li>
+                  <li>• data-t se convierte a textContent</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Control Flow -->
+    <section id="control-flow" class="mb-12">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span
+            class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">3</span>
+          Control de Flujo con @if
+        </h2>
+
+        <div class="space-y-6">
+          <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+              <div
+                class="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                !</div>
+              <div>
+                <h4 class="font-medium text-amber-800 dark:text-amber-200 mb-1">Comportamiento especial con variables no
+                  definidas</h4>
+                <p class="text-sm text-amber-700 dark:text-amber-300">
+                  Si la condición referencia una variable que no existe, el bloque @if se mantiene intacto para
+                  debugging.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-semibold mb-3 text-green-600 dark:text-green-400">Ejemplo básico</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-4">
+                <pre class="text-sm text-green-400"><code>&lt;div class="p-4 border rounded"&gt;
+  @if(isAdmin)
+    &lt;span class="text-red-600 font-bold"&gt;Admin&lt;/span&gt;
+  @endif
+
+  &lt;span&gt;Hola {user.name}&lt;/span&gt;
+
+  @if(user.hasNotifications)
+    &lt;div class="mt-2 p-2 bg-blue-100 rounded"&gt;
+      Tienes {user.notificationCount} notificaciones
+    &lt;/div&gt;
+  @endif
+&lt;/div&gt;</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold mb-3 text-green-600 dark:text-green-400">Con data-each</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-4">
+                <pre class="text-sm text-green-400"><code>&lt;div class="space-y-2" data-each="task in tasks"&gt;
+  &lt;div class="p-3 border rounded"&gt;
+    &lt;div class="font-medium"&gt;{task.title}&lt;/div&gt;
+    
+    @if(task.completed)
+      &lt;span class="text-green-600 text-sm"&gt;✅ Completado&lt;/span&gt;
+    @endif
+    
+    &lt;div class="text-xs text-slate-500"&gt;
+      Índice: {index} | App: {#.appName}
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-green-600 dark:text-green-400">Evaluación de condiciones</h3>
+            <p class="text-slate-700 dark:text-slate-300 mb-3">
+              Las condiciones se evalúan con <code
+                class="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded">evaluateExpression()</code> que usa
+              <code>with(ctx) { return expression; }</code>
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded">
+                <h4 class="font-medium text-green-700 dark:text-green-300 mb-2">✅ Condiciones válidas</h4>
+                <div class="font-mono text-xs space-y-1">
+                  <div>@if(isActive)</div>
+                  <div>@if(user.role === 'admin')</div>
+                  <div>@if(items.length > 0)</div>
+                </div>
+              </div>
+              <div class="bg-amber-50 dark:bg-amber-900/20 p-3 rounded">
+                <h4 class="font-medium text-amber-700 dark:text-amber-300 mb-2">⚠️ Variable no definida</h4>
+                <div class="font-mono text-xs space-y-1">
+                  <div>@if(noExiste)</div>
+                  <div class="text-amber-600 dark:text-amber-400">→ Se mantiene el bloque</div>
+                </div>
+              </div>
+              <div class="bg-red-50 dark:bg-red-900/20 p-3 rounded">
+                <h4 class="font-medium text-red-700 dark:text-red-300 mb-2">❌ Error de sintaxis</h4>
+                <div class="font-mono text-xs space-y-1">
+                  <div>@if(user.name ==)</div>
+                  <div class="text-red-600 dark:text-red-400">→ Se evalúa como false</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: DSL -->
+    <section id="dsl" class="mb-12">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span
+            class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">4</span>
+          DSL Compilado (template-compiler.ts)
+        </h2>
+
+        <div class="space-y-6">
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">DSL vs Template normal</h4>
+            <p class="text-sm text-blue-700 dark:text-blue-300">
+              El DSL compila a AST + función JavaScript, mientras que template.ts hace reemplazos de string.
+              El DSL soporta <code>@else</code> y bucles <code>@each</code> más sofisticados.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-lg font-semibold mb-3 text-orange-600 dark:text-orange-400">Funciones del DSL</h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex items-center gap-2">
+                  <code
+                    class="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded">executeDSL(template, ctx)</code>
+                  <span class="text-slate-500">→ compila y ejecuta</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <code
+                    class="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded">buildAndInterpolateDSL(template, ctx)</code>
+                  <span class="text-slate-500">→ + hidratación</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-lg font-semibold mb-3 text-orange-600 dark:text-orange-400">Sintaxis soportada</h3>
+              <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-2">
+                  <code class="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded">{expr}</code>
+                  <span class="text-slate-500">Interpolación</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <code class="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded">@if(cond) @else @endif</code>
+                  <span class="text-slate-500">Condicionales</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <code class="px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded">@each(item in list) @endeach</code>
+                  <span class="text-slate-500">Bucles</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-orange-600 dark:text-orange-400">Ejemplo completo con @each +
+              @if/@else</h3>
+            <div class="bg-slate-900 dark:bg-black rounded-lg p-4">
+              <pre class="text-sm text-green-400 overflow-x-auto"><code>&lt;div class="p-4"&gt;
+  &lt;h2 class="font-bold mb-4"&gt;Usuarios ({users.length}+)&lt;/h2&gt;
+
+  @each(u in users)
+    &lt;div class="py-2 border-b flex items-center justify-between"&gt;
+      &lt;div&gt;
+        &lt;div class="font-medium"&gt;{u.name|upper}&lt;/div&gt;
+        &lt;div class="text-sm text-slate-500"&gt;{u.email}&lt;/div&gt;
+      &lt;/div&gt;
+      
+      &lt;div&gt;
+        @if(u.active)
+          &lt;span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs"&gt;Activo&lt;/span&gt;
+        @else
+          &lt;span class="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs"&gt;Inactivo&lt;/span&gt;
+        @endif
+      &lt;/div&gt;
+    &lt;/div&gt;
+  @endeach
+&lt;/div&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Hydration -->
+    <section id="hydration" class="mb-12">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span
+            class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">5</span>
+          Hidratación (hydrate.ts)
+        </h2>
+
+        <div class="space-y-8">
+          <!-- Icons -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-teal-600 dark:text-teal-400 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              hydrateIcons()
+            </h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <p class="text-slate-700 dark:text-slate-300 mb-3">Reemplaza placeholders <code>[data-icon]</code> por
+                  SVG reales.</p>
+                <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                  <pre class="text-sm text-green-400"><code>&lt;i data-icon="zap" class="size-5 text-indigo-600"&gt;&lt;/i&gt;
+&lt;i data-icon="heart" class="w-4 h-4 text-red-500"&gt;&lt;/i&gt;</code></pre>
+                </div>
+              </div>
+              <div class="flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                <div class="text-center text-slate-500">
+                  <svg class="w-8 h-8 mx-auto mb-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+                  </svg>
+                  Se convierte en SVG
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Listeners -->
+          <div>
+            <h3 class="text-lg font-semibold mb-4 text-teal-600 dark:text-teal-400">hydrateEventListeners() - Eventos
+              reactivos</h3>
+
+            <!-- on-publish -->
+            <div class="mb-6">
+              <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-3">A) on-publish (Suscripción reactiva)</h4>
+              <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 mb-3">
+                <p class="text-sm text-indigo-700 dark:text-indigo-300">
+                  <strong>Sintaxis:</strong> <code>on-publish="topic:scope:action:...extraArgs"</code>
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <h5 class="font-medium mb-2">Acciones soportadas:</h5>
+                  <div class="space-y-1 text-sm">
+                    <div class="flex justify-between">
+                      <code class="text-blue-600 dark:text-blue-400">classname</code>
+                      <span class="text-slate-500">el.className = data</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <code class="text-blue-600 dark:text-blue-400">html</code>
+                      <span class="text-slate-500">el.innerHTML = data</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <code class="text-blue-600 dark:text-blue-400">json</code>
+                      <span class="text-slate-500">JSON.stringify</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <code class="text-blue-600 dark:text-blue-400">style:prop</code>
+                      <span class="text-slate-500">el.style[prop] = data</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <code class="text-blue-600 dark:text-blue-400">toggleclass:name</code>
+                      <span class="text-slate-500">el.classList.toggle</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <code class="text-blue-600 dark:text-blue-400">attr.name</code>
+                      <span class="text-slate-500">el.setAttribute</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h5 class="font-medium mb-2">Ejemplos:</h5>
+                  <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                    <pre class="text-xs text-green-400"><code>&lt;pre on-publish="user-updated:local:json"&gt;&lt;/pre&gt;
+&lt;div on-publish="theme:global:classname"&gt;&lt;/div&gt;
+&lt;span on-publish="loading:local:toggleclass:animate-spin"&gt;&lt;/span&gt;</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- route-to -->
+            <div class="mb-6">
+              <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-3">B) route-to (Navegación)</h4>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                  <pre class="text-sm text-green-400"><code>&lt;a route-to="/home"&gt;Home&lt;/a&gt;
+&lt;a route-to="@routes.profile"&gt;Profile&lt;/a&gt;
+&lt;button route-to="/admin/users"&gt;Admin&lt;/button&gt;</code></pre>
+                </div>
+                <div class="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                  <p>• Añade listener click automático</p>
+                  <p>• preventDefault() incluido</p>
+                  <p>• @ resuelve desde el contexto</p>
+                  <p>• Funciona en cualquier elemento</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- on-* events -->
+            <div>
+              <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-3">C) on-* (Eventos del DOM)</h4>
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <h5 class="font-medium mb-2 text-purple-600 dark:text-purple-400">Modo publish:</h5>
+                  <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                    <pre class="text-xs text-green-400"><code>&lt;button on-click="publish:counter-inc:local:1"&gt;+1&lt;/button&gt;
+&lt;input on-change="publish:filter:global:@searchTerm"&gt;</code></pre>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-2">Publica {event, target, args} a PubSub</p>
+                </div>
+                <div>
+                  <h5 class="font-medium mb-2 text-green-600 dark:text-green-400">Modo handler:</h5>
+                  <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                    <pre class="text-xs text-green-400"><code>&lt;button on-click="onSave:@userId"&gt;Guardar&lt;/button&gt;
+&lt;input on-input="onSearchChanged:@searchKey"&gt;</code></pre>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-2">Llama a ctx[handler] con args resueltos</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Components -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-teal-600 dark:text-teal-400">hydrateComponents() - Montaje de
+              componentes</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <h4 class="font-medium mb-2">Proceso de hidratación:</h4>
+                <ol class="space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                  <li>1. Busca <code>[data-component]</code></li>
+                  <li>2. Resuelve el componente desde registry</li>
+                  <li>3. <code>component.init({parent: el})</code></li>
+                  <li>4. <code>component.render()</code></li>
+                  <li>5. BaseComponent.bind()</li>
+                  <li>6. Copia clases del placeholder</li>
+                  <li>7. <code>el.replaceWith(element)</code></li>
+                  <li>8. <code>component.mounted()</code></li>
+                </ol>
+              </div>
+              <div>
+                <h4 class="font-medium mb-2">Ejemplo:</h4>
+                <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                  <pre class="text-sm text-green-400"><code>&lt;div data-component="language-selector" class="w-full"&gt;&lt;/div&gt;
+&lt;div data-component="user-profile" data-user-id="123"&gt;&lt;/div&gt;</code></pre>
+                </div>
+                <div class="mt-2 text-xs text-slate-500">
+                  <p>• data-* se convierte en props del componente</p>
+                  <p>• Las clases se mantienen en el componente final</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Directives -->
+          <div>
+            <h3 class="text-lg font-semibold mb-3 text-teal-600 dark:text-teal-400">hydrateDirectives() - data-t y
+              data-each</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-medium mb-3 text-indigo-600 dark:text-indigo-400">data-t (Traducciones)</h4>
+                <div class="bg-slate-900 dark:bg-black rounded-lg p-3 mb-3">
+                  <pre class="text-sm text-green-400"><code>&lt;span data-t="home.title"&gt;&lt;/span&gt;
+&lt;h1 data-t="t:nav.welcome"&gt;&lt;/h1&gt;</code></pre>
+                </div>
+                <ul class="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                  <li>• Usa APP_CONFIG.i18n.t()</li>
+                  <li>• Se convierte a textContent</li>
+                  <li>• Añade data-i18n-key</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-medium mb-3 text-green-600 dark:text-green-400">data-each (Repetición)</h4>
+                <div class="bg-slate-900 dark:bg-black rounded-lg p-3 mb-3">
+                  <pre class="text-sm text-green-400"><code>&lt;ul data-each="u in users"&gt;
+  &lt;li&gt;{u.name~upper} (#{index})&lt;/li&gt;
+  &lt;li&gt;App: {#.appName}&lt;/li&gt;
+&lt;/ul&gt;</code></pre>
+                </div>
+                <ul class="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                  <li>• Solo primer nivel (no anidados)</li>
+                  <li>• ~ se convierte a | para pipes</li>
+                  <li>• # accede al scope padre</li>
+                  <li>• index automático</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: Cheatsheet -->
+    <section id="cheatsheet" class="mb-12">
+      <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-6 shadow-sm">
+        <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+          <span
+            class="w-8 h-8 bg-rose-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">6</span>
+          Cheatsheet - Ejemplos rápidos
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left column -->
+          <div class="space-y-6">
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">🔗 Interpolación</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>{title}
+{user.name|upper}
+{maybeEmpty|undefined}
+{isActive|if:'bg-green-200'}
+{isLoading|show}</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">🌍 Traducciones</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>{t:home.title}
+{'home.title'}
+&lt;span data-t="home.title"&gt;&lt;/span&gt;</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">🔄 Condicionales</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>@if(isLogged)
+  &lt;span&gt;Bienvenido {user.name}&lt;/span&gt;
+@endif</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">📝 Listas</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>&lt;div data-each="c in characters"&gt;
+  &lt;div&gt;{c.name~upper} (#{index})&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column -->
+          <div class="space-y-6">
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">🖱️ Eventos</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>&lt;button on-click="publish:toast:global:'Hola'"&gt;Toast&lt;/button&gt;
+&lt;button on-click="onSave:@userId"&gt;Guardar&lt;/button&gt;
+&lt;input on-input="onSearch:@term"&gt;</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">📡 Suscripciones</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>&lt;pre on-publish="user-updated:local:json"&gt;&lt;/pre&gt;
+&lt;div on-publish="theme:global:classname"&gt;&lt;/div&gt;
+&lt;span on-publish="loading:local:toggleclass:spin"&gt;&lt;/span&gt;</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">🧩 Componentes</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>&lt;div data-component="my-component" class="mt-4"&gt;&lt;/div&gt;
+&lt;div data-component="user-card" data-user-id="123"&gt;&lt;/div&gt;</code></pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-3">🧭 Navegación</h3>
+              <div class="bg-slate-900 dark:bg-black rounded-lg p-3">
+                <pre class="text-xs text-green-400"><code>&lt;a route-to="/home"&gt;Home&lt;/a&gt;
+&lt;a route-to="@routes.profile"&gt;Profile&lt;/a&gt;
+&lt;button route-to="/admin"&gt;Admin&lt;/button&gt;</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gotchas -->
+        <div class="mt-8">
+          <h3 class="font-semibold text-rose-600 dark:text-rose-400 mb-4">⚠️ Observaciones importantes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <h4 class="font-medium text-amber-800 dark:text-amber-200 mb-2">Orden de hidratación</h4>
+              <p class="text-sm text-amber-700 dark:text-amber-300">Directivas → Iconos → Componentes → Eventos</p>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <h4 class="font-medium text-blue-800 dark:text-blue-200 mb-2">Interpolación rota</h4>
+              <p class="text-sm text-blue-700 dark:text-blue-300">{expr} se mantiene si no existe la variable</p>
+            </div>
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <h4 class="font-medium text-green-800 dark:text-green-200 mb-2">Pipes en data-each</h4>
+              <p class="text-sm text-green-700 dark:text-green-300">Usar ~ en vez de | (se convierte automáticamente)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files reference -->
+        <div class="mt-8 bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4">
+          <h4 class="font-medium text-slate-700 dark:text-slate-300 mb-3">📂 Referencias de archivos</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-mono">
+            <div class="space-y-1">
+              <div><code class="text-indigo-600 dark:text-indigo-400">src/core/dom.ts</code> → build,
+                buildAndInterpolate, $</div>
+              <div><code class="text-purple-600 dark:text-purple-400">src/core/template.ts</code> → interpolate,
+                getValue, pipes</div>
+            </div>
+            <div class="space-y-1">
+              <div><code class="text-green-600 dark:text-green-400">src/core/hydrate.ts</code> → hydrate*, eventos,
+                componentes</div>
+              <div><code class="text-orange-600 dark:text-orange-400">src/core/template-compiler.ts</code> → DSL
+                compilado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="text-center text-sm text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700 pt-8">
+      <p>📖 Documentación generada para <strong>VanillaApp2026</strong> - Sistema de renderizado y templating</p>
+    </footer>
+  </div>
+
+  <script>
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add active class to navigation based on scroll position
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (window.scrollY >= sectionTop - 100 && window.scrollY < sectionTop + sectionHeight - 100) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('ring-2', 'ring-indigo-300', 'dark:ring-indigo-700');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('ring-2', 'ring-indigo-300', 'dark:ring-indigo-700');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
