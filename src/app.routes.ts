@@ -28,6 +28,7 @@ export function configureRouter(){
     .add('usuarios', asyncLoaderSample)
     .add('component/test/list', () => import('./components/test/user-list.component'))
     .add('landing', () => import('./features/landing/landing.page'))
+    .add('poc-1', () => import('./features/poc-1/pages/poc1.page'))
     .notFound(() => import('./pages/not-found.page'));
 
   router.addRoute({
