@@ -374,6 +374,12 @@ export default class LandingPage extends BaseComponent {
               >
                 ℹ️ About
               </button>
+              <button
+                route-to="poc-1"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all text-sm"
+              >
+                🧩 POC-1 BaseComponent
+              </button>
             </div>
           </section>
 
