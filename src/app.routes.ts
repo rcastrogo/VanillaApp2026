@@ -1,7 +1,7 @@
 
-import type { Component, ComponentConstructor } from './components/component.model';
+
 import { RouteBuilder } from './core/services/route-builder';
-import { router, type ComponentProvider } from './core/services/router.service';
+import { router } from './core/services/router.service';
 import homePage from './pages/home.page';
 import AdminLayout from './pages/layouts/admin.layout';
 import { asyncLoaderSample } from './pages/loaders/loaders';
