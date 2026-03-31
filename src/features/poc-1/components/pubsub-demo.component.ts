@@ -1,9 +1,9 @@
+import { APP_CONFIG } from '@/app.config';
 import type { ComponentContext } from '@/components/component.model';
 import { pubSub } from '@/core/services/pubsub.service';
 import { buildAndInterpolateDSL } from '@/core/template-compiler';
 import { BaseComponent } from '@/core/types';
 
-const POC1_TOPIC = 'POC1_DEMO_MSG';
 
 export class PubSubDemoComponent extends BaseComponent {
 
@@ -16,7 +16,7 @@ export class PubSubDemoComponent extends BaseComponent {
       log: [] as string[],
     });
 
-    this.subscribe(POC1_TOPIC, (payload: { text: string }) => {
+    this.subscribe(APP_CONFIG.messages.App.message, (payload: { text: string }) => {
       const entry = `[${new Date().toLocaleTimeString()}] ${payload?.text ?? JSON.stringify(payload)}`;
       this.state.log = [entry, ...this.state.log].slice(0, 6);
     });
@@ -29,14 +29,14 @@ export class PubSubDemoComponent extends BaseComponent {
 
   sendGlobal() {
     const text = this.message || '(mensaje vacío)';
-    pubSub.publish(POC1_TOPIC, { text: `Global → ${text}` });
+    pubSub.publish(APP_CONFIG.messages.App.message, `Global → ${text}`);
     this.message = '';
     this.invalidate();
   }
 
   sendLocal() {
     const text = this.message || '(mensaje vacío)';
-    this.publish(POC1_TOPIC, { text: `Local → ${text}` });
+    this.publish(APP_CONFIG.messages.App.message, { text: `Local → ${text}` });
     this.message = '';
     this.invalidate();
   }

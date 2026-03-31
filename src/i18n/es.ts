@@ -20,7 +20,7 @@ export default {
       cancel: 'Cancelar',
       yes: 'Sí',
       no: 'No',
-      interpolate: 'Borrar {count} elementos de {id} {name} {extraArgs.0}'
+      interpolate: 'Borrar {count} elementos de {id} {name} {extraArgs.0} {extraArgs.1}'
     }
   },
   simpsons: {

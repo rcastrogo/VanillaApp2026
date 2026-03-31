@@ -94,7 +94,7 @@ export default class LandingPage extends BaseComponent {
 
   sendPubSubMessage() {
     const msg = `[Página → PubSub] mensaje enviado a las ${new Date().toLocaleTimeString()}`;
-    pubSub.publish('LANDING_MSG', { text: msg });
+    pubSub.publish(APP_CONFIG.messages.App.message, msg);
     this.pubSubLog = [msg, ...this.pubSubLog.slice(0, 4)];
     this.state.pubSubMessages = [...this.pubSubLog];
   }
@@ -293,7 +293,7 @@ export default class LandingPage extends BaseComponent {
             >
               📤 Publicar LANDING_MSG
             </button>
-            <div class="space-y-1 min-h-[4rem]">
+            <div class="space-y-1 min-h-16">
               ${messages.length === 0
                 ? `<p class="text-xs text-slate-400 dark:text-slate-500 italic">Sin mensajes aún. Pulsa un contador o el botón de arriba.</p>`
                 : messages.map(m => `
@@ -387,7 +387,9 @@ export default class LandingPage extends BaseComponent {
 
         <!-- ── Footer informativo ──────────────────────────────── -->
         <footer class="mt-10 text-center text-xs text-slate-400 dark:text-slate-600">
-          <div data-component="app-logo" class="inline-flex"></div>Mini-framework reactivo · Landing Page de pruebas
+          <div data-component="app-logo" class="inline-flex">
+            Mini-framework reactivo · Landing Page de pruebas
+          </div>
         </footer>
 
       </div>

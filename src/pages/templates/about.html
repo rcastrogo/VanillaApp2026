@@ -1,59 +1,89 @@
-<div class="min-h-screen bg-gray-100 flex items-center justify-center">
-  <div class="max-w-4xl mx-auto p-8 bg-white shadow-lg rounded-lg">
-    <header class="text-center mb-8">
-      <h1 class="text-4xl font-bold text-gray-800 mb-4">Acerca de Nosotros</h1>
-      <p class="text-lg text-gray-600">Conoce más sobre nuestro proyecto y equipo</p>
-    </header>
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 px-6 py-12">
+  <div class="max-w-5xl mx-auto text-center">
 
-    <section class="mb-8">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Nuestra Misión</h2>
-      <p class="text-gray-700 leading-relaxed">
-        En VanillaApp2026, nos dedicamos a crear aplicaciones web modernas y eficientes utilizando tecnologías vanilla como JavaScript, TypeScript y frameworks ligeros. Nuestro objetivo es proporcionar soluciones simples, escalables y de alto rendimiento para desarrolladores y usuarios finales.
+    <!-- 🚀 HERO -->
+    <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+      VanillaApp2026 Framework
+    </h1>
+
+    <p class="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
+      Un micro-framework moderno construido desde cero en JavaScript puro.
+      Sin dependencias. Sin magia innecesaria. Solo control, rendimiento y claridad.
+    </p>
+
+    <div class="flex justify-center gap-3 mb-12">
+      <button 
+        class="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+        route-to="/landing"
+      >
+        Ver demo dinámica
+      </button>
+
+      <a 
+        class="px-5 py-2.5 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 font-medium hover:bg-gray-300 dark:hover:bg-gray-700 transition"
+        href="/docs.html" target="_blank"
+      >
+        Documentación
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <i data-icon="rocket" class="size-10"></i>
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Ultra rápido</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          Sin Virtual DOM. Render directo y controlado para máximo rendimiento.
+        </p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <i data-icon="radio" class="size-10"></i>
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Reactivo</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          State basado en Proxy que actualiza la UI automáticamente.
+        </p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <i data-icon="tv" class="size-10"></i>
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Componentes</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          Arquitectura modular y reutilizable sin necesidad de frameworks pesados.
+        </p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <i data-icon="radio" class="size-10"></i>
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">PubSub</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          Comunicación desacoplada entre componentes mediante eventos.
+        </p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <i data-icon="zap" class="size-10"></i>
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Control total</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          Tú decides cómo y cuándo renderizar. Sin capas ocultas.
+        </p>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
+        <i data-icon="timer" class="size-10"></i>
+        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">Lazy loading</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-300">
+          Carga dinámica de vistas y componentes bajo demanda.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="mt-16">
+      <p class="text-sm italic text-gray-500 dark:text-gray-400">
+        “Menos magia. Más control. Mejor rendimiento.”
       </p>
-    </section>
+    </div>
 
-    <section class="mb-8">
-      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Nuestro Equipo</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="text-center">
-          <div class="w-24 h-24 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span class="text-white text-2xl font-bold">JD</span>
-          </div>
-          <h3 class="text-xl font-medium text-gray-800">Juan Developer</h3>
-          <p class="text-gray-600">Desarrollador Frontend</p>
-        </div>
-        <div class="text-center">
-          <div class="w-24 h-24 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span class="text-white text-2xl font-bold">AS</span>
-          </div>
-          <h3 class="text-xl font-medium text-gray-800">Ana SysAdmin</h3>
-          <p class="text-gray-600">Administradora de Sistemas</p>
-        </div>
-        <div class="text-center">
-          <div class="w-24 h-24 bg-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <span class="text-white text-2xl font-bold">MP</span>
-          </div>
-          <h3 class="text-xl font-medium text-gray-800">Miguel Product</h3>
-          <p class="text-gray-600">Product Manager</p>
-        </div>
-        <div class="text-center" data-component="app-counter">
-
-        </div>
-
-
-      </div>
-    </section>
-
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-800 mb-4">Tecnologías Utilizadas</h2>
-      <div class="flex flex-wrap gap-2">
-        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">TypeScript</span>
-        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">JavaScript</span>
-        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">HTML5</span>
-        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">CSS3</span>
-        <span class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">Tailwind CSS</span>
-        <span class="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm">esbuild</span>
-      </div>
-    </section>
   </div>
 </div>

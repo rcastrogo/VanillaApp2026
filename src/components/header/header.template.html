@@ -1,36 +1,46 @@
-
-<header class="bg-card shadow-lg p-4 flex items-center justify-between">
-  <div data-component="app-logo"></div>
-  <div class="flex items-center gap-4">
-    <h1 class="text-sm font-bold italic tracking-tight">
-      {title | upper}
-    </h1>
-    <div data-component="app-theme-toggle"></div>
-    <div data-component="app-language-selector"></div>
-    <div data-component="app-collapsible-clock"></div>
-    
-    <nav class="flex gap-2 text-sm">
-      <button route-to="/dashboard" class="hover:underline">Dashboard</button>
-      <button route-to="/home" class="hover:underline text-teal-200">inicio</button>
-      <button route-to="/simpson" class="hover:underline text-teal-200">Los Simpsons</button>
+<div class="bg-card shadow-sm">
+  <header class="flex items-center px-4">
+    <div data-component="app-logo" class="text-4xl mr-2">
+      Construyendo el futuro de la web con vanilla JS
+    </div>
+    <nav class="flex flex-wrap items-center place-content-end gap-1 ml-auto py-4">
+      <div data-component="app-language-selector"></div>    
+      <div data-component="app-theme-toggle"></div>
+      <div data-component="app-collapsible-clock" class=""></div>     
+      <div class="w-full border-b border-t p-0.5">
+        <i data-icon="activity" class="size-3 inline-block"></i>
+        <span class="h-2 text-xs" on-publish="app-message:global:innerHTML">
+          Esperando acciones...
+        </span>
+      </div>
     </nav>
-  </div>
+  </header>
+  <div class="w-full text-center border-b border-t p-0.5">
+    <a href="/404" route-to="/404" class="app-button text-xs px-3">404</a>
+    <a href="/splash-screen" route-to="/splash-screen" class="app-button text-xs px-3">SplashScreen</a>
+    <a href="/home" route-to="/home" class="app-button text-xs px-3">Home</a>
+    <a href="/about" route-to="/about" class="app-button text-xs px-3">About</a>
+    <a href="/index" route-to="/index" class="app-button text-xs px-3">IndexPage</a>
+    <a href="/no-layout" route-to="/no-layout" class="app-button text-xs px-3">Null-Layout</a> 
+    <a href="/admin-layout" route-to="/admin-layout" class="app-button text-xs px-3">AdminLayout</a> 
+    <a href="/test" route-to="/test" class="app-button text-xs px-3">Report Playground</a>
+    <a href="/template" route-to="/template" class="app-button text-xs px-3">TemplatePage</a>   
+    <a href="/dashboard" route-to="/dashboard" class="app-button text-xs px-3">Dashboard</a>
+    <a href="/usuarios" route-to="/usuarios" class="app-button text-xs px-3">Usuarios</a>
+    <a href="/simpson" route-to="/simpson" class="app-button text-xs px-3">Los Simpsons</a>
+    <a href="/component/test/list" route-to="/component/test/list" class="app-button text-xs px-3">
+      UserListComponent
+    </a>
+    <a href="/landing" route-to="/landing" class="app-button text-xs px-3">Landing</a>
+    <a href="/poc-1" route-to="/poc-1" class="app-button text-xs px-3">Poc-1</a>
+    <a href="/extend-base-component" route-to="/extend-base-component" class="app-button text-xs px-3">ExtendBaseComponent</a>
+    <a href="/docs.html" class="app-button text-xs px-3">Static Doc</a>
 
-  <div class="flex items-center gap-3">
-    <div on-publish="NOTIFICATIONS_COUNT:local:statusColor" class="p-2 rounded-full transition-all">
-       <i data-icon="activity" class="size-6"></i>
-    </div>
-
-    <button on-click="showMessage:@instanceId" class="p-1 hover:bg-teal-500 rounded-full transition-colors duration-200">
-      <i data-icon="settings" class="size-5 cursor-pointer"></i>
-    </button>
-    
-    <div class="bg-teal-700 px-3 py-1 rounded-lg text-xs font-mono">
-       Balance: {user.name} - {user.balance | currency:€:2}
-    </div>
+    <button 
+      on-click="showMessage:@instanceId" 
+      class="app-button p-2 hover:bg-teal-500 rounded-full transition-colors duration-200">
+      <i data-icon="settings" class="size-4 cursor-pointer"></i>
+    </button>    
   </div>
-  <div on-publish="SYSTEM_MSG:local:innerHTML" class="m-4 p-3 bg-gray-100 rounded border-l-4 border-teal-500 italic text-gray-600">
-    Esperando acciones...
-  </div>  
-</header>
+</div>
 

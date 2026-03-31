@@ -16,54 +16,47 @@ export default class TermsPage implements Component {
 
   render() {
     const template = `
-
-      <div class="mx-auto my-8 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-        <div class="bg-linear-to-r from-slate-800 to-slate-900 p-6">
-          <h1 class="text-xl font-bold text-white tracking-tight flex items-center gap-3">
-            <i data-icon="users" class="size-6 text-indigo-400"></i>
-            Lista de Usuarios
-          </h1>
-          <p class="text-slate-400 mt-1 uppercase tracking-widest font-medium">
-            Directorio interno v2026
-          </p>
-        </div>
-
-        <div class="p-2">
-          <ul data-each="user in users" class="divide-y divide-slate-50">
-            <li class="flex items-center justify-between p-4 rounded-2xl hover:bg-slate-50 transition-all group">
-              <div class="flex items-center gap-4">
-                <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm border border-slate-200">
-                  A
+      <div class="px-4">
+        <div class="mx-auto rounded-3xl mb-2 border border-gray-700 overflow-hidden">
+          <div class="bg-linear-to-r from-slate-800 to-slate-900 p-6">
+            <h1 class="text-xl font-bold text-white tracking-tight flex items-center gap-3">
+              <i data-icon="users" class="size-6 text-indigo-400"></i>
+              Lista de Usuarios
+            </h1>
+            <p class="text-slate-400 mt-1 uppercase tracking-widest font-medium">
+              Directorio interno v2026
+            </p>
+          </div>
+          <div class="p-2 bg-white dark:bg-slate-800">
+            <ul data-each="user in users" class="">
+              <li class="flex items-center justify-between p-4 mb-0.5 rounded-2xl hover:bg-slate-50 transition-all group">
+                <div class="flex items-center gap-4">
+                  <div class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm border border-slate-200">
+                    A
+                  </div>                  
+                  <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                      {user.name}
+                    </span>
+                    <span class="text-slate-400 font-mono">
+                      {user.email}
+                    </span>
+                  </div>
                 </div>
-                
-                <div class="flex flex-col">
-                  <span class="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">
-                    {user.name}
-                  </span>
-                  <span class="text-slate-400 font-mono">
-                    {user.email}
-                  </span>
-                </div>
+                <span class="text-[10px] font-black px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
+                  ONLINE
+                </span>
+              </li>
+            </ul>
+            @if(users.length===3)
+              <div class="py-4 text-center">
+                <p class="text-slate-400 text-sm italic">No hay registros cargados</p>
               </div>
-
-              <span class="text-[10px] font-black px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100">
-                ONLINE
-              </span>
-            </li>
-          </ul>
-          @if(users.length===3)
-            <div class="py-12 text-center">
-              <p class="text-slate-400 text-sm italic">No hay registros cargados</p>
-            </div>
-          @endif
-
-          <div data-component="app-dsl-sample"></div>
-
-          <div data-component="app-the-simpsons"></div>
-
-          <div data-component="app-map">
+            @endif
           </div>
         </div>
+        <div data-component="app-dsl-sample" class="mx-auto rounded-3xl mb-2 border border-gray-700 overflow-hidden"></div>
+        <div data-component="app-map" class="mx-auto rounded-3xl mb-2 border border-gray-700 overflow-hidden"></div>
       </div>
     `;
     return buildAndInterpolate(template, this.ctx);
@@ -159,18 +152,18 @@ export class SampleDSL extends BaseComponent {
 
   render(): HTMLElement {
     const template = `
-      <div class="p-8 bg-slate-900 text-slate-100 min-h-screen font-sans">
-        <h1 class="text-3xl font-bold text-sky-400 mb-8 border-b border-slate-700 pb-4">
+      <div class="p-4 bg-card">
+        <h1 class="text-3xl font-bold mb-8 border-b border-slate-700 pb-4">
           { state.title | upper}
         </h1>
 
-        <div class="space-y-6">
+        <div class="space-y-6 bg-background">
           @each(project in state.projects)
-            <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+            <section class="p-6 rounded-xl">
               <div class="flex items-center gap-3 mb-4">
-                <h2 class="text-xl font-semibold text-white">{ project.name }</h2>
+                <h2 class="text-xl font-semibold">{ project.name }</h2>
                 @if(project.active)
-                  <span class="px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 rounded-full uppercase tracking-wider">
+                  <span class="px-2 py-0.5 text-[10px] rounded-full uppercase tracking-wider">
                     Activo
                   </span>
                 @else
@@ -183,7 +176,7 @@ export class SampleDSL extends BaseComponent {
 
               <div class="grid gap-3 ml-4 border-l-2 border-slate-700 pl-6">
                 @each(task in project.tasks)
-                  <div class="flex flex-col gap-2 p-3 bg-slate-900/50 rounded-lg">
+                  <div class="flex flex-col gap-2 p-3 rounded-lg">
                     <div class="flex items-center gap-2">
                       <input type="checkbox" @if(task.done) checked @endif class="accent-sky-500">
                       <span class="@if(task.done) line-through text-slate-500 @endif">
@@ -192,7 +185,7 @@ export class SampleDSL extends BaseComponent {
                     </div>
                     <div class="flex gap-2 ml-6">
                       @each(tag in task.tags)
-                        <span class="text-[9px] px-2 py-0.5 bg-sky-900/40 text-sky-300 border border-sky-500/30 rounded">
+                        <span class="text-[9px] px-2 py-0.5 rounded">
                           # { tag | upper }
                         </span>
                       @endeach

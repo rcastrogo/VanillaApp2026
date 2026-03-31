@@ -1,11 +1,11 @@
 import { APP_CONFIG } from "../../app.config";
 import { $ } from "../../core/dom";
-import { AppMessages } from "../../core/services/app-engine.service";
 import { pubSub } from "../../core/services/pubsub.service";
 import { buildAndInterpolateDSL } from "../../core/template-compiler";
 import { BaseComponent } from "../../core/types";
 import { getCharacters, type Character } from "../../services/the-simpsons.service";
 import type { ComponentContext } from "../component.model";
+
 
 export class TheSimpsonsComponent extends BaseComponent {
 
@@ -17,9 +17,9 @@ export class TheSimpsonsComponent extends BaseComponent {
 
   async loadMore() {
     this.state.isLoading = true;
-    // pubSub.publish(AppMessages.HttpClient.Loading)
+    // pubSub.publish(MESSAGES.HttpClient.Loading)
     const result = await getCharacters(this.state.currentPage);
-    pubSub.publish(AppMessages.HttpClient.Loaded)
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded)
     if (typeof result === 'string') {
       console.error("Error al cargar personajes");
       this.state.isLoading = false;

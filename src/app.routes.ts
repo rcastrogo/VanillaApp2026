@@ -18,8 +18,8 @@ export function configureRouter(){
     .add('test', testPage, null)
     .add('template', TemplatePage)
     .add('index', IndexPage)
-    .add('index-1', IndexPage, null)
-    .add('index-2', IndexPage, AdminLayout)
+    .add('no-layout', IndexPage, null)
+    .add('admin-layout', IndexPage, AdminLayout)
     .add('extend-base-component', () => import('./pages/samples/component-based/base-component.page') )
     .add('about', () => import('./pages/samples/functional/about.page') )
     .add('dashboard', () => import('./pages/samples/functional/dashboard.page') )    
@@ -29,6 +29,7 @@ export function configureRouter(){
     .add('component/test/list', () => import('./components/test/user-list.component'))
     .add('landing', () => import('./features/landing/landing.page'))
     .add('poc-1', () => import('./features/poc-1/pages/poc1.page'))
+    .add('splash-screen', () => import('./pages/splash-screen.page'), null)
     .notFound(() => import('./pages/not-found.page'));
 
   router.addRoute({

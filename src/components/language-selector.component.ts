@@ -47,13 +47,13 @@ export class LanguageSelector extends BaseComponent {
       <div class="relative inline-block text-left">
         <button 
           on-click="toggleMenu"
-          class="flex items-center gap-2 px-3 py-2 rounded-md border 
-            bg-background hover:bg-accent transition-colors">
-          <span class="size-4 hidden md:block">
+          class="app-button flex items-center gap-2 px-3 py-2 rounded-md  
+             transition-colors">
+          <span class="size-4 hidden lg:block">
             <i data-icon="globe" class="size-5"></i>
           </span>     
-          <span class="text-sm block md:hidden uppercase">{ current.lang }</span>
-          <span class="text-sm hidden md:block">{ current.label | t }</span>          
+          <span class="text-sm block lg:hidden uppercase">{ current.lang }</span>
+          <span class="text-sm hidden lg:block">{ current.label | t }</span>          
           <span class="size-4 opacity-50">
             @if(state.isMenuOpen)<i data-icon="chevron-up" class="size-5"></i>@endif
             @if(!state.isMenuOpen)<i data-icon="chevron-down" class="size-5"></i>@endif
@@ -75,8 +75,8 @@ export class LanguageSelector extends BaseComponent {
                   @if(current.lang === lang) bg-accent text-accent-foreground @endif
                 "
               >
-                <span class="text-sm block md:hidden uppercase">{ lang }</span>
-                <span class="text-sm hidden md:block">
+                <span class="text-sm block lg:hidden uppercase">{ lang }</span>
+                <span class="text-sm hidden lg:block">
                   {lang | translate}
                 </span>
               </button>

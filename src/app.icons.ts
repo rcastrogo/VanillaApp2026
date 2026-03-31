@@ -1,8 +1,9 @@
 
 import {
   Activity, Globe, Moon, Plus, Minus, Settings, Sun, Timer, Trash, User, Users, Power, Zap,
-  ChevronDown, ChevronUp, Info, Code, Radio, BarChart, Database, Server, Tv, Share2,
-  type IconNode
+  ChevronDown, ChevronUp, Info, Code, Radio, BarChart, Database, Server, Tv, Share2, X, Rocket,
+  CheckCircle, XCircle, AlertTriangle,
+  type IconNode,
 } from 'lucide';
 
 const icons = {
@@ -10,6 +11,9 @@ const icons = {
   'bar-chart': BarChart,
   'chevron-down': ChevronDown,
   'chevron-up': ChevronUp,
+  success: CheckCircle,
+  error: XCircle,
+  warning: AlertTriangle,
   code: Code,
   database: Database,
   globe: Globe,
@@ -28,7 +32,9 @@ const icons = {
   tv: Tv,
   user: User,
   users: Users,
+  x: X,
   zap: Zap,
+  rocket: Rocket,
 } as Record<string, IconNode>;
 
 export const iconRegistry = {

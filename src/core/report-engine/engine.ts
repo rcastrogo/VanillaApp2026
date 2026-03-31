@@ -19,8 +19,9 @@ import type {
 } from "./types";
 import { computeSummary, sortBy } from "./utils";
 import { getReport } from "../report-registry";
-import { AppMessages } from "../services/app-engine.service";
 import { pubSub } from "../services/pubsub.service";
+
+import { APP_CONFIG } from "@/app.config";
 
 
 export default class ReportEngine<T> {
@@ -366,10 +367,11 @@ export default class ReportEngine<T> {
   }
 
   async loadExternalReport(path: string) {
-    pubSub.publish(AppMessages.HttpClient.Loading);
+    const MESSAGES = APP_CONFIG.messages;
+    pubSub.publish(MESSAGES.HttpClient.Loading);
     const response = await fetch(path);
     const code = await response.text();
-    pubSub.publish(AppMessages.HttpClient.Loaded);
+    pubSub.publish(MESSAGES.HttpClient.Loaded);
     return this.loadFromText(code);
   }
 

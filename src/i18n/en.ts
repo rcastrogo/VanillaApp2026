@@ -20,7 +20,7 @@ export default {
       cancel: 'Cancel',
       yes: 'Yes',
       no: 'No',
-      interpolate: 'Delete {count} elements.'
+      interpolate: 'Delete {count} elements {extraArgs.0} {extraArgs.1}.'
     }
   },
   simpsons: {

@@ -5,90 +5,130 @@ import { type Route } from './router.service';
 import { APP_CONFIG } from '../../app.config';
 import DefaultLayout from '../../pages/layouts/default.layout';
 import { setupComponents } from '../component-registry';
+import { $ } from '../dom';
 import { initObserver } from '../dom-observer';
 import { setupIcons } from '../icons';
 import { setupReports } from '../report-registry';
 import { BaseComponent } from '../types';
 
-export const AppMessages = {
-  Router: {
-    ViewChanged: 'router:view-changed',
-    Loading:     'router:loading',
-    Loaded:      'router:loaded',
-    Error:       'router:error',
-    Navigate:    'router-navigate-to',
-  },
-  Auth: {
-    Login:       'auth:login',
-    Logout:      'auth:logout'
-  },
-  HttpClient: {
-    Loading:     'http-request:loading',
-    Loaded:      'http-request:loaded',  
-  },
-  App : {
-    ThemeChanged: 'app-theme-changed'
+import type { ComponentConstructor } from '@/components/component.model';
+
+class LayoutManager {
+
+  private currentLayoutClass: ComponentConstructor | null = null;
+  private currentLayoutInstance: BaseComponent | null = null;
+
+  renderLayout(route: Route, container: HTMLElement): HTMLElement {
+    const LayoutClass = route.layout === null ? null : (route.layout || DefaultLayout);
+    if (this.currentLayoutClass !== LayoutClass) {
+      this.currentLayoutInstance?.destroy?.();
+      this.currentLayoutClass = LayoutClass;
+      if (LayoutClass) {
+        this.currentLayoutInstance = new LayoutClass({}) as BaseComponent;
+        container.innerHTML = '';
+        this.currentLayoutInstance.init?.();
+        container.appendChild(
+          BaseComponent.renderAndBind(this.currentLayoutInstance)
+        );
+        this.currentLayoutInstance.mounted?.();
+      } else {
+        this.currentLayoutInstance = null;
+        container.innerHTML = '';
+      }
+    }
+    const outlet = LayoutClass ? $('#router-outlet', container).one() : container;
+    if (!outlet) throw new Error("No outlet");
+    return outlet;
   }
-} as const;
+}
+
+class ViewRenderer {
+
+  private currentComponent: BaseComponent | null = null;
+  // private cache = new Map<string, BaseComponent>();
+
+  async render(route: Route, outlet: HTMLElement) {
+    // const cacheKey = route.name;
+    // let component: BaseComponent;
+    // if (route.keepAlive && this.cache.has(cacheKey)) {
+    //   component = this.cache.get(cacheKey)!;
+    // } else {
+    //   component = await loader.resolve(route.componentProvider, {}) as BaseComponent;
+      
+    //   if (route.keepAlive) {
+    //     this.cache.set(cacheKey, component);
+    //   }
+    // }
+    // if (this.currentComponent && this.currentComponent !== component) {
+    //   if (!route.keepAlive) {
+    //     this.currentComponent.destroy?.();
+    //   }
+    // }
+    // this.currentComponent = component;
+    // component.init?.();
+    // outlet.innerHTML = '';
+    // outlet.appendChild(
+    //   BaseComponent.renderAndBind(component)
+    // );
+    // component.mounted?.();
+
+    const viewFactory = await loader.resolve(route.componentProvider, {}) as BaseComponent;
+    this.currentComponent?.destroy?.();
+    this.currentComponent = viewFactory;
+    this.currentComponent.init?.();
+    outlet.innerHTML = '';
+    outlet.appendChild(
+      BaseComponent.renderAndBind(this.currentComponent)
+    );
+    this.currentComponent.mounted?.();
+  }
+}
+
+class TransitionManager {
+  async transition(outlet: HTMLElement, renderFn: () => Promise<void>) {
+    outlet.classList.add('route-exit-active');
+    await this.wait(500);
+    outlet.classList.remove('route-exit-active');
+    await renderFn();
+    outlet.classList.add('route-enter');
+    requestAnimationFrame(() => {
+      outlet.classList.add('route-enter-active');
+      outlet.classList.remove('route-enter');
+    });
+    await this.wait(300);
+    outlet.classList.remove('route-enter-active');
+  }
+  wait(ms: number) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+}
 
 class AppEngine {
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private currentLayoutClass: any | null = null;
-  private currentLayoutInstance: BaseComponent | null = null;
-
   private container = document.getElementById('app-container');
-  private component!: BaseComponent;
+  private renderer = new ViewRenderer();
+  private layoutManager = new LayoutManager();
+  private transitionManager = new TransitionManager();
 
   private initEventListeners() {
-    pubSub.subscribe<Route>(AppMessages.Router.ViewChanged, route => {
-      if(route) this.renderView(route);     
+    pubSub.subscribe<Route>(APP_CONFIG.messages.Router.ViewChanged, route => {
+      if(route) this.handleRoute(route);     
     });
   }
 
-  private async renderView(route: Route) {
+  async handleRoute(route: Route) {
     if (!this.container) return;
-
     try {
-      const LayoutClass = route.layout === null ? null : (route.layout || DefaultLayout);
-   
-      if (this.currentLayoutClass !== LayoutClass) {
-        this.currentLayoutInstance?.destroy?.();
-        this.currentLayoutClass = LayoutClass;
-        if (LayoutClass) {
-          this.currentLayoutInstance = new LayoutClass({}) as BaseComponent;
-          this.container.innerHTML = '';
-          this.currentLayoutInstance.init?.();
-          this.container.appendChild(
-            BaseComponent.renderAndBind(this.currentLayoutInstance)
-          );
-          this.currentLayoutInstance.mounted?.();
-        } else {
-          this.currentLayoutInstance = null;
-          this.container.innerHTML = '';
-        }
-      }
-
-      const outlet = LayoutClass ? this.container.querySelector('#router-outlet') : this.container;  
-      if (!outlet) throw new Error("No se encontró el #router-outlet en el layout");
-
-      requestAnimationFrame(async () => {
-        pubSub.publish(AppMessages.Router.Loading)
-        const viewFactory = await loader.resolve(route.componentProvider, {}) as BaseComponent;
-        this.component?.destroy?.();
-        this.component = viewFactory;      
-        this.component.init?.();
-        outlet.innerHTML = '';         
-        outlet.appendChild(
-          BaseComponent.renderAndBind(this.component)
-        );
-        this.component.mounted?.();
-        pubSub.publish(AppMessages.Router.Loaded)           
+      pubSub.publish(APP_CONFIG.messages.Router.Loading);
+      const outlet = this.layoutManager.renderLayout(route, this.container);
+      await this.transitionManager.transition(outlet, async () => {
+        await this.renderer.render(route, outlet);
       });
-
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      pubSub.publish(APP_CONFIG.messages.Router.Loaded);
     } catch (error) {
-      pubSub.publish(AppMessages.Router.Error)
-      console.error("Router Error:", error);
+      pubSub.publish(APP_CONFIG.messages.Router.Error);
+      console.error(error);
     }
   }
 

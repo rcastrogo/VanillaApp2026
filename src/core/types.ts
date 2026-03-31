@@ -42,7 +42,8 @@ export abstract class BaseComponent implements Component {
   protected instanceId = 0;
   protected state: ComponentState = {};
   protected ctx: ComponentContext;
-
+  
+  protected parent?: HTMLElement;
   protected props: Record<string, string | undefined> = {};
   protected children: Node[] = [];
 
@@ -146,6 +147,7 @@ export abstract class BaseComponent implements Component {
 
   private parsePropsAndChildren(ctx?: ComponentInitValue){
     if (ctx && ctx.parent) {
+      this.parent = ctx.parent;
       this.props = { ...ctx.parent.dataset };
       this.children = Array.from(ctx.parent.childNodes);
     }    

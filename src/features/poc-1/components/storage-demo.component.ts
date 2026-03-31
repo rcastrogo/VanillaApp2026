@@ -4,6 +4,7 @@ import { storage } from '@/core/storageUtil';
 import { BaseComponent } from '@/core/types';
 
 const STORAGE_KEY = 'poc1-demo';
+const STORAGE_KEY_TEST = 'poc1-demo-test';
 
 interface StoredData {
   text: string;
@@ -15,6 +16,7 @@ export class StorageDemoComponent extends BaseComponent {
 
   constructor(ctx: ComponentContext) {
     super(ctx);
+    storage.writeValue(STORAGE_KEY_TEST, new Date().toLocaleTimeString());
   }
 
   init() {
@@ -44,6 +46,7 @@ export class StorageDemoComponent extends BaseComponent {
     this.state.savedText = data.text;
     this.state.savedAt = data.savedAt;
     this.state.allKeys = this.readAllKeys();
+    console.log(this.state.allKeys);
   }
 
   remove() {
@@ -56,16 +59,6 @@ export class StorageDemoComponent extends BaseComponent {
     });
   }
 
-  clearAll() {
-    storage.clearAppData();
-    this.setState({
-      inputText: '',
-      savedText: '',
-      savedAt: '—',
-      visits: 0,
-      allKeys: [],
-    });
-  }
 
   private readAllKeys(): string[] {
     return Object.keys(storage.readAll());
@@ -128,11 +121,6 @@ export class StorageDemoComponent extends BaseComponent {
             </div>
           </div>
         </div>
-
-        <button on-click="clearAll"
-          class="text-xs text-red-400 hover:text-red-600 transition-colors">
-          Limpiar todo (clearAppData)
-        </button>
       </div>
     `;
     return buildAndInterpolate(template, this);

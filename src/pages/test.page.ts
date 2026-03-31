@@ -5,8 +5,8 @@ import type { DetailRenderContext, GroupFooterRenderContext, GroupHeaderRenderCo
 import { BaseComponent, type Identifiable } from "../core/types";
 import { getAllAsync, getJamonesAsync, type SecureEndPoint } from "../services/endpoint.service";
 
+import { APP_CONFIG } from "@/app.config";
 import { hydrateElement } from "@/core/hydrate";
-import { AppMessages } from "@/core/services/app-engine.service";
 import { pubSub } from "@/core/services/pubsub.service";
 import template from '@/pages/test.page.ts.html?raw';
 import { reportDefinition002, type DatoJamon } from "@/reports/sample-002.report";
@@ -285,9 +285,9 @@ export default class BaseComponentPage extends BaseComponent {
 
   async generateJamonesReport(name: string) {
     this.mediator.clear();
-    pubSub.publish(AppMessages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
     const result = await getJamonesAsync();
-    pubSub.publish(AppMessages.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
     if (typeof result === 'string') {
       this.mediator.send(result);
       return
@@ -318,9 +318,9 @@ export default class BaseComponentPage extends BaseComponent {
     // Cargar datos
     // =============================================================
     this.mediator.clear();
-    pubSub.publish(AppMessages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
     const result = await getJamonesAsync();
-    pubSub.publish(AppMessages.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
     if (typeof result === 'string') {   
       this.mediator.send(result);
       return
@@ -423,9 +423,9 @@ export default class BaseComponentPage extends BaseComponent {
     // Cargar datos
     // =============================================================
     this.mediator.clear();
-    pubSub.publish(AppMessages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
     const result = await getJamonesAsync();
-    pubSub.publish(AppMessages.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
     if (typeof result === 'string') {   
       this.mediator.send(result);
       return

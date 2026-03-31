@@ -1,43 +1,76 @@
 
-import type { Component, ComponentContext } from "../../../components/component.model";
+
+import { APP_CONFIG } from "@/app.config";
+import type { Component } from "@/components/component.model";
+import { buildAndInterpolate } from "@/core/dom";
 
 export default class IndexPage implements Component {
+
+  components = Object.keys(import.meta.glob('@/components/**/*.ts', { eager: true }));
+  registeredComponents = Object.keys(APP_CONFIG.components)
+    .filter(tag => ['app-loader', 'app-modal', 'app-loader-small'].indexOf(tag) === -1);
   
-  private element!: HTMLElement;
-
-  constructor(_ctx: ComponentContext) {
-    this.element = document.createElement('div');
-  }
-
   render() {
-    this.element.innerHTML = `
-      <div class="min-h-screen bg-gray-50 p-8">
+    const template = `
+      <div class="px-4">
         <div class="max-w-4xl mx-auto">
-          <h1 class="text-4xl font-bold text-green-600 mb-6 text-center">Componentes que Implementan Component</h1>
+
+          <div data-component="app-theme-toggle" class="fixed top-4 right-4"></div>
+
+          <div data-component="app-logo" class="text-4xl my-6">
+            Index Page
+          </div>          
           <p class="text-lg text-gray-700 mb-8 text-center">Explora las funcionalidades básicas de los componentes que implementan la interfaz Component</p>
 
           <div class="space-y-6">
-            <div class="bg-white p-6 rounded-lg shadow-md">
-              <h2 class="text-2xl font-semibold text-gray-800 mb-3">Método Render</h2>
+            <div class="bg-card p-6 rounded-lg shadow-md">
+              <h2 class="text-2xl font-semibold text-primary mb-3">Método Render</h2>
               <p class="text-gray-600">Define cómo se renderiza el componente, devolviendo el elemento DOM principal. Permite control total sobre la estructura y contenido.</p>
             </div>
+          </div>
 
-            <div class="bg-white p-6 rounded-lg shadow-md">
-              <h2 class="text-2xl font-semibold text-gray-800 mb-3">Método Mounted</h2>
-              <p class="text-gray-600">Se ejecuta después de que el componente se inserta en el DOM, ideal para inicializaciones, event listeners o efectos secundarios.</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg shadow-md">
-              <h2 class="text-2xl font-semibold text-gray-800 mb-3">Acceso al Contexto</h2>
-              <p class="text-gray-600">Recibe un ComponentContext en el constructor, proporcionando acceso a router, pubsub, datos compartidos y otros servicios.</p>
+          <div class="space-y-6 mt-2">
+            <div class="bg-card p-6 rounded-lg shadow-md">
+              <h2 class="text-2xl font-semibold text-primary mb-3">Método Mounted</h2>
+              <p class="text-gray-600">Se ejecuta después de que el componente se ha insertado en el DOM. Ideal para inicializar funcionalidades que requieren acceso al DOM o para configurar eventos.</p>
             </div>
           </div>
+
+          <div class="mt-2">
+            <div class="bg-card p-4 rounded-lg shadow-md">
+               <div 
+                data-component="app-collapsible" 
+                data-title="Páginas de componentes"
+                class="">
+                <ul data-each="component in components" class="space-y-2 test-sm text-gray-600">
+                  <li>
+                    <div class="text-sm border-b pb-2">{component}</div>
+                  </li>
+                </ul>               
+               </div>
+            </div>
+          </div>
+
+          <div class="mt-2">
+            <div class="bg-card p-4 rounded-lg shadow-md">
+              <div 
+                data-component="app-collapsible" 
+                data-title="Componentes registrados en APP_CONFIG"
+                class="mb-4">        
+                  <ul data-each="tag in registeredComponents" class="space-y-2 test-sm text-gray-600">
+                    <li>
+                      <div class="text-2xl border-b pb-2 text-center">{tag}</div>
+                      <div data-component="{tag}" class="mt-4"></div>
+                    </li>
+                  </ul>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </div>
     `;
-    return this.element;
+    return buildAndInterpolate(template, this);
   }
-
-  mounted() { /* empty */ }
 
 }

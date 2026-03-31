@@ -1,7 +1,9 @@
-import { AppMessages } from "./app-engine.service";
+
 import { pubSub } from "./pubsub.service";
 import type { ComponentConstructor, ComponentCreator } from "../../components/component.model";
 import type { NavigateEventArg } from "../types";
+
+import { APP_CONFIG } from "@/app.config";
 
 export type ComponentProvider = 
   | ComponentCreator 
@@ -17,6 +19,7 @@ export interface Route {
   layout?: ComponentConstructor | null;
 }
 
+
 class RouterService {
 
   private static instance: RouterService;
@@ -27,7 +30,7 @@ class RouterService {
 
   private constructor() {
     window.onpopstate = ()=> this.sync();
-    pubSub.subscribe<NavigateEventArg>(AppMessages.Router.Navigate, arg => {
+    pubSub.subscribe<NavigateEventArg>(APP_CONFIG.messages.Router.Navigate, arg => {
       if (typeof arg === 'string') {
         this.navigateTo(arg);
       } else if(arg) {       
@@ -68,7 +71,6 @@ class RouterService {
   }
 
   navigateTo(path: string) {
-    // Cambiado: siempre navega y deja que sync resuelva (ruta o fallback)
     window.history.pushState(null, "", path);
     this.sync();
   }
@@ -83,8 +85,7 @@ class RouterService {
       const searchParams = new URLSearchParams(window.location.search);
       resolvedRoute.queryValues = Object.fromEntries(searchParams.entries());
       document.title = resolvedRoute.name;
-      // Aquí puedes parsear los query strings si tienes la utilidad pol.parseQueryString
-      pubSub.publish(AppMessages.Router.ViewChanged, resolvedRoute);
+      pubSub.publish(APP_CONFIG.messages.Router.ViewChanged, resolvedRoute);
     }
   }
 }

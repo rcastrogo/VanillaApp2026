@@ -19,6 +19,7 @@ export class CollapsibleComponent extends BaseComponent {
   }
 
   toggle() {
+    console.log(this.children.length)
     this.state.expanded = !this.state.expanded;
   }
 
@@ -89,13 +90,12 @@ export class CollapsibleComponent extends BaseComponent {
 
 class ClockComponent extends BaseComponent {
 
-
   private _state = useState({ seconds: 0, date: '' });
 
   init(): void {
-    const { put } = this._state;
+    const { put : update } = this._state;
     const intervalId = setInterval(() => {
-      put('date', new Date().toTimeString().split(' ')[0])
+      update('date', new Date().toTimeString().split(' ')[0])
     }, 1_000);
     this.addCleanup(() => clearInterval(intervalId));
   }
@@ -105,15 +105,15 @@ class ClockComponent extends BaseComponent {
     const { on } = this._state;
 
     const view = build('div', `
-      <div class="p-4 rounded-lg shadow-md border border-slate-200 bg-white transition-colors duration-300 dark:border-slate-700 dark:bg-slate-800 dark:shadow-lg">
-        <div class="flex items-center gap-3">
-          <i data-icon="timer" class="text-blue-500 dark:text-blue-400 size-6"></i>
-          <span class="font-mono text-xl font-bold text-slate-700 dark:text-slate-100" id="date-slot">
+      <div class="rounded-lg p-1.5 border bg-background">
+        <div class="flex items-center gap-3 mx-1">
+          <i data-icon="timer" class="size-6 hidden lg:block"></i>
+          <span class="font-mono text-slate-700 dark:text-slate-100" id="date-slot">
             --:--:--
           </span>
         </div>
       </div>
-    `);
+    `, true);
 
     on(
       'date', 
@@ -126,7 +126,6 @@ class ClockComponent extends BaseComponent {
 
 }
 
-// Registro explícito fuera de la clase
 Promise.resolve().then(() => {
   APP_CONFIG.registerComponent('app-collapsible-clock', ClockComponent);
 });

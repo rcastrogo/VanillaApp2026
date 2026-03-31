@@ -1,10 +1,8 @@
 import { APP_CONFIG } from "../app.config";
 import type { ComponentContext } from "./component.model";
 import { buildAndInterpolate } from "../core/dom";
-import { AppMessages } from "../core/services/app-engine.service";
 import { pubSub } from "../core/services/pubsub.service";
 import { BaseComponent } from "../core/types";
-
 
 export class ThemeToggleComponent extends BaseComponent {
 
@@ -22,7 +20,7 @@ export class ThemeToggleComponent extends BaseComponent {
     this.addCleanup(
       [
         APP_CONFIG.i18n.changed(() => this.invalidate()),
-        pubSub.subscribe(AppMessages.App.ThemeChanged, (isDarkMode) => {
+        pubSub.subscribe(APP_CONFIG.messages.App.ThemeChanged, (isDarkMode) => {
           this.state.isDarkMode = Boolean(isDarkMode);
           this.invalidate();
         })
@@ -33,7 +31,7 @@ export class ThemeToggleComponent extends BaseComponent {
   toggleTheme() {
     this.state.isDarkMode = !this.state.isDarkMode;
     this.applyTheme(this.state.isDarkMode);
-    pubSub.publish(AppMessages.App.ThemeChanged, this.state.isDarkMode);
+    pubSub.publish(APP_CONFIG.messages.App.ThemeChanged, this.state.isDarkMode);
   }
 
   private applyTheme(isDark: boolean) {
@@ -63,23 +61,22 @@ export class ThemeToggleComponent extends BaseComponent {
 
   render() {
     const template = `
-      <div class="flex items-center justify-center p-4">
+      <div class="flex items-center justify-center">
         <button on-click="toggleTheme" 
-          class="relative flex items-center gap-3 px-4 py-2 rounded-full border transition-all duration-300
-          {
-            state.isDarkMode | 
-              iif: bg-slate-800 border-slate-700 text-yellow-200 
-                 : bg-white border-slate-200 text-slate-600 hover:bg-slate-50
-          }">
+          class="app-button
+            relative flex items-center gap-2 px-3 py-2 rounded-md border 
+            @if(state.isDarkMode)border-slate-700 text-yellow-200 @endif
+            "
+          >
         
           @if(state.isDarkMode)
             <i data-icon="sun" class="size-5"></i>
-            <span class= text-sm font-bold">{t:theme.light}</span>
+            <span class="text-sm hidden lg:block">{t:theme.light}</span>
           @endif
 
           @if(!state.isDarkMode)
             <i data-icon="moon" class="size-5 text-indigo-500"></i>
-            <span class="text-sm font-bold text-slate-700">{t:theme.dark}</span>
+            <span class="text-sm hidden lg:block text-slate-700">{t:theme.dark}</span>
           @endif
 
         </button>
