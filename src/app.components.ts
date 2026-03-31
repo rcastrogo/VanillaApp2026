@@ -5,7 +5,6 @@ import { LanguageSelector } from './components/language-selector.component';
 import { LoaderComponent } from './components/loader.component';
 import { LogoComponent } from './components/logo.component';
 import { ProgressBarComponent } from './components/progress-bar.component';
-import { UserListComponent } from './components/test/user-list.component';
 import { ThemeToggleComponent } from './components/theme-toggle.component';
 import type { ComponentProvider } from './core/services/router.service';
 
@@ -14,7 +13,7 @@ const components = {
   'app-progress-bar': ProgressBarComponent,
   'app-footer': FooterComponent,
   'app-header': HeaderComponent,
-  'app-user-list': UserListComponent,
+  'app-user-list': () => import('./components/test/user-list.component'),
   'app-theme-toggle': ThemeToggleComponent,
   'app-language-selector': LanguageSelector,
   'app-loader': LoaderComponent,

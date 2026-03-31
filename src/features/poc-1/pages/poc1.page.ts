@@ -165,10 +165,12 @@ export default class POC1Page extends BaseComponent {
 
     const template = `
       <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-4">
-        <div class="h-40 w-full relative">
+        
+        <div class="w-1/2 p-4 mx-auto border mb-6 rounded-lg relative overflow-hidden">
           esta sección simula una carga inicial de datos o recursos necesarios para la demostración, mostrando el componente de loader global que reacciona a los eventos de carga del sistema.
           <div data-component="app-loader-small"></div>
-        </div>  
+        </div> 
+
         <div class="max-w-6xl mx-auto">
           <div class="flex items-center justify-between mb-4">
             <div>
