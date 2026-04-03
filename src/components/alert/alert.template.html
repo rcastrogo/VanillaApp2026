@@ -1,0 +1,117 @@
+
+<div class="app-alert-wrapper fixed inset-0 z-50 overflow-y-auto">    
+  <div on-click="onBackdropClick" tabindex="-1"
+    class="flex min-h-full items-center justify-center p-4 text-center js-back-drop">
+    <div
+      role="dialog"
+      class="
+        bg-white dark:bg-slate-900
+        border border-slate-200 dark:border-slate-800
+        shadow-xl
+        fixed
+        top-1/2 left-1/2
+        -translate-x-1/2 -translate-y-1/2
+        p-2
+        flex flex-col overflow-hidden animate-zoom-center
+        rounded-lg
+        {sizeClass}
+      "
+      tabindex="-1"
+      style="pointer-events: auto;"
+    >
+
+    @if(title)
+      <div class="shrink-0 mb-1">
+        <div class="flex items-center justify-center gap-4 py-1">
+          <h2 class="pl-12 flex-1 text-lg leading-none font-semibold text-slate-900 dark:text-white">
+            {title}
+          </h2>
+          <button
+            type="button"
+            on-click="cancel"
+            aria-label="Close dialog"
+            class="
+              shrink-0
+              inline-flex items-center justify-center
+              w-8 h-8
+              rounded-md
+              text-slate-500 hover:text-slate-900
+              hover:bg-slate-100
+              dark:text-slate-400 dark:hover:text-white
+              dark:hover:bg-slate-800
+              transition-colors
+            "
+          >
+            <i data-icon="x" class="size-5"></i>
+          </button>
+        </div>
+
+        @if(subTitle)
+          <div class="bg-slate-200 dark:bg-slate-800 h-px w-full"></div>              
+          <p class="text-left text-slate-900 dark:text-white my-1 pl-2">
+            {subTitle}
+          </p>              
+        @endif
+        <div class="bg-slate-200 dark:bg-slate-800 h-px w-full"></div>
+      </div>
+    @endif
+      
+    <div tabindex="0" class="sr-only"></div>
+      <div class="flex gap-4 min-h-0">
+        @if(icon)
+          <div class="text-slate-900 dark:text-white">
+            <div class="border p-2 rounded-md">
+              <i data-icon="{icon}" class="size-8"></i>
+            </div>
+          </div>
+          <div 
+            class="flex group flex-1 min-h-0 overflow-y-auto items-center"
+            style="max-height:@if(size==='fullscreen')85dvh@else none@endif"
+            >
+              {message}                   
+          </div>
+        @else
+          <div class="text-center w-full overflow-auto">
+            {message}
+          </div>
+        @endif           
+      </div>
+      @if(showFooter)
+        <div class="shrink-0 mt-1">
+          <div class="bg-slate-200 dark:bg-slate-800 h-px w-full"></div>
+
+            <div class="flex justify-center-safe gap-2 mt-2">
+              <button
+                type="button"
+                on-click="cancel"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors
+                      bg-slate-900 dark:bg-slate-100
+                      text-white dark:text-slate-900
+                      hover:bg-slate-800 dark:hover:bg-slate-200
+                      py-2 px-6">
+                {literals[0]}
+              </button>
+
+              @if(showConfirmButton)
+                <button
+                  type="button"
+                  on-click="confirm"
+                  class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors
+                        bg-slate-900 dark:bg-slate-100
+                        text-white dark:text-slate-900
+                        hover:bg-slate-800 dark:hover:bg-slate-200
+                        py-2 px-6">
+                  {literals[1]}
+                </button>
+              @endif
+            </div>              
+        </div>
+        @if(infoMessage)
+          <div data-slot="info-message" class="text-destructive text-sm text-center p-2">
+            {infoMessage}
+          </div>            
+        @endif
+      @endif
+    </div>
+  </div>
+</div>

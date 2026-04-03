@@ -2,7 +2,7 @@
 import {
   Activity, Globe, Moon, Plus, Minus, Settings, Sun, Timer, Trash, User, Users, Power, Zap,
   ChevronDown, ChevronUp, Info, Code, Radio, BarChart, Database, Server, Tv, Share2, X, Rocket,
-  CheckCircle, XCircle, AlertTriangle,
+  CheckCircle, XCircle, AlertTriangle, Check, CircleQuestionMark, CircleX,
   type IconNode,
 } from 'lucide';
 
@@ -12,6 +12,9 @@ const icons = {
   'chevron-down': ChevronDown,
   'chevron-up': ChevronUp,
   success: CheckCircle,
+  check: Check,
+  question: CircleQuestionMark,
+  "circle-x": CircleX,
   error: XCircle,
   warning: AlertTriangle,
   code: Code,

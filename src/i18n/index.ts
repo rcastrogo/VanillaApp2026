@@ -26,7 +26,7 @@ export const i18nService = {
   changed(callback: StateCallback<string>) {
     return i18nState.on('lang', callback);
   },
-  t(key: string, ctx: unknown ): string {
+  t(key: string, ctx?: unknown ): string {
     const lang = i18nState.store.lang;
     const text = getValue(key, translations[lang]);
     if (!text) return key;

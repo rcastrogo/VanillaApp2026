@@ -16,6 +16,12 @@ export default {
     actions: {
       loadCounter: 'Cargar contador',
       increment: 'Incrementar',
+      accept: "Aceptar",
+      close: "Cerrar",
+      loading: "Cargando...",
+      "loading-data": "Cargando datos...",
+      search : "Buscar",
+      export : "Exportar",
       edit: 'Editar',
       cancel: 'Cancelar',
       yes: 'Sí',

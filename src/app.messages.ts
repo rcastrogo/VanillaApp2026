@@ -3,7 +3,7 @@ const messages = {
     ViewChanged: 'router-view-changed',
     Loading:     'router-loading',
     Loaded:      'router-loaded',
-    Error:       'router-:error',
+    Error:       'router-error',
     Navigate:    'router-navigate-to',
   },
   Auth: {
@@ -11,12 +11,13 @@ const messages = {
     Logout:      'auth-logout'
   },
   HttpClient: {
-    Loading:     'http-request:loading',
-    Loaded:      'http-request:loaded',  
+    Loading:     'http-request-loading',
+    Loaded:      'http-request-loaded',  
   },
   App : {
     ThemeChanged: 'app-theme-changed',
-    message:      'app-message'
+    message:      'app-message',
+    dialogClosed: 'app-dialog-closed',
   }
 } as const;
 
