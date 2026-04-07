@@ -61,7 +61,6 @@ export interface AlertOptions {
   literals?: string[];
   disableClose?: boolean;
   size?: AlertSize;
-  showLayer?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,6 +102,7 @@ export class AlertComponent extends BaseComponent {
         setTimeout(() => this.close(), ctx.data.autoCloseMs);
       }      
     }
+    this.literals = (this.literals || literals.noYes).map(text => APP_CONFIG.i18n.t(text))
   } 
 
   render(){
@@ -129,7 +129,6 @@ export class AlertComponent extends BaseComponent {
     return !this.disableClose;
   }
 
-
   cancel(){
     if(this.onCancel) this.onCancel();
     this.close();
@@ -146,7 +145,7 @@ export class AlertComponent extends BaseComponent {
 
   setFeedback = (text: string) => {
     this.infoMessage = text;
-    //data-slot="info-message"
+    this.publish('INFO_MESSAGE_UPDATED', text);
   }
 
 }

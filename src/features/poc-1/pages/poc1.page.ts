@@ -145,8 +145,30 @@ export default class POC1Page extends BaseComponent {
         </div>
         <div
           data-component="app-tabs"
-          data-active="0"
+          data-active="1"
           data-variant="default"
+          data-full-width="true"
+          data-tabs='[
+            { "label": "Overview", "title": "Overview", "content": "Contenido del overview" },
+            { "label": "Users", "title": "Usuarios", "content": "Listado de usuarios" },
+            { "label": "Settings", "title": "Configuración", "content": "Opciones de configuración" }
+          ]'
+        ></div>
+        <div
+          data-component="app-tabs"
+          data-active="1"
+          data-variant="pills"
+          data-full-width="true"
+          data-tabs='[
+            { "label": "Overview", "title": "Overview", "content": "Contenido del overview" },
+            { "label": "Users", "title": "Usuarios", "content": "Listado de usuarios" },
+            { "label": "Settings", "title": "Configuración", "content": "Opciones de configuración" }
+          ]'
+        ></div>
+        <div
+          data-component="app-tabs"
+          data-active="2"
+          data-variant="underline"
           data-full-width="true"
           data-tabs='[
             { "label": "Overview", "title": "Overview", "content": "Contenido del overview" },

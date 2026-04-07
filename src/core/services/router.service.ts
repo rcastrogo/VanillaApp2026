@@ -1,9 +1,11 @@
 
+import { dialogService } from "./dialog.service";
 import { pubSub } from "./pubsub.service";
 import type { ComponentConstructor, ComponentCreator } from "../../components/component.model";
 import type { NavigateEventArg } from "../types";
 
 import { APP_CONFIG } from "@/app.config";
+
 
 export type ComponentProvider = 
   | ComponentCreator 
@@ -17,8 +19,8 @@ export interface Route {
   params?: string[];
   queryValues?: Record<string, string>;
   layout?: ComponentConstructor | null;
+  keepAlive?: boolean;
 }
-
 
 class RouterService {
 
@@ -87,6 +89,8 @@ class RouterService {
       document.title = resolvedRoute.name;
       pubSub.publish(APP_CONFIG.messages.Router.ViewChanged, resolvedRoute);
     }
+    // Clear alert messages on route change
+    dialogService.forceClose();
   }
 }
 

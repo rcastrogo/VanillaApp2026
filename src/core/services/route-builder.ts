@@ -24,6 +24,18 @@ export class RouteBuilder {
     }); 
     return this;
   }
+
+  addKeepAlive(path: string, componentProvider: ComponentProvider, layout?: ComponentConstructor | null) : this {
+    const cleanPath = this.normalizePath(path);
+    router.addRoute({
+      name : cleanPath || "home",
+      path: this.buildPathRegex(cleanPath),
+      componentProvider,
+      layout: layout,
+      keepAlive: true,
+    }); 
+    return this;
+  }
   
   addNamed(name: string, path: string, componentProvider: ComponentProvider, layout?: ComponentConstructor | null) : this {
     const cleanPath = this.normalizePath(path);

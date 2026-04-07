@@ -18,6 +18,8 @@ const messages = {
     ThemeChanged: 'app-theme-changed',
     message:      'app-message',
     dialogClosed: 'app-dialog-closed',
+    showNotification: 'app-show-notification',
+    closeNotification: 'app-close-notification'
   }
 } as const;
 

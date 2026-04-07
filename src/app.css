@@ -60,6 +60,38 @@ div[data-component] * { display: none ;}
   100% { transform: translateX(300%); }
 }
 
+
+
+@keyframes slideOutY {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-8rem);
+    opacity: 0;
+  }
+}
+/* Animación horizontal (swipe) */
+@keyframes slideOutX {
+  from {
+    transform: translateX(var(--offset, 0px));
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--target, 200px));
+    opacity: 0;
+  }
+}
+/* Clases */
+.animate-slide-out-y {
+  animation: slideOutY 0.5s ease-in forwards;
+}
+.animate-slide-out-x {
+  animation: slideOutX 0.5s ease-in forwards;
+}
+
+
 body:has(.fixed.inset-0) {
   overflow: hidden;
 }

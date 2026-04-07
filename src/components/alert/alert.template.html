@@ -65,7 +65,7 @@
             </div>
           </div>
           <div 
-            class="flex group flex-1 min-h-0 overflow-y-auto items-center"
+            class="flex group flex-1 min-h-0 overflow-y-auto items-center text-left"
             style="max-height:@if(size==='fullscreen')85dvh@else none@endif"
             >
               {message}                   
@@ -104,13 +104,14 @@
                   {literals[1]}
                 </button>
               @endif
+
             </div>              
         </div>
-        @if(infoMessage)
-          <div data-slot="info-message" class="text-destructive text-sm text-center p-2">
-            {infoMessage}
-          </div>            
-        @endif
+        <div
+          on-publish="INFO_MESSAGE_UPDATED:local:html"
+          class="text-destructive text-sm text-center p-2">
+          {infoMessage}
+        </div>            
       @endif
     </div>
   </div>

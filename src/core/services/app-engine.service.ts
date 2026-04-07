@@ -45,40 +45,47 @@ class LayoutManager {
 class ViewRenderer {
 
   private currentComponent: BaseComponent | null = null;
-  // private cache = new Map<string, BaseComponent>();
+  private cache = new Map<string, BaseComponent>();
 
   async render(route: Route, outlet: HTMLElement) {
-    // const cacheKey = route.name;
-    // let component: BaseComponent;
-    // if (route.keepAlive && this.cache.has(cacheKey)) {
-    //   component = this.cache.get(cacheKey)!;
-    // } else {
-    //   component = await loader.resolve(route.componentProvider, {}) as BaseComponent;
-      
-    //   if (route.keepAlive) {
-    //     this.cache.set(cacheKey, component);
-    //   }
-    // }
-    // if (this.currentComponent && this.currentComponent !== component) {
-    //   if (!route.keepAlive) {
-    //     this.currentComponent.destroy?.();
-    //   }
-    // }
-    // this.currentComponent = component;
-    // component.init?.();
-    // outlet.innerHTML = '';
-    // outlet.appendChild(
-    //   BaseComponent.renderAndBind(component)
-    // );
-    // component.mounted?.();
-
-    const viewFactory = await loader.resolve(route.componentProvider, {}) as BaseComponent;
-    this.currentComponent?.destroy?.();
-    this.currentComponent = viewFactory;
-    this.currentComponent.init?.();
+    const cacheKey = route.name;
+    let component: BaseComponent;
+    // ===============================================================================
+    // Si la ruta tiene keepAlive y el componente ya está en cache, reutilizarlo
+    // ===============================================================================
+    if (route.keepAlive && this.cache.has(cacheKey)) {
+      component = this.cache.get(cacheKey)!;
+    } 
+    // ===============================================================================
+    // Si no, cargar el componente normalmente
+    // ===============================================================================
+    else {
+      component = await loader.resolve(route.componentProvider, {}) as BaseComponent;
+      if (route.keepAlive) {
+        this.cache.set(cacheKey, component);
+      }
+    }
+    // ===============================================================================
+    // Si hay un componente actual diferente al nuevo, destruirlo (si no es keepAlive)
+    // ===============================================================================  
+    if (this.currentComponent && this.currentComponent !== component) {
+      if (!route.keepAlive) this.currentComponent.destroy?.();
+    }
     outlet.innerHTML = '';
+    this.currentComponent = component;
+    // ===============================================================================
+    // Si el componente ya tiene un elemento renderizado reutilizarlo
+    // ===============================================================================  
+    if(this.currentComponent.element) {
+      outlet.appendChild(this.currentComponent.element);
+      return;
+    }
+    // ===============================================================================
+    // Inicializar, renderizar y montar el nuevo componente
+    // ===============================================================================
+    this.currentComponent.init?.();    
     outlet.appendChild(
-      BaseComponent.renderAndBind(this.currentComponent)
+      BaseComponent.renderAndBind(component)
     );
     this.currentComponent.mounted?.();
   }

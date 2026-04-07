@@ -14,9 +14,9 @@ export default class DefaultLayout extends BaseComponent {
     const template = `
       <div>
         <div class="flex flex-col min-h-screen">
-          <header class="sticky top-0 z-50 w-full">
+          <div class="sm:sticky top-0 z-50 w-full">
             <div data-component="app-header"></div>
-          </header>
+          </div>
           <main 
             id="router-outlet" 
             class="grow w-full max-w-7xl mx-auto py-4 my-4 overflow-hidden">
@@ -25,7 +25,8 @@ export default class DefaultLayout extends BaseComponent {
             <div data-component="app-footer"></div>
           </footer>
         </div>
-        <div data-component="app-loader"></div>      
+        <div data-component="app-loader"></div>
+        <div data-component="app-notification-panel"></div>     
       </div>
     `;
     return buildAndInterpolate(template, this);

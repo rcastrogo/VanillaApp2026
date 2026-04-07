@@ -5,6 +5,7 @@ import { literals, type AlertComponent, type AlertSize } from "@/components/aler
 import type { Component } from "@/components/component.model";
 import { buildAndInterpolate } from "@/core/dom";
 import { dialogService } from "@/core/services/dialog.service";
+import { notificationService } from "@/core/services/notification.service";
 
 export default class IndexPage implements Component {
 
@@ -81,7 +82,7 @@ export default class IndexPage implements Component {
                 </button>
                 <button
                   class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
-                  on-click="showTemplateAler:xl">
+                  on-click="showTemplateAlert:xl">
                   xl
                 </button>
                 <button
@@ -111,7 +112,62 @@ export default class IndexPage implements Component {
                   class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
                   on-click="openSettings">
                   Configuración
+                </button>
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="selectUser">
+                  Seleccionar usuario
                 </button> 
+              </div>
+            </div> 
+          </div> 
+
+          <div class="space-y-6 mt-2">
+            <div class="bg-card p-6 rounded-lg shadow-md"> 
+              <h2 class="text-3xl font-bold my-4">Notificaciones</h2>
+              <div class="flex flex-wrap gap-3">
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="publish:app-show-notification:global:info:Información">
+                  <i data-icon="info" class="size-5 shrink-0"></i>
+                </button>
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="publish:app-show-notification:global:success:Éxitosooooo">
+                  <i data-icon="success" class="size-5 shrink-0"></i>
+                </button>           
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="publish:app-show-notification:global:error:Error:5000">
+                  <i data-icon="error" class="size-5 shrink-0"></i>
+                </button>
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="publish:app-show-notification:global:warning:Aviso">
+                  <i data-icon="warning" class="size-5 shrink-0"></i>
+                </button>
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="publish:app-show-notification:global::Mensaje normal:10000">
+                  <i data-icon="text" class="size-5 shrink-0"></i>          
+                </button>
+                <button
+                  class="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900"
+                  on-click="showNotification:1">
+                  <i data-icon="warning" class="size-5 shrink-0"></i>
+                </button>          
+                <button
+                  class="px-4 flex gap-2 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900 items-center"
+                  on-click="showNotification:2">
+                  <i data-icon="text" class="size-5 shrink-0"></i> 
+                  Multiline         
+                </button>
+                <button
+                  class="px-4 flex gap-2 py-2 rounded-full bg-gray-600 text-white hover:bg-slate-900 items-center"
+                  on-click="showNotification:3">
+                  <i data-icon="warning" class="size-5 shrink-0"></i> 
+                  Multiline         
+                </button>                   
               </div>
             </div> 
           </div> 
@@ -165,6 +221,23 @@ export default class IndexPage implements Component {
       </div>
     `;
     return buildAndInterpolate(template, this);
+  }
+
+  showNotification(_el: HTMLElement, _e: Event, id: number) {
+    if(id === 1){
+      notificationService.show('This is a simple notification without auto-close.', 0);
+      return;
+    }
+    if(id === 2){
+      notificationService.show(`
+        This is a multiline notification.
+        It supports line breaks and longer content to demonstrate how the notification panel handles larger messages.
+      `);
+      return;
+    }
+    if(id === 3){
+      notificationService.warning('This is a warning notification with multiline content.\nPlease pay attention to the details provided in this message, as it contains important information that requires your immediate attention.'); 
+    }
   }
 
   showInfo() {
@@ -253,14 +326,11 @@ export default class IndexPage implements Component {
       'Do you really want to delete this item?',
       {
         title: 'Delete item',        
-        literals: literals.noYes.map(text => APP_CONFIG.i18n.t(text)),
+        literals: literals.noYes,
       }
     );
-
     console.log('Confirm result:', result);
   }
-
-
 
   showTemplateAlert(_e : HTMLElement, _ev: Event, size: AlertSize = 'sm') {
     dialogService.showDialog({
@@ -279,35 +349,32 @@ export default class IndexPage implements Component {
       <div class="flex flex-col gap-3 p-4">
         <ul class="divide-y divide-slate-200 dark:divide-slate-700 ">
           ${Array.from({ length: 12 })
-            .map(
-              (_, i) => `
-            <li class="py-3 flex items-center gap-3">
-              <button type="button" 
-                class="online-flex items-center justify-center rounded-md text-sm font-medium transition-colors
-                bg-slate-900 dark:bg-slate-100
-                text-white dark:text-slate-900
-                hover:bg-slate-800 dark:hover:bg-slate-200
-                py-2 px-6">
-                  ${i + 1}
-              </button>                 
-              <div class="flex-1 justify-items-start text-left">
-                <p class="font-medium text-slate-800 dark:text-slate-100">
-                  Elemento ${i + 1}
-                </p>
-                <p class="text-sm text-slate-600 dark:text-slate-400">
-                  Descripción larga del elemento ${i + 1}. Este texto está aquí
-                  para forzar el crecimiento vertical del contenido y comprobar
-                  cómo responde el scroll dentro del diálogo.
-                </p>
-              </div>
-            </li>
-          `
-            )
+            .map((_, i) => `
+              <li class="py-3 flex items-center gap-3">
+                <button type="button" 
+                  class="online-flex items-center justify-center rounded-md text-sm font-medium transition-colors
+                  bg-slate-900 dark:bg-slate-100
+                  text-white dark:text-slate-900
+                  hover:bg-slate-800 dark:hover:bg-slate-200
+                  py-2 px-6">
+                    ${i + 1}
+                </button>                 
+                <div class="flex-1 justify-items-start text-left">
+                  <p class="font-medium text-slate-800 dark:text-slate-100">
+                    Elemento ${i + 1}
+                  </p>
+                  <p class="text-sm text-slate-600 dark:text-slate-400">
+                    Descripción larga del elemento ${i + 1}. Este texto está aquí
+                    para forzar el crecimiento vertical del contenido y comprobar
+                    cómo responde el scroll dentro del diálogo.
+                  </p>
+                </div>
+              </li>
+            `)
             .join('')}
         </ul>
-
       </div>
-      `;
+    `;
 
     dialogService.showDialog({
       message: html,
@@ -346,7 +413,7 @@ export default class IndexPage implements Component {
       message: html,
       asHtml: true,
       showConfirmButton: true,
-      literals: literals.cancelYes.map(text => APP_CONFIG.i18n.t(text)),
+      literals: literals.cancelYes,
       onConfirm: (sender) => {
         this.confirmSave(sender);
         return false;
@@ -357,7 +424,7 @@ export default class IndexPage implements Component {
   private confirmSave(opener: AlertComponent) {
     dialogService.confirm('¿Estás seguro de que quieres sobreescribir los datos?', {
       title: 'Confirmación Crítica',
-      literals: literals.noYes.map(text => APP_CONFIG.i18n.t(text)),
+      literals: literals.noYes,
     }).then((confirmed) => {
       if (confirmed) {
         dialogService.showLoading('Grabando', 
@@ -368,6 +435,63 @@ export default class IndexPage implements Component {
         );        
       }
     });
+  }
+
+
+
+  // ===========================================================================================
+  // Diálogo de edición de usuarios
+  // ===========================================================================================
+  selectUser() {
+    const html = `
+      <div class="flex flex-col gap-3 p-2 max-h-44">
+        <label class="app-label-radio flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="selectedUser" value="101" />
+          <span>John Doe (ID: 101)</span>
+        </label>
+        <label class="app-label-radio flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="selectedUser" value="102" />
+          <span>Jane Smith (ID: 102)</span>
+        </label>
+        <label class="app-label-radio flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="selectedUser" value="103" />
+          <span>Albert Johnson (ID: 103)</span>
+        </label>
+        <label class="app-label-radio flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="selectedUser" value="104" />
+          <span>Mary Williams (ID: 104)</span>
+        </label>
+      </div>
+    `;
+    dialogService.showDialog( 
+      {
+        title: 'Selección de usuario',
+        message: html,
+        showFooter:true,
+        asHtml:true,
+        icon: undefined,
+        showConfirmButton: true,
+        onConfirm : (sender: AlertComponent) => {
+          const target = sender.getContainer()?.querySelector<HTMLInputElement>(':checked');
+          const id = target && ~~target.value
+          if(id){            
+            dialogService.showLoading('Cargando', {
+              autoCloseMs: 5_000,
+              onClose: () => {
+                console.log(id);
+              }
+            });
+            return true;
+          }
+          const ref = dialogService.showError('Debes seleccionar algún elemento, melón!!!')
+          ref.afterOpen(() => {
+            console.log('Debes seleccionar algún elemento, melón!!!');
+          });
+          sender.setFeedback('Debes seleccionar algún elemento, melón!!!');
+          setTimeout(() => sender.setFeedback(''), 1_500);
+          return false;
+        }
+      });
   }
 
 }

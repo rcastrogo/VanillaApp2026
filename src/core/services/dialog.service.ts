@@ -40,7 +40,6 @@ class DialogService {
     let callback: afterOpenCallback = null;
     const instance = this.show({
       ...options,
-      showLayer: false,
       onAfterOpen: (data) => callback?.(data),
     } as AlertOptions);
 
@@ -105,7 +104,6 @@ class DialogService {
         onConfirm: () => resolve(true),
         onCancel: () => resolve(false),
         showConfirmButton: true,
-        showLayer: false,
       });
     });
   }
@@ -164,11 +162,15 @@ class DialogService {
     if (last && last.canClose()) last.close();
   }
 
-  close() {
+  close(): AlertComponent | null {
     const last = this.getLast();
     if (last) last.close();
+    return last
   }
 
+  forceClose() {
+    while (this.close()) { /* empty */ }
+  }
 }
 
 export const dialogService = new DialogService();

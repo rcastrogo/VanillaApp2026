@@ -1,71 +1,28 @@
+
 import type { ComponentFactory } from "../components/component.model";
 import { buildAndInterpolate } from "../core/dom";
+
+import { notificationService } from "@/core/services/notification.service";
 
 const homePage: ComponentFactory = () => {
   return {
     render: () => {
+
+      notificationService.show('¡Bienvenido a <b>VanillaApp2026!</b>', 2_000);
+
       const template = `
-        <div class="my-8 p-8 bg-background  rounded-3xl border border-slate-200 shadow-xl">
-         
-          <header class="mb-8">
-            <h1 class="text-3xl font-bold text-slate-800" on-publish="USER_UPDATED:global:name | welcome">
-              Bienvenido al Sistema
-            </h1>
-            <p class="text-slate-500 mt-2">Gestión de operaciones y monitorización de red.</p>
-            <div data-component="app-theme-toggle"></div>
-            <div data-component="app-language-selector"></div>
-            <div data-component="app-language-selector"></div>              
-          </header>
-          <div data-component="app-header"></div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">         
-            <div data-component="app-counter"></div>
-            <div data-component="app-user-list"></div>  
+        <div class="min-h-[50vh] mb-12 text-center">
+          <span class="text-5xl font-black tracking-tighter text-slate-800 dark:text-white">
+            VanillaApp<span class="text-indigo-500">2026</span>
+          </span>
+          <div>
+            <h1 class="text-3xl font-black tracking-tight">DOM + Hydrate + Template Engine</h1>
+            <p class="text-slate-600 dark:text-slate-400">Sistema de renderizado de VanillaApp2026</p>
           </div>
-
-          <div class="flex flex-wrap gap-4">
-            <button 
-              on-click="publish:NAVIGATE:global:dashboard"
-              class="px-6 py-3 bg-slate-800 text-white font-medium rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-slate-200">
-              Panel de Control
-            </button>
-            
-            <button 
-              on-click="publish:MODAL_OPEN:global:settings"
-              class="px-6 py-3 bg-white text-slate-600 font-medium rounded-xl border border-slate-200 hover:bg-slate-50 transition-all">
-              Configuración
-            </button>
-          </div>
-
-          <div 
-            data-component="app-collapsible" 
-            data-title="Esto funciona!"
-            data-expanded="true"
-            >
-            <h1 class="text-3xl">Contenido del collapsible</h1>
-            <p class="bg-red-500">
-              Este es el primer párrafo.
-            </p>
-            <p>
-              Este es el segundo párrafo.
-            </p>          
-          </div>
-
-          <div 
-            data-component="app-collapsible" 
-            data-expanded="false"
-            data-title="Configuración de eventos"
-            >
-              <h1 class="text-5xl bg-blue-600">Contenido del collapsible Configuración de eventos</h1>
-              este teradf kdajfkdsfasdfas    
-          </div>
-
-          <div data-component="app-dashboard"></div>
         </div>
       `;
-
       return buildAndInterpolate(template, this);
-    },
-    mounted: () => { /* empty */ }
+    }
   };
 };
 

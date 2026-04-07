@@ -340,6 +340,7 @@ function ModalComponent() {
 function TabsComponent() {
   
   return {
+    element: null as HTMLElement | null,
     active: 0,
     tabs: [],
     variant: 'default', // default | pills | underline
@@ -372,7 +373,7 @@ function TabsComponent() {
     },
 
     resolveTabListClasses: function() {
-      const base = 'flex gap-1 overflow-x-auto no-scrollbar';
+      const base = 'flex gap-1 overflow-x-auto no-scrollbar overflow-y-hidden';
 
       const variants: Record<string, string> = {
         default: 'rounded-lg bg-gray-100 dark:bg-gray-800 p-1',
@@ -420,6 +421,7 @@ function TabsComponent() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return this.tabs.map((tab: any, index: number) => `
         <button
+          on-click="activateTab:${index}"
           type="button"
           class="${this.resolveTabButtonClasses(index)}"
           data-tab-index="${index}"
@@ -430,7 +432,7 @@ function TabsComponent() {
     },
 
     renderActivePanel: function() {
-      const currentTab = this.tabs[this.active];
+      const currentTab = this.tabs[this.active] as { title?: string, content: string } | undefined;
 
       if (!currentTab) {
         return `
@@ -442,16 +444,18 @@ function TabsComponent() {
 
       return `
         <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 sm:p-5">
-          @if(currentTab.title)
-            <div class="mb-2 text-base font-semibold text-gray-900 dark:text-white">{currentTab.title}</div>
-          @endif
+          <div class="mb-2 text-base font-semibold text-gray-900 dark:text-white">${currentTab.title}</div>
           <div class="text-sm text-gray-600 dark:text-gray-300">
-            {currentTab.content}
+            ${currentTab.content}
           </div>
         </div>
       `;
     },
-
+    activateTab(_el: HTMLElement, _ev: Event, index: number) {
+      if (index === this.active) return;
+      this.active = index;
+      this.element?.replaceWith(this.render());
+    },
     render: function() {
       const template = `
         <div class="{wrapperClasses}">
@@ -464,11 +468,12 @@ function TabsComponent() {
         </div>
       `;
 
-      return buildAndInterpolate(template, {
+      return this.element = buildAndInterpolate(template, {
         wrapperClasses: this.resolveWrapperClasses(),
         tabListClasses: this.resolveTabListClasses(),
         tabHeaders: this.renderTabHeaders(),
-        panel: this.renderActivePanel()
+        panel: this.renderActivePanel(),
+        activateTab : this.activateTab.bind(this),
       });
     }
   };
