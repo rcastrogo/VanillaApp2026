@@ -3,7 +3,6 @@ import { buildAndInterpolate } from "@/core/dom";
 import { router } from "@/core/services/router.service";
 import { BaseComponent } from "@/core/types";
 
-
 export default class SplashScreenPage extends BaseComponent {
 
   template = `
@@ -53,15 +52,31 @@ export default class SplashScreenPage extends BaseComponent {
       </div>
     </div>
   `;
-  render() {
-    const continueToApp = () => {
-      if(router.routes.length < 1) {
-        configureRouter();
-      }      
-      router.navigateTo("/");      
-    };
-    return buildAndInterpolate(this.template, {continueToApp});
+
+  init(): void {
+    document.addEventListener('keydown', this.handleEscapeKey);
+    this.addCleanup(() => {
+      document.removeEventListener('keydown', this.handleEscapeKey);
+      console.log('SplashScreenPage destroyed, event listener removed.');
+    });
   }
+
+  render() {    
+    return buildAndInterpolate(this.template, this);
+  }
+
+  continueToApp = () => {
+    if(location.pathname === '/splash-screen') {
+      router.navigateTo('/');
+    }
+    if(router.routes.length < 1) configureRouter();       
+  };
+
+  handleEscapeKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      this.continueToApp();
+    }
+  };
 
 };
 

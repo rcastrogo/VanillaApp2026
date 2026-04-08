@@ -54,10 +54,10 @@ export default class NotificationPanel extends BaseComponent {
     super.init(ctx);
     this.addCleanup([
       pubSub.subscribe<string | NotificationInput>( 
-        APP_CONFIG.messages.App.showNotification, (payload) => payload && this.show(payload)
+        APP_CONFIG.messages.app.showNotification, (payload) => payload && this.show(payload)
       ),
       pubSub.subscribe<number>( 
-        APP_CONFIG.messages.App.closeNotification, (id) => id && this.close(id)
+        APP_CONFIG.messages.app.closeNotification, (id) => id && this.close(id)
       )
     ]);    
   }
@@ -65,7 +65,7 @@ export default class NotificationPanel extends BaseComponent {
   render() {
     const positionClass = POSITION_CLASS_MAP[APP_CONFIG.notificationPosition || 'top-right']  ;
     const template = `
-      <div class="fixed z-9999 w-96 max-w-[95dvw] flex flex-col gap-2 select-none ${positionClass}">
+      <div data-app-notification-panel="" class="fixed z-9999 w-96 max-w-[95dvw] flex flex-col gap-2 select-none ${positionClass}">
       </div>
     `;
     return buildAndInterpolate(template, this);
@@ -234,7 +234,7 @@ class Notification extends BaseComponent {
     el.style.setProperty('--offset', `${this.currentX}px`);
     el.classList.add('animate-slide-out-x');
     setTimeout(() => {
-     pubSub.publish(APP_CONFIG.messages.App.closeNotification, this.notification.id);
+     pubSub.publish(APP_CONFIG.messages.app.closeNotification, this.notification.id);
     }, 200);
   }
 

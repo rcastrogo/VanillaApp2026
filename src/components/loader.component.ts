@@ -17,16 +17,17 @@ export class LoaderComponent extends BaseComponent {
       message: 'Cargando...'
     });    
     this.addCleanup([
-      pubSub.subscribe(APP_CONFIG.messages.HttpClient.Loading, () => this.state.showLoader = true),
-      pubSub.subscribe(APP_CONFIG.messages.HttpClient.Loaded, () => this.state.showLoader = false),
+      pubSub.subscribe(APP_CONFIG.messages.httpClient.loading, () => this.state.showLoader = true),
+      pubSub.subscribe(APP_CONFIG.messages.httpClient.loaded, () => this.state.showLoader = false),
 
-      pubSub.subscribe(APP_CONFIG.messages.Router.Loading, () => this.state.showLoader = true),
-      pubSub.subscribe(APP_CONFIG.messages.Router.Loaded, () => this.state.showLoader = false),
-      pubSub.subscribe(APP_CONFIG.messages.Router.Error, () => this.state.showLoader = false)
+      pubSub.subscribe(APP_CONFIG.messages.router.loading, () => this.state.showLoader = true),
+      pubSub.subscribe(APP_CONFIG.messages.router.loaded, () => this.state.showLoader = false),
+      pubSub.subscribe(APP_CONFIG.messages.router.error, () => this.state.showLoader = false)
     ]);
   }
 
   render() {
+    const hidden = true;
     const template = `
       @if(showLoader)
         <div class="fixed inset-0 z-9999 flex flex-col items-center justify-center bg-gray-900/60 backdrop-blur-sm">
@@ -35,7 +36,7 @@ export class LoaderComponent extends BaseComponent {
         </div>
       @endif
     `;
-    return buildAndInterpolate(template, this.state, false)
+    return hidden ? null : buildAndInterpolate(template, this.state, false)
   }
 }
 

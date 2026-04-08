@@ -24,7 +24,7 @@ export class CounterComponent extends BaseComponent {
   increment() {
     this.state.count++;
     const message = `id: ${this.instanceId}, val: ${this.state.count}`;
-    pubSub.publish(APP_CONFIG.messages.App.message,message);
+    pubSub.publish(APP_CONFIG.messages.app.message,message);
   }
 
   render(changedProp?: string): HTMLElement {

@@ -32,7 +32,7 @@ class RouterService {
 
   private constructor() {
     window.onpopstate = ()=> this.sync();
-    pubSub.subscribe<NavigateEventArg>(APP_CONFIG.messages.Router.Navigate, arg => {
+    pubSub.subscribe<NavigateEventArg>(APP_CONFIG.messages.router.navigate, arg => {
       if (typeof arg === 'string') {
         this.navigateTo(arg);
       } else if(arg) {       
@@ -87,7 +87,7 @@ class RouterService {
       const searchParams = new URLSearchParams(window.location.search);
       resolvedRoute.queryValues = Object.fromEntries(searchParams.entries());
       document.title = resolvedRoute.name;
-      pubSub.publish(APP_CONFIG.messages.Router.ViewChanged, resolvedRoute);
+      pubSub.publish(APP_CONFIG.messages.router.viewChanged, resolvedRoute);
     }
     // Clear alert messages on route change
     dialogService.forceClose();

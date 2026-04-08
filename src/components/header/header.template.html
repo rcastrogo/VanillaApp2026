@@ -1,8 +1,14 @@
 <div class="bg-card shadow-sm">
   <header class="flex items-center px-4">
-    <div data-component="app-logo" class="text-4xl mr-2">
-      Construyendo el futuro de la web con vanilla JS
+    <div>
+      <div data-component="app-logo" class="text-4xl mr-2">
+        Construyendo el futuro de la web con vanilla JS
+      </div>
+      <div id="logo-progress-bar">
+        
+      </div>       
     </div>
+
     <nav class="flex flex-wrap items-center place-content-end gap-1 ml-auto py-4">
       <div data-component="app-language-selector"></div>    
       <div data-component="app-theme-toggle"></div>
@@ -13,7 +19,7 @@
           Esperando acciones...
         </span>
       </div>
-    </nav>
+    </nav>    
   </header>
   <div class="w-full text-center border-b border-t p-0.5 space-y-1">
     <a href="/404" route-to="/404" class="app-button text-xs px-3">404</a>

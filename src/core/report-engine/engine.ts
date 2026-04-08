@@ -367,11 +367,10 @@ export default class ReportEngine<T> {
   }
 
   async loadExternalReport(path: string) {
-    const MESSAGES = APP_CONFIG.messages;
-    pubSub.publish(MESSAGES.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loading);
     const response = await fetch(path);
     const code = await response.text();
-    pubSub.publish(MESSAGES.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loaded);
     return this.loadFromText(code);
   }
 

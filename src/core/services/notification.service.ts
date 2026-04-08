@@ -8,7 +8,7 @@ import type { NotificationType } from "@/components/notification-panel/notificat
 class NotificationService {
 
   show(message: string, autoCloseMs?: number, type: NotificationType = '') {
-    pubSub.publish(APP_CONFIG.messages.App.showNotification, {
+    pubSub.publish(APP_CONFIG.messages.app.showNotification, {
       message,
       autoCloseMs,
       type
@@ -32,7 +32,7 @@ class NotificationService {
   }
 
   close(id: number) {
-    pubSub.publish(APP_CONFIG.messages.App.closeNotification, id);
+    pubSub.publish(APP_CONFIG.messages.app.closeNotification, id);
   }
 
 }

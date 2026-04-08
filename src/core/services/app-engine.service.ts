@@ -27,9 +27,10 @@ class LayoutManager {
         this.currentLayoutInstance = new LayoutClass({}) as BaseComponent;
         container.innerHTML = '';
         this.currentLayoutInstance.init?.();
-        container.appendChild(
-          BaseComponent.renderAndBind(this.currentLayoutInstance)
-        );
+        const routeElement = BaseComponent.renderAndBind(this.currentLayoutInstance);
+        if (routeElement) {
+          container.appendChild(routeElement);
+        }
         this.currentLayoutInstance.mounted?.();
       } else {
         this.currentLayoutInstance = null;
@@ -83,10 +84,11 @@ class ViewRenderer {
     // ===============================================================================
     // Inicializar, renderizar y montar el nuevo componente
     // ===============================================================================
-    this.currentComponent.init?.();    
-    outlet.appendChild(
-      BaseComponent.renderAndBind(component)
-    );
+    this.currentComponent.init?.(); 
+    const routeElement = BaseComponent.renderAndBind(component);
+    if(routeElement){
+      outlet.appendChild(routeElement);
+    } 
     this.currentComponent.mounted?.();
   }
 }
@@ -94,10 +96,13 @@ class ViewRenderer {
 class TransitionManager {
   async transition(outlet: HTMLElement, renderFn: () => Promise<void>) {
     outlet.classList.add('route-exit-active');
-    await this.wait(500);
-    outlet.classList.remove('route-exit-active');
+    await this.wait(350);
     await renderFn();
+    outlet.classList.remove('route-exit-active');    
     outlet.classList.add('route-enter');
+    
+    outlet.getBoundingClientRect();
+
     requestAnimationFrame(() => {
       outlet.classList.add('route-enter-active');
       outlet.classList.remove('route-enter');
@@ -118,7 +123,7 @@ class AppEngine {
   private transitionManager = new TransitionManager();
 
   private initEventListeners() {
-    pubSub.subscribe<Route>(APP_CONFIG.messages.Router.ViewChanged, route => {
+    pubSub.subscribe<Route>(APP_CONFIG.messages.router.viewChanged, route => {
       if(route) this.handleRoute(route);     
     });
   }
@@ -126,15 +131,15 @@ class AppEngine {
   async handleRoute(route: Route) {
     if (!this.container) return;
     try {
-      pubSub.publish(APP_CONFIG.messages.Router.Loading);
+      pubSub.publish(APP_CONFIG.messages.router.loading);
       const outlet = this.layoutManager.renderLayout(route, this.container);
       await this.transitionManager.transition(outlet, async () => {
         await this.renderer.render(route, outlet);
       });
       window.scrollTo({ top: 0, behavior: 'instant' });
-      pubSub.publish(APP_CONFIG.messages.Router.Loaded);
+      pubSub.publish(APP_CONFIG.messages.router.loaded);
     } catch (error) {
-      pubSub.publish(APP_CONFIG.messages.Router.Error);
+      pubSub.publish(APP_CONFIG.messages.router.error);
       console.error(error);
     }
   }

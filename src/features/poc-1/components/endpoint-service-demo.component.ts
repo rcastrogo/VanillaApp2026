@@ -1,5 +1,7 @@
+import { APP_CONFIG } from '@/app.config';
 import type { ComponentContext } from '@/components/component.model';
 import { buildAndInterpolate } from '@/core/dom';
+import { pubSub } from '@/core/services/pubsub.service';
 import { BaseComponent } from '@/core/types';
 import { getAllAsync, type SecureEndPoint } from '@/services/endpoint.service';
 
@@ -20,7 +22,9 @@ export class EndpointServiceDemoComponent extends BaseComponent {
   async load() {
     this.state.status = 'loading';
     this.state.error = '';
+    pubSub.publish( APP_CONFIG.messages.httpClient.loading);
     const result = await getAllAsync();
+    pubSub.publish( APP_CONFIG.messages.httpClient.loaded);
     if (typeof result === 'string') {
       this.state.status = 'error';
       this.state.error = result;

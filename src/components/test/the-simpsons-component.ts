@@ -17,9 +17,9 @@ export class TheSimpsonsComponent extends BaseComponent {
 
   async loadMore() {
     this.state.isLoading = true;
-    // pubSub.publish(MESSAGES.HttpClient.Loading)
-    const result = await getCharacters(this.state.currentPage);
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded)
+    pubSub.publish(APP_CONFIG.messages.httpClient.loading)
+    const result = await getCharacters(this.state.currentPage);    
+    pubSub.publish(APP_CONFIG.messages.httpClient.loaded);
     if (typeof result === 'string') {
       console.error("Error al cargar personajes");
       this.state.isLoading = false;

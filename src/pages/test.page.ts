@@ -285,9 +285,9 @@ export default class BaseComponentPage extends BaseComponent {
 
   async generateJamonesReport(name: string) {
     this.mediator.clear();
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loading);
     const result = await getJamonesAsync();
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loaded);
     if (typeof result === 'string') {
       this.mediator.send(result);
       return
@@ -318,9 +318,9 @@ export default class BaseComponentPage extends BaseComponent {
     // Cargar datos
     // =============================================================
     this.mediator.clear();
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loading);
     const result = await getJamonesAsync();
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loaded);
     if (typeof result === 'string') {   
       this.mediator.send(result);
       return
@@ -423,9 +423,9 @@ export default class BaseComponentPage extends BaseComponent {
     // Cargar datos
     // =============================================================
     this.mediator.clear();
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loading);
     const result = await getJamonesAsync();
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loaded);
     if (typeof result === 'string') {   
       this.mediator.send(result);
       return

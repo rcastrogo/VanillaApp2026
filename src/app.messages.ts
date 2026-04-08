@@ -1,21 +1,21 @@
 const messages = {
-  Router: {
-    ViewChanged: 'router-view-changed',
-    Loading:     'router-loading',
-    Loaded:      'router-loaded',
-    Error:       'router-error',
-    Navigate:    'router-navigate-to',
+  router: {
+    viewChanged: 'router-view-changed',
+    loading:     'router-loading',
+    loaded:      'router-loaded',
+    error:       'router-error',
+    navigate:    'router-navigate-to',
   },
-  Auth: {
-    Login:       'auth-login',
-    Logout:      'auth-logout'
+  auth: {
+    login:       'auth-login',
+    logout:      'auth-logout'
   },
-  HttpClient: {
-    Loading:     'http-request-loading',
-    Loaded:      'http-request-loaded',  
+  httpClient: {
+    loading:     'http-request-loading',
+    loaded:      'http-request-loaded',  
   },
-  App : {
-    ThemeChanged: 'app-theme-changed',
+  app : {
+    themeChanged: 'app-theme-changed',
     message:      'app-message',
     dialogClosed: 'app-dialog-closed',
     showNotification: 'app-show-notification',

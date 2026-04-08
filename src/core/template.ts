@@ -21,6 +21,11 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
     console.log("Valor actual:", val);
     console.log("Scope completo:", this);
     return val;
+  },
+  safeHTML: function(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 };
 

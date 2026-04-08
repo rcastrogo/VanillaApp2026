@@ -94,7 +94,7 @@ export default class LandingPage extends BaseComponent {
 
   sendPubSubMessage() {
     const msg = `[Página → PubSub] mensaje enviado a las ${new Date().toLocaleTimeString()}`;
-    pubSub.publish(APP_CONFIG.messages.App.message, msg);
+    pubSub.publish(APP_CONFIG.messages.app.message, msg);
     this.pubSubLog = [msg, ...this.pubSubLog.slice(0, 4)];
     this.state.pubSubMessages = [...this.pubSubLog];
   }

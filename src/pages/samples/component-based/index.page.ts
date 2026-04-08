@@ -12,15 +12,16 @@ export default class IndexPage implements Component {
   components = Object.keys(import.meta.glob('@/components/**/*.ts', { eager: true }));
   registeredComponents = Object.keys(APP_CONFIG.components)
     .filter(tag => ['app-loader', 'app-modal', 'app-loader-small'].indexOf(tag) === -1);
+
+  showNotificationPanel = document.querySelector('[data-app-notification-panel]');
   
   render() {
     const template = `
-      <div class="px-4">
-        <div class="max-w-4xl mx-auto">
-
+      <div class="px-4">              
+        <div class="max-w-4xl mx-auto">          
           <div data-component="app-logo" class="text-4xl my-6">
             Index Page
-          </div>          
+          </div>         
           <p class="text-lg text-gray-700 mb-8 text-center">Explora las funcionalidades básicas de los componentes que implementan la interfaz Component</p>
 
           <div class="space-y-6 mt-2">
@@ -216,8 +217,10 @@ export default class IndexPage implements Component {
               </div>
             </div>
           </div>
-          
-        </div>
+        </div>  
+        @if(showNotificationPanel === null)
+          <div data-component="app-notification-panel"></div>         
+        @endif      
       </div>
     `;
     return buildAndInterpolate(template, this);

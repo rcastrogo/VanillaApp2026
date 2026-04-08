@@ -59,9 +59,7 @@ export abstract class BaseComponent implements Component {
       set: (target, prop, value) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (target as any)[prop] = value;
-        if (!this.isInitializing) {
-          this.update(prop as string);
-        }
+        if (!this.isInitializing) this.update(prop as string);
         return true;
       }
     });
@@ -72,9 +70,7 @@ export abstract class BaseComponent implements Component {
     this.isInitializing = true;
     Object.assign(this.state, state);
     this.isInitializing = false;
-    if (this.element) {
-      this.update();
-    }
+    if (this.element) this.update();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,7 +134,7 @@ export abstract class BaseComponent implements Component {
 
   }
 
-  abstract render(changedProp?: string): HTMLElement;
+  abstract render(changedProp?: string): HTMLElement | null;
 
   mounted() { /* empty */ }
   init(ctx?: ComponentInitValue) { 
@@ -169,8 +165,9 @@ export abstract class BaseComponent implements Component {
     return element;
   }
 
-  static renderAndBind<T extends BaseComponent>(instance: T): HTMLElement {
+  static renderAndBind<T extends BaseComponent>(instance: T): HTMLElement | null {
     const element = instance.render();
+    if (!element) return null;
     instance.element = element;
     (element as ComponentElement).__componentInstance = instance;
     return element;

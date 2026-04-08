@@ -122,7 +122,7 @@ export class AlertComponent extends BaseComponent {
     if(this.element){
       this.element.remove();
     }
-    pubSub.publish(APP_CONFIG.messages.App.dialogClosed, this)
+    pubSub.publish(APP_CONFIG.messages.app.dialogClosed, this)
   }
 
   canClose(){

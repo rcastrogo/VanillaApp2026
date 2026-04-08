@@ -145,10 +145,11 @@ const dashboardPage: ComponentFactory = (ctx: ComponentContext) => {
         if (container && widget) {
           widget.init?.();
           container.innerHTML = '';
-          container.appendChild(
-            BaseComponent.renderAndBind(widget as BaseComponent)
-          );
-          widget.mounted?.();
+          const widgetElement = BaseComponent.renderAndBind(widget as BaseComponent);
+          if (widgetElement) {
+            container.appendChild(widgetElement);
+            widget.mounted?.();
+          }
         }
       });
     }

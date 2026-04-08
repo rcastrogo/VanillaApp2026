@@ -20,7 +20,7 @@ export class ThemeToggleComponent extends BaseComponent {
     this.addCleanup(
       [
         APP_CONFIG.i18n.changed(() => this.invalidate()),
-        pubSub.subscribe(APP_CONFIG.messages.App.ThemeChanged, (isDarkMode) => {
+        pubSub.subscribe(APP_CONFIG.messages.app.themeChanged, (isDarkMode) => {
           this.state.isDarkMode = Boolean(isDarkMode);
           this.invalidate();
         })
@@ -31,7 +31,7 @@ export class ThemeToggleComponent extends BaseComponent {
   toggleTheme() {
     this.state.isDarkMode = !this.state.isDarkMode;
     this.applyTheme(this.state.isDarkMode);
-    pubSub.publish(APP_CONFIG.messages.App.ThemeChanged, this.state.isDarkMode);
+    pubSub.publish(APP_CONFIG.messages.app.themeChanged, this.state.isDarkMode);
   }
 
   private applyTheme(isDark: boolean) {

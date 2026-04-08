@@ -12,7 +12,7 @@ export interface Component {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any; 
   init?(value?: ComponentInitValue): void;
-  render(changedProp?: string): HTMLElement;
+  render(changedProp?: string): HTMLElement | null;
   mounted?(): void;
   destroy?(): void;
 }

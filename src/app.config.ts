@@ -6,7 +6,7 @@ import { reportRegistry } from './app.reports';
 import { notificationPositionEnum, type NotificationPosition } from './components/notification-panel/notification-panel.component';
 import { i18nService } from './i18n';
 
-const notificationPosition: NotificationPosition = notificationPositionEnum.TopRight;
+const notificationPosition: NotificationPosition = notificationPositionEnum.TopCenter;
 
 export const APP_CONFIG = {
   i18n : i18nService,

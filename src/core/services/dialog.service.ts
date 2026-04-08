@@ -20,7 +20,7 @@ class DialogService {
       if (e.key === 'Escape') this.closeLastByEscape();
     });
     pubSub.subscribe(
-      APP_CONFIG.messages.App.dialogClosed, () => this.removeDialog()
+      APP_CONFIG.messages.app.dialogClosed, () => this.removeDialog()
     );
   }
 
@@ -28,13 +28,13 @@ class DialogService {
   // API pública
   // =====================================================
   showProgressBar(duration?: number) {
-    pubSub.publish(APP_CONFIG.messages.HttpClient.Loading);
+    pubSub.publish(APP_CONFIG.messages.httpClient.loading);
     if (duration && duration > 0) {
       setTimeout(this.hideProgressBar, duration);
     }
   }
 
-  hideProgressBar = () => pubSub.publish(APP_CONFIG.messages.HttpClient.Loaded);
+  hideProgressBar = () => pubSub.publish(APP_CONFIG.messages.httpClient.loaded);
 
   private createRef(options: Partial<AlertOptions>): AlertRef {
     let callback: afterOpenCallback = null;

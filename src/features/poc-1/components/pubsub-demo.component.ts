@@ -16,7 +16,7 @@ export class PubSubDemoComponent extends BaseComponent {
       log: [] as string[],
     });
 
-    this.subscribe(APP_CONFIG.messages.App.message, (payload: { text: string }) => {
+    this.subscribe(APP_CONFIG.messages.app.message, (payload: { text: string }) => {
       const entry = `[${new Date().toLocaleTimeString()}] ${payload?.text ?? JSON.stringify(payload)}`;
       this.state.log = [entry, ...this.state.log].slice(0, 6);
     });
@@ -29,14 +29,14 @@ export class PubSubDemoComponent extends BaseComponent {
 
   sendGlobal() {
     const text = this.message || '(mensaje vacío)';
-    pubSub.publish(APP_CONFIG.messages.App.message, `Global → ${text}`);
+    pubSub.publish(APP_CONFIG.messages.app.message, `Global → ${text}`);
     this.message = '';
     this.invalidate();
   }
 
   sendLocal() {
     const text = this.message || '(mensaje vacío)';
-    this.publish(APP_CONFIG.messages.App.message, { text: `Local → ${text}` });
+    this.publish(APP_CONFIG.messages.app.message, { text: `Local → ${text}` });
     this.message = '';
     this.invalidate();
   }
