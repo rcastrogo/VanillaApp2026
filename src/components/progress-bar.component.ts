@@ -26,6 +26,7 @@ export class ProgressBarComponent extends BaseComponent {
         this.progress = Math.min(100, this.progress + increment);
       this.invalidate();
     }, timeout);
+    this.addCleanup(() => clearInterval(this.intervalId))
   }
 
   resolveProgressClasses() {

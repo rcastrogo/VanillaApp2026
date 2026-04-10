@@ -24,6 +24,7 @@ const components = {
   'app-dashboard': () => import('./components/test/dashboard.component'),
   'app-counter': () => import('./components/test/counter-component'),
   'app-the-simpsons': () => import('./components/test/the-simpsons-component'),
+  'app-tab-component': () => import('./components/tab.component'),
 } as Record<string, ComponentProvider>
 
 function registerComponent(name: string, componentProvider: ComponentProvider){

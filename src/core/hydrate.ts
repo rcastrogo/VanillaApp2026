@@ -122,6 +122,13 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
   return container;
 }
 
+function toAttrName(value: string): string {
+  return value
+        .replace(/([A-Z])/g, '-$1')
+        .toLowerCase()
+        .replace(/^-/, '');
+}
+
 export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext): Promise<void> {
   const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
 
@@ -135,14 +142,17 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
       const customClasses = el.className.trim();
       component.init?.({parent: el});
       const element = component.render() as ComponentElement;
-      BaseComponent.bind(component, element);
-      if (customClasses) {
-        const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
-        element.classList.add(...classesArray);
+      if(element){
+        BaseComponent.bind(component, element);
+        const attrName = toAttrName(component.constructor.name);
+        element.setAttribute(`app-${attrName}`, '');
+        if (customClasses) {
+          const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
+          element.classList.add(...classesArray);
+        }        
       }
       el.replaceWith(element);
-      component.mounted?.();
-      
+      component.mounted?.();    
     } else {
       console.error(`Componente ${componentName} no encontrado en el registro.`);
     }

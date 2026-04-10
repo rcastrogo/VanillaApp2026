@@ -125,7 +125,6 @@ export abstract class BaseComponent implements Component {
 
     this.element.innerHTML = '';
     this.element.appendChild(fragment);
-    this.bind(this.element);
     this.mounted?.();
 
     Promise.resolve().then(() => {
@@ -171,6 +170,13 @@ export abstract class BaseComponent implements Component {
     instance.element = element;
     (element as ComponentElement).__componentInstance = instance;
     return element;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static getInstance<T = any>(selector: string, root: HTMLElement | Document = document): T | null {
+    const el = root.querySelector(selector) as ComponentElement | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (el as any)?.__componentInstance || null;
   }
 
   protected bind(el: HTMLElement): ComponentElement {

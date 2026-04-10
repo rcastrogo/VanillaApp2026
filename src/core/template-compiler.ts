@@ -169,9 +169,10 @@ function generateCode(nodes: Node[]): string {
       case "each":
       {
         const loopVar = `__item${loopCounter++}`;
+        const listVar = `__list${loopCounter}`;
         code += `
-        const __list = evalInScope(scope, ${JSON.stringify(node.list)}) || [];
-        for (const ${loopVar} of __list) {
+        const ${listVar} = evalInScope(scope, ${JSON.stringify(node.list)}) || [];
+        for (const ${loopVar} of ${listVar}) {
           const prevScope = scope;
           scope = Object.create(scope);
           scope[${JSON.stringify(node.item)}] = ${loopVar};
@@ -189,10 +190,27 @@ function generateCode(nodes: Node[]): string {
   return code;
 }
 
+function flattenScope(scope: any): Record<string, any> {
+  const result: Record<string, any> = {};
+
+  let current = scope;
+  while (current) {
+    for (const key of Object.keys(current)) {
+      if (!(key in result)) {
+        result[key] = current[key];
+      }
+    }
+    current = Object.getPrototypeOf(current);
+  }
+
+  return result;
+}
+
 function evalInScope(scope: any, expr: string) {
   // console.log(scope);
   try {
-    return Function(...Object.keys(scope), `return (${expr})`)(...Object.values(scope));
+    const flat = flattenScope(scope);
+    return Function(...Object.keys(flat), `return (${expr})`)(...Object.values(flat));
   } catch (e) {
     console.warn("DSL eval error:", expr, e);
     return false;

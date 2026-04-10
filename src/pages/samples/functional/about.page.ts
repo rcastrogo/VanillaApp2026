@@ -4,7 +4,8 @@ import { buildAndInterpolate } from '@/core/dom';
 import { useState } from '@/core/state.utils';
 
 const aboutPage: ComponentFactory = (_ctx: ComponentContext) => {
-
+  
+  let timeoutId: number;
   let element!: HTMLElement;
   let hasLoadedContent = false;
 
@@ -18,11 +19,17 @@ const aboutPage: ComponentFactory = (_ctx: ComponentContext) => {
   }
 
   return {
+
+    destroy() {
+      clearInterval(timeoutId);
+      console.log('About page destroyed');
+    },
+
     render: () => {
 
       const WAIT_FOR_CONTENT_SECONDS = 10;
       const clock = useState({ times: 0 })
-      setInterval(() => {
+      timeoutId = setInterval(() => {
         clock.put('times', clock.store.times + 1);
       }, 1_000);
 
