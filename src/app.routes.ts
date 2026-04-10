@@ -14,7 +14,7 @@ export function configureRouter(){
   const routeBuilder = new RouteBuilder();
   routeBuilder
     .root(homePage)
-    .add('home', homePage)
+    .addKeepAlive('home', homePage)
     .add('test', testPage, null)
     .add('template', TemplatePage)
     .add('index', IndexPage)

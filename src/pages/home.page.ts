@@ -1,6 +1,6 @@
 
 import type { ComponentFactory } from "../components/component.model";
-import { build, buildAndInterpolate } from "../core/dom";
+import { buildAndInterpolate } from "../core/dom";
 
 import { notificationService } from "@/core/services/notification.service";
 import { BaseComponent} from "@/core/types";
@@ -51,7 +51,7 @@ const homePage: ComponentFactory = () => {
           <div 
             data-component="app-tab-component" 
             data-selected="overview" 
-            data-variant="pills" 
+            data-variant="segmented" 
             class="mt-8">
 
             <div data-id="sin-icono" data-title="Texto">
