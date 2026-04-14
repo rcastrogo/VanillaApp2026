@@ -24,6 +24,7 @@ const components = {
   'app-dashboard': () => import('./components/test/dashboard.component'),
   'app-binding-reference': () => import('./components/test/binding-reference.component'),
   'app-entity-master-detail': () => import('./components/test/entity-master-detail.component'),
+  'app-combo-box': () => import('./components/test/combo-box.component'),
   'app-counter': () => import('./components/test/counter-component'),
   'app-the-simpsons': () => import('./components/test/the-simpsons-component'),
   'app-tab-component': () => import('./components/tab.component'),
@@ -41,6 +42,16 @@ function registerComponents(...entries: [string, ComponentProvider][]) {
     registerComponent(name, provider);
   });
 }
+
+const componentFiles = import.meta.glob('./components/**/*.component.ts');
+Object.entries(componentFiles).forEach(([path, resolver]) => {
+  const fileName = path.split('/').pop()?.replace('.component.ts', '');
+  if (fileName) {
+    const tagName = `app-poc-${fileName}`;
+    components[tagName] = resolver as ComponentProvider;
+    console.log(`Registrando componente '${tagName}' desde '${path}'`);
+  }
+});
 
 export const ComponentRegistry = {
   components,

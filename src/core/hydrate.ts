@@ -181,7 +181,9 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
           element.classList.add(...classesArray);
         }        
       }
-      el.replaceWith(element);
+      el.replaceWith(
+        element || document.createComment(`Component ${componentName} rendered an empty element`)
+      );
       component.mounted?.();    
     } else {
       console.error(`Componente ${componentName} no encontrado en el registro.`);

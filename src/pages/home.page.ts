@@ -13,6 +13,29 @@ const homePage: ComponentFactory = () => {
     innerHTML: `
       Este es un ejemplo de cómo evitar xss <img src="x" onerror="alert('XSS')">
     `,
+    codigos: [
+      { id: 1, label: 'Alpha' },
+      { id: 2, label: 'Bravo' },
+      { id: 3, label: 'Charlie' },
+      { id: 4, label: 'Delta' },
+      { id: 5, label: 'Echo' },
+      { id: 6, label: 'Foxtrot' },
+      { id: 7, label: 'Golf' },
+      { id: 8, label: 'Hotel' },
+    ],
+    codigosPremium: [
+      { id: 'P1', label: 'Premium Uno' },
+      { id: 'P2', label: 'Premium Dos' },
+      { id: 'P3', label: 'Premium Tres' },
+    ],
+    loadDefaultCodes() {
+      const combo = BaseComponent.getInstance('[app-combo-box-component]') as { setDataSource(items: unknown[]): void } | undefined;
+      combo?.setDataSource(this.codigos);
+    },
+    loadPremiumCodes() {
+      const combo = BaseComponent.getInstance('[app-combo-box-component]') as { setDataSource(items: unknown[]): void } | undefined;
+      combo?.setDataSource(this.codigosPremium);
+    },
     handleTabChange(tab: TabEventDetail) {
       notificationService.show(`Tab activa: <b>${tab.title}</b> <small>(${tab.id}, #${tab.index + 1})</small>`, 2_000);
     },
@@ -105,6 +128,23 @@ const homePage: ComponentFactory = () => {
                 Esta demo muestra una lista de entidades con panel de edición reactivo, combinando inputs, selectores, checks y acciones visuales.
               </p>
               <div data-component="app-entity-master-detail" class="mt-4"></div>
+            </div>
+
+            <div data-id="combo" data-title="Combo Box" data-icon-name="zap" class="h-100">
+              <h2 class="text-2xl font-bold mb-2">Combo Box reactivo</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Componente select con data-items, setDataSource imperativo, teclado y valor oculto.
+              </p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <button on-click="loadDefaultCodes" class="app-button btn-primary">Cargar códigos</button>
+                <button on-click="loadPremiumCodes" class="app-button btn-secondary">Cargar premium</button>
+              </div>
+              <div class="max-w-xs">
+                <div data-component="app-combo-box"
+                     data-items="codigos"
+                     data-placeholder="Elige un código…"
+                     data-name="codigo"></div>
+              </div>
             </div>
 
             <div data-id="overview" data-title="Overview" data-icon-name="settings">
