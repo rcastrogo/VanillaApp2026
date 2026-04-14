@@ -8,6 +8,12 @@ import { BaseComponent } from "@/core/types";
 
 interface TabData { id: string; title: string; icon: string; alt?: string }
 
+export interface TabEventDetail {
+  id: string;
+  title: string;
+  index: number;
+}
+
 type TabVariant = 
   'underline' | 'pills' | 
   'segmented' | 'boxed' | 'lifted' | 
@@ -61,9 +67,47 @@ const VARIANTS: TabVariant[] = Object.keys(VARIANT_STYLES) as TabVariant[];
 
 export class TabComponent extends BaseComponent {
 
+  public tabchange?: (detail: TabEventDetail) => void;
+  public tabclose?: (detail: TabEventDetail) => void;
+
   private slots: HTMLElement[] | null = null;
   private buttons: HTMLButtonElement[] = [];
   private tabNodes = new Map<string, HTMLElement>();
+
+  private getTabDetail(tabId: string): TabEventDetail | null {
+    const tabs: TabData[] = this.state.store.tabs || [];
+    const index = tabs.findIndex(tab => tab.id === tabId);
+    if (index < 0) return null;
+    const tab = tabs[index];
+    return {
+      id: tab.id,
+      title: tab.title || tab.alt || tab.id,
+      index,
+    };
+  }
+
+  raiseTabChange(tabId: string) { 
+    const detail = this.getTabDetail(tabId);
+    if (!detail) return;
+    if (this.tabchange) this.tabchange(detail);
+  }
+
+  raiseTabClose(tabId: string) { 
+    const detail = this.getTabDetail(tabId);
+    if (!detail) return;
+    if (this.tabclose) this.tabclose(detail);
+  }
+
+  private setActiveTab(tabId: string, emitEvent = true) {
+    const nextTabId = tabId || '';
+    const currentTabId = this.state.store.activeTabId || '';
+    if (currentTabId === nextTabId) return;
+    this.state.put('activeTabId', nextTabId);
+    if (emitEvent && nextTabId) {
+      this.raiseTabChange(nextTabId);
+    }
+  }
+
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -74,6 +118,12 @@ export class TabComponent extends BaseComponent {
         variant: 'default'
       })
     );
+  }
+
+  public destroy(): void {
+    console.log(`[Destroy] TabComponent`);
+    return;
+    // super.destroy();
   }
 
   init(ctx: ComponentInitValue) {
@@ -90,9 +140,8 @@ export class TabComponent extends BaseComponent {
       });
       this.tabNodes.set(id, child);
     });
-
     this.addCleanup(
-      this.state.on('activeTabId', (newId:string) => this.updateVisuals(newId))
+     this.state.on('activeTabId', (newId:string) => this.updateVisuals(newId))
     );
     this.state.put('tabs', parsedTabs);
     this.state.put('variant', this.props.variant || 'default');
@@ -102,7 +151,7 @@ export class TabComponent extends BaseComponent {
   }
 
   selectTab(el: HTMLElement) {
-    this.state.put('activeTabId', el.dataset.targetId || '');
+    this.setActiveTab(el.dataset.targetId || '');
   }
 
   cycleVariant() {
@@ -139,11 +188,12 @@ export class TabComponent extends BaseComponent {
     buttonsContainer?.appendChild(btn);
     this.buttons.push(btn);
     this.state.put('tabs', [...tabs, tab]);
-    if (activate) this.state.put('activeTabId', tab.id);
+    if (activate) this.setActiveTab(tab.id);
   }
 
   removeTab(tabId: string) {
     const tabs: TabData[] = this.state.store.tabs;
+    const activeTabId = this.state.store.activeTabId;
     // Verificar si el tab existe
     const filtered = tabs.filter(t => t.id !== tabId);
     if (filtered.length === tabs.length) return;
@@ -165,12 +215,13 @@ export class TabComponent extends BaseComponent {
     // ======================================================================
     // Actualizar estado
     // ======================================================================
+    this.raiseTabClose(tabId);
     this.tabNodes.delete(tabId);
     this.state.put('tabs', filtered);
-    if (this.state.store.activeTabId === tabId && filtered.length > 0) {
-      this.state.put('activeTabId', filtered[0].id);
-    } else if (this.state.store.activeTabId === tabId) {
-      this.state.put('activeTabId', '');
+    if (activeTabId === tabId && filtered.length > 0) {
+      this.setActiveTab(filtered[0].id);
+    } else if (activeTabId === tabId) {
+      this.setActiveTab('', false);
     }
   }
 

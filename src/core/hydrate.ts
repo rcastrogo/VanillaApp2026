@@ -4,7 +4,7 @@ import { createIcon } from "./icons";
 import { getValue, resolveArgs } from "./template";
 import { BaseComponent, type ComponentElement } from "./types";
 import { APP_CONFIG } from "../app.config";
-import type { ComponentContext } from "../components/component.model";
+import type { BindingResolver, ComponentBinding, ComponentContext } from "../components/component.model";
 import { loader } from "./services/loader.service";
 import { pubSub } from "./services/pubsub.service";
 import { router} from "./services/router.service";
@@ -30,6 +30,12 @@ export function hydrateIcons(root: HTMLElement = document.body): HTMLElement {
 export function hydrateEventListeners(container: HTMLElement, ctx: ComponentContext) {
   const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT);
   let currentNode: Node | null = container;
+  // =======================================================================
+  // Aseguramos que el componente tenga un array para almacenar las bindings
+  // =======================================================================
+  if (!ctx.bindings) {
+    ctx.bindings = [];
+  }
   while (currentNode) {
     const el = currentNode as HTMLElement;
     Array.from(el.attributes).forEach(attr => {
@@ -114,6 +120,30 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
             });
           }
         }
+        el.removeAttribute(attrName);
+      }
+      else if (attrName === 'data-bind') {
+        // Formato: "tipo:path" o "tipo.propiedad:path".
+        // Se permiten varios bindings separados por ';'.
+        attrValue
+          .split(';')
+          .map(bindingDef => bindingDef.trim())
+          .filter(Boolean)
+          .forEach(bindingDef => {
+            const [typeAndProp = '', ...pathTokens] = bindingDef.split(':').map(s => s.trim());
+            const path = pathTokens.join(':');
+            const [type, prop] = typeAndProp.includes('.')
+              ? typeAndProp.split('.')
+              : [typeAndProp, null];
+            const binding: ComponentBinding = {
+              element: el,
+              type,
+              prop,
+              path
+            };
+            ctx.bindings.push(binding);
+            resolveBindingValue(binding, ctx);
+          });
         el.removeAttribute(attrName);
       }
     });
@@ -207,4 +237,37 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
       });
       repeater.appendChild(fragment);
     });
+}
+
+export function getResolver(binding: ComponentBinding): BindingResolver {
+  const { type, prop } = binding;
+  const resolvers: Record<string, BindingResolver> = {
+    fn: (el, value) => {
+      if (typeof value === 'function') {
+        value(el);
+      } else {
+        console.warn(`La función '${binding.path}' no se encontró en el contexto.`);
+      }
+    },
+    text: (el, value) => el.innerText = value ?? '',
+    html: (el, value) => el.innerHTML = value ?? '',
+    value: (el, value) => (el as HTMLInputElement).value = value ?? '',
+    checked: (el, value) => (el as HTMLInputElement).checked = !!value,
+    attr: (el, value) => value === null || value === undefined ? el.removeAttribute(prop!) : el.setAttribute(prop!, String(value)),
+    class: (el, value) => el.className = value ?? '',
+    toggle: (el, value) => el.classList.toggle(prop!, !!value),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    style: (el, value) => (el.style as any)[prop!] = value,
+    show: (el, value) => el.style.display = value ? '' : 'none',
+    hide: (el, value) => el.style.display = value ? 'none' : '',
+    disabled: (el, value) => (el as HTMLButtonElement | HTMLInputElement).disabled = !!value
+  };  
+  return resolvers[type] || resolvers.text;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function resolveBindingValue( binding: ComponentBinding, ctx: Record<string, any>): any {
+  const resolver = getResolver(binding);
+  const value = getValue(binding.path, ctx);
+  resolver(binding.element, value);
 }

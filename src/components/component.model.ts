@@ -23,3 +23,12 @@ export interface PublishContext {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args: any[] 
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type BindingResolver = (el: HTMLElement, value: any) => void;
+export interface ComponentBinding {
+  element: HTMLElement;
+  type: string;
+  prop: string | null;
+  path: string;
+}

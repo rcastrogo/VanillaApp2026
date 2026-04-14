@@ -1,5 +1,7 @@
+import { resolveBindingValue } from "./hydrate";
 import type { 
   Component, 
+  ComponentBinding, 
   ComponentContext, 
   ComponentCreator, 
   ComponentInitValue 
@@ -46,6 +48,7 @@ export abstract class BaseComponent implements Component {
   protected parent?: HTMLElement;
   protected props: Record<string, string | undefined> = {};
   protected children: Node[] = [];
+  protected bindings: ComponentBinding[] = [];
 
   private cleanups: CleanupFn[] = [];
   private isInitializing = false;
@@ -65,12 +68,11 @@ export abstract class BaseComponent implements Component {
     });
   }
 
-
   protected setState(state: ComponentState){
     this.isInitializing = true;
     Object.assign(this.state, state);
     this.isInitializing = false;
-    if (this.element) this.update();
+    this.update();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,7 +110,7 @@ export abstract class BaseComponent implements Component {
     if (!this.element) return;
     this.element.__isUpdating = true;
     const newElement = this.render(changedProp);
-    if(!newElement){
+    if(!newElement || newElement === this.element){
       this.element.__isUpdating = false;
       return;
     }
@@ -133,6 +135,14 @@ export abstract class BaseComponent implements Component {
 
   }
 
+  updateBindings() {
+    this.bindings.forEach(binding => {
+      if (binding.element.isConnected) {
+        resolveBindingValue(binding, this);
+      }
+    });    
+  }
+
   abstract render(changedProp?: string): HTMLElement | null;
 
   mounted() { /* empty */ }
@@ -140,19 +150,43 @@ export abstract class BaseComponent implements Component {
     this.parsePropsAndChildren(ctx);
   }
 
+  private setupOutputs(ctx?: ComponentInitValue) {
+    if (!ctx?.parent || !this.ctx) return;
+
+    const hostElement = ctx.parent;
+    const childInstance = this as Record<string, unknown>;
+    const parentContext = this.ctx as Record<string, unknown>;
+
+    Array.from(hostElement.attributes).forEach(attr => {
+      if (!attr.name.startsWith('(') || !attr.name.endsWith(')')) return;
+
+      const outputName = attr.name.slice(1, -1);
+      const handlerName = attr.value.trim();
+      const callback = parentContext[handlerName];
+
+      if (typeof callback !== 'function') return;
+
+      childInstance[outputName] = callback.bind(this.ctx);
+      this.addCleanup(() => {
+        childInstance[outputName] = undefined;
+      });
+    });
+  }
+
   private parsePropsAndChildren(ctx?: ComponentInitValue){
     if (ctx && ctx.parent) {
       this.parent = ctx.parent;
       this.props = { ...ctx.parent.dataset };
       this.children = Array.from(ctx.parent.childNodes);
+      this.setupOutputs(ctx);
     }    
   }
 
   public destroy(): void {
     if (this.cleanups.length === 0 && !this.element) return;
-    // console.log(`[Cleanup] Destruyendo: ${this.constructor.name}`);
     this.cleanups.forEach(fn => fn());
     this.cleanups = [];
+    this.bindings = [];
   }
 
    public static bind(component: BaseComponent, el: HTMLElement): ComponentElement {

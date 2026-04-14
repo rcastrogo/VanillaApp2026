@@ -1,18 +1,33 @@
 
-import type { ComponentFactory } from "../components/component.model";
+import type { ComponentBinding, ComponentFactory } from "../components/component.model";
 import { buildAndInterpolate } from "../core/dom";
 
+import type { TabEventDetail } from "@/components/tab.component";
+import { resolveBindingValue } from "@/core/hydrate";
 import { notificationService } from "@/core/services/notification.service";
 import { BaseComponent} from "@/core/types";
 
 const homePage: ComponentFactory = () => {
   return {
+    fecha: new Date().toLocaleTimeString(),
     innerHTML: `
       Este es un ejemplo de cómo evitar xss <img src="x" onerror="alert('XSS')">
     `,
+    handleTabChange(tab: TabEventDetail) {
+      notificationService.show(`Tab activa: <b>${tab.title}</b> <small>(${tab.id}, #${tab.index + 1})</small>`, 2_000);
+    },
+    handleTabClose(tab: TabEventDetail) {
+      notificationService.show(`Tab cerrada: <b>${tab.title}</b> <small>(${tab.id}, #${tab.index + 1})</small>`, 2_000);
+    },
     cycleTabMode() {
       const tabRef = BaseComponent.getInstance('[data-app-tab-component]');
       tabRef?.cycleVariant();
+      if(this.bindings) {
+        this.bindings.forEach((binding: ComponentBinding) => {
+            this.fecha = new Date().toLocaleTimeString();
+            resolveBindingValue(binding, this);
+        });
+      }
     },
     addRandomTab() {
       const tab = BaseComponent.getInstance('[data-app-tab-component]');
@@ -52,12 +67,14 @@ const homePage: ComponentFactory = () => {
             data-component="app-tab-component" 
             data-selected="overview" 
             data-variant="segmented" 
+            (tabchange)="handleTabChange"
+            (tabclose)="handleTabClose"
             class="mt-8">
 
             <div data-id="sin-icono" data-title="Texto">
               <h3 class="font-bold text-lg">Sin icono</h3>
               <p>
-                Este tab no tiene icono, solo texto. Puedes usarlo para secciones donde el icono no es necesario o para mantener un diseño más limpio.
+                Este tab no tiene icono, solo texto. <span data-bind="text:fecha">66666</span> Puedes usarlo para secciones donde el icono no es necesario o para mantener un diseño más limpio.
               </p>
             </div>
             <div data-id="perfil" data-title="Mi Perfil" data-icon-name="user">
@@ -73,7 +90,21 @@ const homePage: ComponentFactory = () => {
             </div>
 
             <div data-id="suscripcion" data-title="Plan Anual" data-icon-name="sun">
-              <p>Estás en el plan Pro.</p>
+              <h2 class="text-2xl font-bold mb-2">Ejemplo reactivo</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Este tab muestra un ejemplo de componente con bindings reactivos. 
+                El componente "app-binding-reference" tiene un contador que se actualiza y un botón que se habilita o deshabilita. 
+                Además, muestra notificaciones al hacer clic en el botón.              
+              </p>
+              <div data-component="app-binding-reference"></div>
+            </div>
+
+            <div data-id="catalogo" data-title="Catálogo" data-icon-name="layers">
+              <h2 class="text-2xl font-bold mb-2">Master detail con bindings</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Esta demo muestra una lista de entidades con panel de edición reactivo, combinando inputs, selectores, checks y acciones visuales.
+              </p>
+              <div data-component="app-entity-master-detail" class="mt-4"></div>
             </div>
 
             <div data-id="overview" data-title="Overview" data-icon-name="settings">

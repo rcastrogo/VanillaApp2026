@@ -22,6 +22,8 @@ const components = {
   'app-loader': LoaderComponent,
   'app-collapsible': CollapsibleComponent,
   'app-dashboard': () => import('./components/test/dashboard.component'),
+  'app-binding-reference': () => import('./components/test/binding-reference.component'),
+  'app-entity-master-detail': () => import('./components/test/entity-master-detail.component'),
   'app-counter': () => import('./components/test/counter-component'),
   'app-the-simpsons': () => import('./components/test/the-simpsons-component'),
   'app-tab-component': () => import('./components/tab.component'),
