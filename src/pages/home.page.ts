@@ -71,6 +71,32 @@ const homePage: ComponentFactory = () => {
       }
       tab?.addTab(newTab, element, true);
     },
+    menuItems: [
+      { id: 'edit',    label: 'Editar',    icon: 'sun', action() { notificationService.show('Editar pulsado', 4_500); } },
+      { id: 'dup',     label: 'Duplicar',  icon: 'timer', action() { notificationService.show('Duplicar pulsado', 4_500); } },
+      { id: 'sep',     label: 'Config',    icon: 'settings', separator: true, action() { notificationService.show('Config pulsado', 1_500); } },
+      { id: 'archive', label: 'Archivar',  icon: 'check',  disabled: true,  action() { /* disabled */ } },
+      { id: 'delete',  label: 'Eliminar',  icon: 'trash',  separator: true, action() { notificationService.show('<b>Eliminar</b> pulsado', 1_500); } },
+    ],
+    onSelectCode(item: { id: string | number; label: string }) {
+      notificationService.show(`Código seleccionado: <b>${item.label}</b> (id: ${item.id})`, 2_000);
+    },
+    customRender(data:{ id: string | number; label: string }) {
+      if(data){
+        console.log('Custom render invoked for item:', data);
+        const {id, label} = data;
+        const itemtemplate = `
+          <div class="flex content-center gap-2">            
+            <div class="flex-1">              
+              {id} - {label | upper}
+            </div>
+            <i data-icon="database" class="size-5 inline-flex"></i>
+          </div>
+        `;
+        return buildAndInterpolate(itemtemplate, {id, label}).outerHTML;        
+      }
+      return JSON.stringify(data);
+    },
     render: function () {
       notificationService.show('¡Bienvenido a <b>VanillaApp2026!</b>', 2_000);
       const template = `
@@ -139,11 +165,49 @@ const homePage: ComponentFactory = () => {
                 <button on-click="loadDefaultCodes" class="app-button btn-primary">Cargar códigos</button>
                 <button on-click="loadPremiumCodes" class="app-button btn-secondary">Cargar premium</button>
               </div>
-              <div class="max-w-xs">
-                <div data-component="app-combo-box"
+              <div class="flex flex-wrap gap-2 mb-4">
+                <div class="max-w-sm"
+                     data-component="app-combo-box"
                      data-items="codigos"
                      data-placeholder="Elige un código…"
-                     data-name="codigo"></div>
+                     data-name="codigo"
+                     (selected)="onSelectCode">
+                </div>              
+                <div class="max-w-sm"
+                     data-component="app-combo-box"
+                     data-items="codigos"
+                     data-placeholder="Elige un código…"
+                     data-name="codigo"
+                     (selected)="onSelectCode"
+                     (custom-render)="customRender">
+                </div>              
+              </div>
+
+              <h2 class="text-2xl font-bold mb-2 mt-6">Menu Trigger</h2>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Envuelve cualquier elemento HTML y lo convierte en disparador de un menú de acciones flotante.
+              </p>
+              <div class="flex flex-wrap gap-4">
+
+                <div data-component="app-menu-trigger" data-items="menuItems">
+                  <button data-menu-trigger class="app-button btn-primary">
+                    <i data-icon="settings" class="inline-flex size-4 mr-1"></i>
+                    Configuración
+                  </button>
+                </div>
+
+                <div data-component="app-menu-trigger" data-items="menuItems">
+                  <div>
+                    <span class="text-slate-700 dark:text-slate-200">Haz click en el icono de ajustes</span>
+                    <div data-menu-trigger
+                        class="flex items-center gap-2 cursor-pointer rounded-full px-3 py-2 text-sm
+                                bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600">
+                      <i data-icon="user" class="inline-flex size-4"></i>
+                      <span>Usuario</span> <i data-icon="chevron-down" class="inline-flex size-3"></i>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
 

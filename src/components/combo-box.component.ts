@@ -1,7 +1,9 @@
-import { $, buildAndInterpolate } from "../../core/dom";
-import { getValue } from "../../core/template";
-import { BaseComponent } from "../../core/types";
-import type { ComponentContext, ComponentInitValue } from "../component.model";
+import type { ComponentContext, ComponentInitValue } from "./component.model";
+import { $, build, buildAndInterpolate } from "../core/dom";
+import { getValue } from "../core/template";
+import { BaseComponent } from "../core/types";
+
+import { FloatingPortal } from "@/core/floating-portal";
 
 interface ComboItem {
   id: string | number;
@@ -10,9 +12,13 @@ interface ComboItem {
 
 export class ComboBoxComponent extends BaseComponent {
 
+  public selected?: (item: ComboItem) => void;
+  public customRender?: (item: ComboItem) => HTMLElement;
+
   private items: ComboItem[] = [];
   private highlightIndex = -1;
   private liItems: HTMLButtonElement[] = [];
+  private portal: FloatingPortal | null = null;
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -42,13 +48,13 @@ export class ComboBoxComponent extends BaseComponent {
 
   setDataSource(items: unknown[]) {
     this.items = this.normalizeItems(items);
-    this.state.isOpen = false;
-    this.state.selectedLabel = '';
-    this.state.selectedId = '';
     this.highlightIndex = -1;
-    this.invalidate();
+    this.setState({
+      isOpen: false,
+      selectedLabel: '',
+      selectedId: '',
+    });
   }
-
 
   init(ctx: ComponentInitValue): void {
     super.init(ctx);
@@ -70,10 +76,17 @@ export class ComboBoxComponent extends BaseComponent {
     const idx = Number(index);
     const item = this.items[idx];
     if (!item) return;
-    this.state.isOpen = false;
-    this.state.selectedLabel = item.label;
-    this.state.selectedId = String(item.id);
     this.highlightIndex = -1;
+    this.setState({
+      selectedLabel: item.label,  
+      selectedId: String(item.id),
+      isOpen: false,
+    });
+    requestAnimationFrame(() => {
+      const input = $('input[type="text"]', this.element).one();
+      input?.focus();
+    });
+    this.selected?.({ id: item.id, label: item.label });
   }
 
   handleKeyDown(_el: HTMLElement, ev: KeyboardEvent) {
@@ -95,27 +108,23 @@ export class ComboBoxComponent extends BaseComponent {
       case 'ArrowDown':
         ev.preventDefault();
         this.highlightIndex = (this.highlightIndex + 1) % len;
-        this.scrollToHighlighted();
         this.applyHighlight();
         break;
       case 'ArrowUp':
         ev.preventDefault();
         this.highlightIndex = (this.highlightIndex - 1 + len) % len;
-        this.scrollToHighlighted();
         this.applyHighlight();
         break;
       case 'Home':
       case 'PageUp':
         ev.preventDefault();
         this.highlightIndex = 0;
-        this.scrollToHighlighted();
         this.applyHighlight();
         break;
       case 'End':
       case 'PageDown':
         ev.preventDefault();
         this.highlightIndex = len - 1;
-        this.scrollToHighlighted();
         this.applyHighlight();
         break;
       case 'Enter':
@@ -123,9 +132,11 @@ export class ComboBoxComponent extends BaseComponent {
         ev.preventDefault();
         if (this.highlightIndex >= 0) {
           const item = this.items[this.highlightIndex];
-          this.state.isOpen = false;
-          this.state.selectedLabel = item.label;
-          this.state.selectedId = String(item.id);
+          this.setState({
+            isOpen: false,
+            selectedLabel: item.label,  
+            selectedId: String(item.id),
+          });
           this.highlightIndex = -1;
         }
         break;
@@ -138,33 +149,31 @@ export class ComboBoxComponent extends BaseComponent {
   }
 
   private scrollToHighlighted() {
-    if (!this.element) return;
-    const target = this.liItems?.[this.highlightIndex];
-    target?.scrollIntoView({ block: 'nearest' });
+    if (this.element && this.liItems){
+      const target = this.liItems[this.highlightIndex];
+      target?.scrollIntoView({ block: 'nearest' });     
+    }
   }
 
   private applyHighlight() {
-    if (!this.element) return;
-    this.liItems?.forEach((el, i) => {
-      el.classList.toggle('bg-indigo-100', i === this.highlightIndex);
-      el.classList.toggle('dark:bg-indigo-900', i === this.highlightIndex);
-    });
-  }
-
-  closeIfOutside(event: MouseEvent) {
-    if (!this.state.isOpen) return;
-    if (this.element?.contains(event.target as Node)) return;
-    this.state.isOpen = false;
-    this.highlightIndex = -1;
-  }
-
-  mounted() {
-    const handler = (e: Event) => this.closeIfOutside(e as MouseEvent);
-    document.addEventListener('click', handler, true);
-    this.addCleanup(() => document.removeEventListener('click', handler, true));
+    if (this.element && this.liItems) {
+      this.liItems.forEach((el, i) => {
+        el.classList.toggle('bg-indigo-100', i === this.highlightIndex);
+        el.classList.toggle('dark:bg-indigo-900', i === this.highlightIndex);
+      });
+      this.scrollToHighlighted();
+    }
   }
 
   render(changedProp?: string): HTMLElement | null {
+
+    if (this.state.isOpen) {
+      this.initFloatingList();
+    } else {
+      this.portal?.close();
+      this.portal = null;
+    }
+
     if (changedProp && this.element) {
       this.updateBindings();
       return this.element;
@@ -196,40 +205,55 @@ export class ComboBoxComponent extends BaseComponent {
             class="absolute right-3 top-5 -translate-y-1/2 size-5 pointer-events-none text-slate-400"
             ></i>        
         </span>
-
         <input type="hidden" data-bind="value:state.selectedId" name="${this.props.name ?? 'combo'}" />
-        <div
-          class="absolute top-full w-full max-h-30 overflow-auto rounded-b-lg border border-t-0"
-          data-bind="fn:renderList">
-        </div>
       </div>
     `;
-    this.renderList();
     return buildAndInterpolate(template, this);
   }
 
-  private renderList(el?: HTMLElement) {
+  private renderList(el: HTMLElement) {
     if (!this.element) return;
-    if(el?.children.length === 0){
-      const listTemplate = `
-        <ul data-each="item in items" class="text-left">
-          <li>
-            <button type="button"
-              class="px-3 py-2 text-sm w-full text-left
-              text-slate-700 hover:bg-indigo-50 
-              dark:text-slate-200 dark:hover:bg-indigo-900/40"
-              data-combo-idx="{item.index}"
-              on-click="selectOption:@index">{item.label}</button>
-          </li>
-        </ul>`;
-      const ul = buildAndInterpolate(listTemplate, this);
-      this.liItems = $<HTMLButtonElement>('[data-combo-idx]', ul).all();
-      el.appendChild(ul);
-    }
-    el?.classList.toggle('hidden', !this.state.isOpen);
-    if (this.state.isOpen) {
-      this.scrollToHighlighted();
-      this.applyHighlight();
-    }
+    const listTemplate = `
+      <div
+        class="max-h-30 overflow-auto">
+          <ul data-each="item in items" class="text-left">
+            <li>
+              <button type="button"
+                class="px-3 py-2 text-sm w-full text-left
+                text-slate-700 hover:bg-indigo-50 
+                dark:text-slate-200 dark:hover:bg-indigo-900/40"
+                data-combo-idx="{item.index}"
+                on-click="selectOption:@index">
+                  @if(!customRender){item.label}@endif
+                  @if(customRender){item | customRender}@endif
+                </button>
+            </li>
+          </ul>          
+        </div>
+      </div>
+    `;
+    const div = buildAndInterpolate(listTemplate, this);
+    this.liItems = $<HTMLButtonElement>('[data-combo-idx]', div).all();   
+    el.appendChild(div);
+
+    this.applyHighlight();
   }
+
+  private initFloatingList() {
+    if (this.portal) return;
+    const listElement = build('div', { 
+      className: "overflow-auto rounded-lg border bg-white dark:bg-slate-800 dark:border-slate-600 shadow-xl" 
+    });
+    this.renderList(listElement);
+    this.portal = new FloatingPortal(this.element!, listElement, {
+      onClose: () => this.state.isOpen = false
+    });
+    this.portal.open();
+  }
+
+  destroy() {
+    this.portal?.close();
+    super.destroy();
+  }
+
 }

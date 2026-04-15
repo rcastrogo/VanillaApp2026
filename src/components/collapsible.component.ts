@@ -56,38 +56,6 @@ export class CollapsibleComponent extends BaseComponent {
   }
 }
 
-// // eslint-disable-next-line @typescript-eslint/no-explicit-any
-// export function useSelector(stateProxy: any, prop: string, callback: (val: any) => void) {
-//   if (!stateProxy.__subscribers) {
-//     stateProxy.__subscribers = {};
-//   }
-
-//   if (!stateProxy.__subscribers[prop]) {
-//     stateProxy.__subscribers[prop] = [];
-//   }
-//   stateProxy.__subscribers[prop].push(callback);
-// }
-
-// export function createReactiveState<T extends object>(initial: T): T {
-//   // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-//   const subscribers: Record<string, Function[]> = {};
-
-//   return new Proxy(initial, {
-//     get(target, prop) {
-//       if (prop === '__subscribers') return subscribers;
-//       return target[prop as keyof T];
-//     },
-//     set(target, prop, value) {
-//       if (target[prop as keyof T] === value) return true;
-//       target[prop as keyof T] = value;
-//       if (subscribers[prop as string]) {
-//         subscribers[prop as string].forEach(cb => cb(value));
-//       }
-//       return true;
-//     }
-//   });
-// }
-
 class ClockComponent extends BaseComponent {
 
   private _state = useState({ seconds: 0, date: '' });

@@ -159,8 +159,8 @@ export abstract class BaseComponent implements Component {
 
     Array.from(hostElement.attributes).forEach(attr => {
       if (!attr.name.startsWith('(') || !attr.name.endsWith(')')) return;
-
-      const outputName = attr.name.slice(1, -1);
+      const kebabName = attr.name.slice(1, -1);
+      const outputName = kebabName.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
       const handlerName = attr.value.trim();
       const callback = parentContext[handlerName];
 
