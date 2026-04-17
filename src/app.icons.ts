@@ -1,8 +1,10 @@
 
 import {
-  Activity, Globe, Moon, Plus, Minus, Settings, Sun, Timer, Trash, User, Users, Power, Zap,
-  ChevronDown, ChevronUp, Info, Code, Radio, BarChart, Database, Server, Tv, Share2, X, Rocket,
+  Activity, Globe, Moon, Plus, Minus, Settings, Sun, Timer, Trash, Trash2, User, Users, Power, Zap,
+  ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
+  Info, Code, Radio, BarChart, Database, Server, Tv, Share2, X, Rocket,
   CheckCircle, XCircle, AlertTriangle, Check, CircleQuestionMark, CircleX, Text,
+  RefreshCcw, Edit, Search, Menu, BookOpen, CheckSquare, Square, Shuffle, Filter,
   type IconNode,
 } from 'lucide';
 
@@ -39,6 +41,20 @@ const icons = {
   x: X,
   zap: Zap,
   rocket: Rocket,
+  'chevron-left': ChevronLeft,
+  'chevron-right': ChevronRight,
+  'chevrons-left': ChevronsLeft,
+  'chevrons-right': ChevronsRight,
+  'refresh-ccw': RefreshCcw,
+  'trash-2': Trash2,
+  'edit': Edit,
+  'search': Search,
+  'menu': Menu,
+  'book-open': BookOpen,
+  'check-square': CheckSquare,
+  'square': Square,
+  'shuffle': Shuffle,
+  'filter': Filter,
 } as Record<string, IconNode>;
 
 export const iconRegistry = {
