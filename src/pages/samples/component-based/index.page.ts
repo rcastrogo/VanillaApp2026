@@ -11,7 +11,11 @@ export default class IndexPage implements Component {
 
   components = Object.keys(import.meta.glob('@/components/**/*.ts', { eager: true }));
   registeredComponents = Object.keys(APP_CONFIG.components)
-    .filter(tag => ['app-loader', 'app-modal', 'app-loader-small'].indexOf(tag) === -1);
+    .filter(tag => [
+      'app-loader', 'app-modal', 
+      'app-popover-trigger', 'app-combo-box', 'app-menu-trigger', 
+      'app-loader-small',
+      'app-alert'].indexOf(tag) === -1);
 
   showNotificationPanel = document.querySelector('[data-app-notification-panel]');
   

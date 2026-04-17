@@ -43,7 +43,7 @@ const homePage: ComponentFactory = () => {
       notificationService.show(`Tab cerrada: <b>${tab.title}</b> <small>(${tab.id}, #${tab.index + 1})</small>`, 2_000);
     },
     cycleTabMode() {
-      const tabRef = BaseComponent.getInstance('[data-app-tab-component]');
+      const tabRef = BaseComponent.getInstance('[app-tab-component]');
       tabRef?.cycleVariant();
       if(this.bindings) {
         this.bindings.forEach((binding: ComponentBinding) => {
@@ -53,10 +53,10 @@ const homePage: ComponentFactory = () => {
       }
     },
     addRandomTab() {
-      const tab = BaseComponent.getInstance('[data-app-tab-component]');
+      const tab = BaseComponent.getInstance('[app-tab-component]');
       const id = `tab-${Math.random().toString(16).slice(2)}`;
       const close = () => {
-        const tabRef = BaseComponent.getInstance('[data-app-tab-component]');
+        const tabRef = BaseComponent.getInstance('[app-tab-component]');
         tabRef?.removeTab(id);
       }
       const template = `
@@ -134,7 +134,7 @@ const homePage: ComponentFactory = () => {
             </div>
 
             <div data-id="seguridad" data-title="Seguridad" data-icon-name="rocket">
-              <div data-component="app-collapsible-clock"></div>
+              <div data-component="app-clock"></div>
               <p class="mt-4">Cambia tu contraseña aquí.</p>
             </div>
 
@@ -198,7 +198,7 @@ const homePage: ComponentFactory = () => {
 
                 <div data-component="app-menu-trigger" data-items="menuItems">
                   <div>
-                    <span class="text-slate-700 dark:text-slate-200">Haz click en el icono de ajustes</span>
+                    <span class="text-slate-700 dark:text-slate-200 block truncate max-w-50">Haz click en el icono de ajustes</span>
                     <div data-menu-trigger
                         class="flex items-center gap-2 cursor-pointer rounded-full px-3 py-2 text-sm
                                 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600">
@@ -206,6 +206,33 @@ const homePage: ComponentFactory = () => {
                       <span>Usuario</span> <i data-icon="chevron-down" class="inline-flex size-3"></i>
                     </div>
                   </div>
+                </div>
+
+                <div data-component="app-popover-trigger" data-placement="bottom-end">
+                  
+                  <button data-popover-trigger class="app-button btn-secondary">
+                    Ver Perfil
+                  </button>
+
+                  <div data-popover-content>
+                    <div class="flex flex-col gap-3 w-64">
+                      <div class="flex items-center gap-3">
+                        <div class="size-10 bg-indigo-500 rounded-full"></div>
+                        <div>
+                          <p class="font-bold text-slate-900 dark:text-white">Admin User</p>
+                          <p class="text-xs text-slate-500">admin@sistema.com</p>
+                        </div>
+                      </div>
+                      <hr class="border-slate-200 dark:border-slate-700">
+                      <p class="text-sm text-slate-600 dark:text-slate-400">
+                        Este es un popover con contenido complejo y personalizado.
+                      </p>
+                      <button class="text-xs bg-slate-100 p-2 rounded hover:bg-slate-200 text-center">
+                        Cerrar Sesión
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
 
               </div>

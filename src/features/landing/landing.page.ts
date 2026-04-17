@@ -167,6 +167,8 @@ export default class LandingPage extends BaseComponent {
               <p class="text-slate-600 dark:text-slate-300">
                 Este contenido (y el reloj de abajo) sólo existen en el DOM cuando el panel está abierto.
               </p>
+              <div data-component="app-clock"></div>
+              <div data-component="app-theme-toggle"></div>
             </div>
             <div
               data-component="app-collapsible"

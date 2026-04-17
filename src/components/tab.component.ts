@@ -14,7 +14,7 @@ export interface TabEventDetail {
   index: number;
 }
 
-type TabVariant = 
+export type TabVariant = 
   'underline' | 'pills' | 
   'segmented' | 'boxed' | 'lifted' | 
   'soft' | 'outline';
@@ -154,6 +154,12 @@ export class TabComponent extends BaseComponent {
     this.setActiveTab(el.dataset.targetId || '');
   }
 
+  setVariant(variant: TabVariant) { 
+    if (!VARIANTS.includes(variant)) return;
+    this.state.put('variant', variant);
+    this.updateVisuals(this.state.store.activeTabId);
+  } 
+
   cycleVariant() {
     const current = this.state.store.variant as TabVariant;
     const idx = VARIANTS.indexOf(current);
@@ -265,7 +271,7 @@ export class TabComponent extends BaseComponent {
 
   render() {
     const template = `
-      <div data-app-tab-component class="w-full flex flex-col overflow-hidden">
+      <div class="w-full flex flex-col">
         <div class="flex flex-wrap pl-px border-b w-full" role="tablist">
           <div data-each="tab in state.store.tabs" class="contents butons-container jj-flex w-full">
             ${this.button_template}

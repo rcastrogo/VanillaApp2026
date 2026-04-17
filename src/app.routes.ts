@@ -31,6 +31,7 @@ export function configureRouter(){
     .add('poc-1', () => import('./features/poc-1/pages/poc1.page'))
     .add('splash-screen', () => import('./pages/splash-screen.page'), null)
     .addKeepAlive('keep-alive', () => import('./pages/samples/functional/keep-alive.page'))
+    .add('pipe-tester', () => import('./pages/pipe-tester.page'), null)
     .notFound(() => import('./pages/not-found.page'));
 
   router.addRoute({

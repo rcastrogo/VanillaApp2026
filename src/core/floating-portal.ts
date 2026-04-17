@@ -1,6 +1,7 @@
 export interface PortalOptions {
   offset?: number;
   onClose?: () => void;
+  onClickInside?: (e: MouseEvent) => void;
 }
 
 export class FloatingPortal {
@@ -60,13 +61,23 @@ export class FloatingPortal {
     const rect = this.triggerElement.getBoundingClientRect();
     const portalHeight = this.portalElement.offsetHeight;
     const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
     const offset = this.options.offset!;
 
     const spaceBelow = viewportHeight - rect.bottom;
     const shouldShowAbove = spaceBelow < portalHeight && rect.top > portalHeight;
 
     this.portalElement.style.minWidth = `${this.triggerElement.offsetWidth}px`;
-    this.portalElement.style.left = `${rect.left}px`;
+    const portalWidth = this.portalElement.offsetWidth;
+
+    const shouldShowLeft = rect.left + portalWidth > viewportWidth && rect.right > portalWidth;
+    let left = shouldShowLeft ? rect.right - portalWidth : rect.left;
+
+    const minLeft = offset;
+    const maxLeft = Math.max(minLeft, viewportWidth - portalWidth - offset);
+    left = Math.min(Math.max(left, minLeft), maxLeft);
+
+    this.portalElement.style.left = `${left}px`;
 
     if (shouldShowAbove) {
       this.portalElement.style.top = `${rect.top - portalHeight - offset}px`;
@@ -81,8 +92,14 @@ export class FloatingPortal {
 
   private clickOutsideBound = (e: MouseEvent) => {
     const target = e.target as Node;
-    if (!this.triggerElement.contains(target) && !this.portalElement.contains(target)) {
+    const triggerContains = this.triggerElement.contains(target);
+    const portalContains = this.portalElement.contains(target);
+    if (!triggerContains && !portalContains) {
       this.options.onClose?.();
+      return;
     }
+    if(portalContains){
+      this.options.onClickInside?.(e);
+    } 
   };
 }

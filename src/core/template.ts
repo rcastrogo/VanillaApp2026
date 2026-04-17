@@ -10,14 +10,47 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
   (cond === undefined || cond === null) 
     ? f 
     : (cond === 'false' || cond === '0' ? false : Boolean(cond)) ? t : f,
+  toString: (val: string) => val !== undefined && val !== null ? String(val) : '',
+  toJSON: (val: unknown) => {
+    return JSON.stringify(val, null, 2);
+  },
+  toNumber: (val: string) => {
+    const num = Number(val);
+    return isNaN(num) ? 0 : num;
+  },
+  equal: (a: string, b: string) => a == b,
+  join: (arr: unknown[], sep = '') => Array.isArray(arr) ? arr.join(sep) : '',
   upper: (val:string) => val?.toUpperCase(),
   lower: (val:string) => val?.toLowerCase(),
   undefined: (val:string) => val ? val : 'valor no definido',
+  not: (val: unknown) => val ? false : true,
+  includes: (val: unknown, needle: string) => {
+    if (typeof val === 'string') return val.includes(needle);
+    if (Array.isArray(val)) return val.includes(needle);
+    return false;
+  },
+  length: (val: unknown) => {
+    if (typeof val === 'string' || Array.isArray(val)) return val.length;
+    if (val && typeof val === 'object') return Object.keys(val).length;
+    return 0;
+  },
+  default: (val: unknown, fallback = '') =>
+    (val === undefined || val === null || val === '') ? fallback : val,
+  replace: (val: unknown, search: string, replacement = '') => {
+    const text = val !== undefined && val !== null ? String(val) : '';
+    return search ? text.split(search).join(replacement) : text;
+  },
+  truncate: (val: unknown, max = '0', suffix = '...') => {
+    const text = val !== undefined && val !== null ? String(val) : '';
+    const size = Number(max);
+    if (!Number.isFinite(size) || size <= 0) return '';
+    if (text.length <= size) return text;
+    return text.slice(0, size) + suffix;
+  },
   t: function(key: string, ...extras) {
     return APP_CONFIG.i18n.t(key, {...this, extraArgs : extras});
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug: function(val: any) {
+  debug: function(val: string) {
     console.log("Valor actual:", val);
     console.log("Scope completo:", this);
     return val;
@@ -92,16 +125,42 @@ export function getValue(key: string | undefined, scope: any): any {
   return applyfilters(filters, target,  scope);
 }
 
+function splitRespectingQuotes(expr: string, separator: string): string[] {
+  if (!expr.includes("'")) {
+    return expr.split(separator).map(part => part.trim());
+  }
+  const result: string[] = [];
+  let current = '';
+  let inQuote = false;
+  for (let i = 0; i < expr.length; i++) {
+    const ch = expr[i];
+    if (ch === "'") {
+      inQuote = !inQuote;
+      current += ch;
+    } else if (!inQuote && expr.startsWith(separator, i)) {
+      result.push(current.trim());
+      current = '';
+      i += separator.length - 1;
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyfilters(filters: string[], value: any, scope: any){
   return filters
     .reduce((value, filterExpr: string) => {
-      const [filterName, ...args] = filterExpr.split(':').map(s => s.trim());
+      const [filterName, ...args] = splitRespectingQuotes(filterExpr, ':');
       const fn = getValue(filterName, scope) || GLOBAL_FUNCTIONS[filterName];
       if (typeof fn === 'function') {
-        const parsedArgs = args.map(arg =>
-          arg.startsWith('@') ? getValue(arg.slice(1), scope) : arg
-        );
+        const parsedArgs = args.map(arg => {
+          if (arg.startsWith("'") && arg.endsWith("'")) return arg.slice(1, -1);
+          if (arg.startsWith('@')) return getValue(arg.slice(1), scope);
+          return arg;
+        });
         return fn.apply(scope, [value, ...parsedArgs]);
       }
       console.warn(`Filtro "${filterName}" no encontrado.`);

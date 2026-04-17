@@ -48,7 +48,11 @@ const componentFiles = import.meta.glob('./components/**/*.component.ts');
 Object.entries(componentFiles).forEach(([path, resolver]) => {
   const fileName = path.split('/').pop()?.replace('.component.ts', '');
   if (fileName) {
-    const tagName = `app-poc-${fileName}`;
+    const tagName = `app-${fileName}`;
+    if (components[tagName]) {
+      console.warn(`El componente '${tagName}' ya está registrado. Omitiendo '${path}'.`);
+      return;
+    }
     components[tagName] = resolver as ComponentProvider;
     console.log(`Registrando componente '${tagName}' desde '${path}'`);
   }

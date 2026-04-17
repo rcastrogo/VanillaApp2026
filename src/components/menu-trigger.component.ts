@@ -21,10 +21,6 @@ export interface MenuItem {
   action: () => void;
 }
 
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
-
 /**
  * MenuTriggerComponent
  *
@@ -75,11 +71,13 @@ export class MenuTriggerComponent extends BaseComponent {
 
     this.triggerEl.addEventListener('click', this.handleTriggerClick);
     this.triggerEl.addEventListener('keydown', this.handleKeyDown);
+    this.addCleanup(() => {
+      this.triggerEl?.removeEventListener('click', this.handleTriggerClick);
+      this.triggerEl?.removeEventListener('keydown', this.handleKeyDown);
+    });
   }
 
   destroy(): void {
-    this.triggerEl?.removeEventListener('click', this.handleTriggerClick);
-    this.triggerEl?.removeEventListener('keydown', this.handleKeyDown);
     this.portal?.close();
     super.destroy();
   }

@@ -72,7 +72,7 @@ export abstract class BaseComponent implements Component {
     this.isInitializing = true;
     Object.assign(this.state, state);
     this.isInitializing = false;
-    this.update();
+    this.update('state');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
