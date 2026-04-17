@@ -29,11 +29,11 @@ const homePage: ComponentFactory = () => {
       { id: 'P3', label: 'Premium Tres' },
     ],
     loadDefaultCodes() {
-      const combo = BaseComponent.getInstance('[app-combo-box-component]') as { setDataSource(items: unknown[]): void } | undefined;
+      const combo = BaseComponent.getInstance('[app-combo-box]') as { setDataSource(items: unknown[]): void } | undefined;
       combo?.setDataSource(this.codigos);
     },
     loadPremiumCodes() {
-      const combo = BaseComponent.getInstance('[app-combo-box-component]') as { setDataSource(items: unknown[]): void } | undefined;
+      const combo = BaseComponent.getInstance('[app-combo-box]') as { setDataSource(items: unknown[]): void } | undefined;
       combo?.setDataSource(this.codigosPremium);
     },
     handleTabChange(tab: TabEventDetail) {

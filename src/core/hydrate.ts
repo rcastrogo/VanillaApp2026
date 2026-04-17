@@ -174,8 +174,7 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
       const element = component.render() as ComponentElement;
       if(element){
         BaseComponent.bind(component, element);
-        const attrName = toAttrName(component.constructor.name);
-        element.setAttribute(`app-${attrName}`, '');
+        element.setAttribute(componentName, '');
         if (customClasses) {
           const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
           element.classList.add(...classesArray);
