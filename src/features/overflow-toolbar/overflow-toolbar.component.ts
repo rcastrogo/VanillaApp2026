@@ -148,18 +148,25 @@ export class OverflowToolbarComponent extends BaseComponent {
     });
     this.resizeObserver.observe(this.element);
 
+    this.addCleanup(() => {
+      cancelAnimationFrame(this.rafId);
+      this.resizeObserver?.disconnect();
+      this.resizeObserver = null;
+    });
+
     requestAnimationFrame(() => this.updateOverflowLayout());
   }
 
   destroy(): void {
-    cancelAnimationFrame(this.rafId);
-    this.resizeObserver?.disconnect();
-    this.resizeObserver = null;
     this.closeOverflow();
     super.destroy();
   }
 
-  render(): HTMLElement | null {
+  render(changedProp?: string): HTMLElement | null {
+    if (changedProp && this.element) {
+      this.updateBindings();
+      return this.element;
+    }
     const actions: ToolbarAction[] = this.state.actions || [];
 
     const template = `

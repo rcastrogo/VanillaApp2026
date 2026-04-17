@@ -45,7 +45,11 @@ export default class OverflowToolbarPage extends BaseComponent {
     this.state.containerWidth = Number(el.value);
   }
 
-  render(): HTMLElement | null {
+  render(changedProp?: string): HTMLElement | null {
+    if (changedProp && this.element) {
+      this.updateBindings();
+      return this.element;
+    }
     const template = `
       <div class="min-h-screen bg-slate-50 dark:bg-slate-900 p-6">
         <div class="max-w-4xl mx-auto space-y-8">
