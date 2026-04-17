@@ -4,6 +4,7 @@ import {
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   Info, Code, Radio, BarChart, Database, Server, Tv, Share2, X, Rocket,
   CheckCircle, XCircle, AlertTriangle, Check, CircleQuestionMark, CircleX, Text,
+  MoreHorizontal, ArrowLeft,
   RefreshCcw, Edit, Search, Menu, BookOpen, CheckSquare, Square, Shuffle, Filter,
   type IconNode,
 } from 'lucide';
@@ -41,6 +42,8 @@ const icons = {
   x: X,
   zap: Zap,
   rocket: Rocket,
+  'more-horizontal': MoreHorizontal,
+  'arrow-left': ArrowLeft,
   'chevron-left': ChevronLeft,
   'chevron-right': ChevronRight,
   'chevrons-left': ChevronsLeft,
