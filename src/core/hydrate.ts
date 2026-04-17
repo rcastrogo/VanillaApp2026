@@ -152,12 +152,12 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
   return container;
 }
 
-function toAttrName(value: string): string {
-  return value
-        .replace(/([A-Z])/g, '-$1')
-        .toLowerCase()
-        .replace(/^-/, '');
-}
+// function toAttrName(value: string): string {
+//   return value
+//         .replace(/([A-Z])/g, '-$1')
+//         .toLowerCase()
+//         .replace(/^-/, '');
+// }
 
 export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext): Promise<void> {
   const placeholders = root.querySelectorAll<HTMLElement>('[data-component]');
