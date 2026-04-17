@@ -29,6 +29,7 @@ const components = {
   'app-counter': () => import('./components/test/counter-component'),
   'app-the-simpsons': () => import('./components/test/the-simpsons-component'),
   'app-tab-component': () => import('./components/tab.component'),
+  'app-overflow-toolbar': () => import('./features/overflow-toolbar/overflow-toolbar.component'),
 } as Record<string, ComponentProvider>
 
 function registerComponent(name: string, componentProvider: ComponentProvider){

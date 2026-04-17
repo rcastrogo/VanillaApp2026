@@ -3,6 +3,7 @@ import {
   Activity, Globe, Moon, Plus, Minus, Settings, Sun, Timer, Trash, User, Users, Power, Zap,
   ChevronDown, ChevronUp, Info, Code, Radio, BarChart, Database, Server, Tv, Share2, X, Rocket,
   CheckCircle, XCircle, AlertTriangle, Check, CircleQuestionMark, CircleX, Text,
+  MoreHorizontal, ArrowLeft,
   type IconNode,
 } from 'lucide';
 
@@ -39,6 +40,8 @@ const icons = {
   x: X,
   zap: Zap,
   rocket: Rocket,
+  'more-horizontal': MoreHorizontal,
+  'arrow-left': ArrowLeft,
 } as Record<string, IconNode>;
 
 export const iconRegistry = {
