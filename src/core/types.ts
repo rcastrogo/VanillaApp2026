@@ -162,14 +162,18 @@ export abstract class BaseComponent implements Component {
       const kebabName = attr.name.slice(1, -1);
       const outputName = kebabName.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
       const handlerName = attr.value.trim();
-      const callback = parentContext[handlerName];
+      const target = parentContext[handlerName];
 
-      if (typeof callback !== 'function') return;
-
-      childInstance[outputName] = callback.bind(this.ctx);
-      this.addCleanup(() => {
-        childInstance[outputName] = undefined;
-      });
+      if (typeof target === 'function') {
+        childInstance[outputName] = target.bind(this.ctx);
+        this.addCleanup(() => {
+          childInstance[outputName] = undefined;
+        });
+        return;        
+      }
+      if (Array.isArray(target)) {
+        childInstance[outputName] = Array.from(target);
+      }
     });
   }
 

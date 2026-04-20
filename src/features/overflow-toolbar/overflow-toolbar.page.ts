@@ -1,26 +1,34 @@
 
-import { APP_CONFIG } from '@/app.config';
-import { buildAndInterpolate } from '@/core/dom';
-import { router } from '@/core/services/router.service';
-import { BaseComponent } from '@/core/types';
-
 import type { ToolbarAction } from './overflow-toolbar.component';
 
-const DEMO_ACTIONS: ToolbarAction[] = [
-  { id: 'new',     label: 'Nuevo',      icon: 'plus',     tooltip: 'Crear nuevo elemento' },
-  { id: 'edit',    label: 'Editar',     icon: 'settings', tooltip: 'Editar elemento seleccionado' },
-  { id: 'delete',  label: 'Eliminar',   icon: 'trash',    tooltip: 'Eliminar elemento seleccionado' },
-  { id: 'share',   label: 'Compartir',  icon: 'share-2',  tooltip: 'Compartir elemento' },
-  { id: 'users',   label: 'Usuarios',   icon: 'users',    tooltip: 'Gestionar usuarios' },
-  { id: 'info',    label: 'Info',       icon: 'info',     tooltip: 'Ver información detallada' },
-  { id: 'power',   label: 'Power',      icon: 'power',    tooltip: 'Acción deshabilitada', disabled: true },
-  { id: 'code',    label: 'Código',     icon: 'code',     tooltip: 'Ver código fuente' },
-];
+import { APP_CONFIG } from '@/app.config';
+import { buildAndInterpolate } from '@/core/dom';
+import { hydrateIcons } from '@/core/hydrate';
+import { BaseComponent } from '@/core/types';
 
-// Pre-serialized JSON for safe embedding in HTML templates
-const DEMO_ACTIONS_JSON = JSON.stringify(DEMO_ACTIONS);
 
 export default class OverflowToolbarPage extends BaseComponent {
+
+
+  actions: ToolbarAction[] = [
+    { id: 'new',     label: 'Nuevo',      icon: '',     tooltip: 'Crear nuevo elemento' },
+    { id: 'edit',    label: 'Editar',     icon: 'settings', tooltip: 'Editar elemento seleccionado' },
+    { id: 'delete',  label: 'Eliminar',   icon: 'trash',    tooltip: 'Eliminar elemento seleccionado' },
+    { id: 'share',   label: 'Compartir',  icon: 'share-2',  tooltip: 'Compartir elemento' },
+    { id: 'users',   label: 'Usuarios',   icon: 'users',    tooltip: 'Gestionar usuarios' },
+    { id: 'info',    label: 'Info',       icon: 'info',     tooltip: 'Ver información detallada' },
+    { id: 'power',   label: 'Power',      icon: 'power',    tooltip: 'Acción deshabilitada', disabled: true },
+    { id: 'code',    label: 'Código',     icon: 'code',     tooltip: 'Ver código fuente' },
+  ];
+
+  actions_small: ToolbarAction[] = [
+    { id: 'new',     label: 'Nuevo',      icon: '',     tooltip: 'Crear nuevo elemento' },
+    { id: 'edit',    label: 'Editar',     icon: 'settings', tooltip: 'Editar elemento seleccionado' },
+    { id: 'delete',  label: 'Eliminar',   icon: 'trash',    tooltip: 'Eliminar elemento seleccionado' },
+    { id: 'print',   label: 'Imprimir',   icon: 'printer',  tooltip: 'Imprimir elemento' },
+    { id: 'export',   label: 'Exportar',   icon: 'file-text', tooltip: 'Exportar elemento' },
+  ];
+
 
   init() {
     APP_CONFIG.registerComponent(
@@ -29,12 +37,8 @@ export default class OverflowToolbarPage extends BaseComponent {
     );
     this.setState({
       lastAction: null as ToolbarAction | null,
-      containerWidth: 580,
+      containerWidth: '580px',
     });
-  }
-
-  goBack(): void {
-    router.navigateTo('landing');
   }
 
   handleActionClick(action: ToolbarAction): void {
@@ -42,7 +46,15 @@ export default class OverflowToolbarPage extends BaseComponent {
   }
 
   updateWidth(el: HTMLInputElement): void {
-    this.state.containerWidth = Number(el.value);
+    this.state.containerWidth = Number(el.value) + 'px';
+  }
+
+  renderIcon(container: HTMLElement) {
+    const action: ToolbarAction | null = this.state.lastAction;
+    if (action && action.icon){
+      container.innerHTML = `<i data-icon="${action.icon}" class="size-4 text-indigo-500"></i>`;
+      hydrateIcons(container);
+    } 
   }
 
   render(changedProp?: string): HTMLElement | null {
@@ -64,14 +76,6 @@ export default class OverflowToolbarPage extends BaseComponent {
                 Los botones que no caben en el contenedor se colapsan automáticamente en un menú.
               </p>
             </div>
-            <button
-              on-click="goBack"
-              class="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-400
-                     hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-            >
-              <i data-icon="arrow-left" class="size-4"></i>
-              <span class="hidden sm:inline">Volver</span>
-            </button>
           </div>
 
           <!-- Interactive width control -->
@@ -82,7 +86,9 @@ export default class OverflowToolbarPage extends BaseComponent {
             <div>
               <label class="text-sm text-slate-600 dark:text-slate-400">
                 Ancho del contenedor:
-                <span class="font-semibold text-indigo-500" data-bind="text:state.containerWidth">{state.containerWidth}</span>px
+                <span 
+                  class="font-semibold text-indigo-500" 
+                  data-bind="text:state.containerWidth">{state.containerWidth}</span>px
               </label>
               <input
                 type="range"
@@ -100,20 +106,24 @@ export default class OverflowToolbarPage extends BaseComponent {
             >
               <div
                 data-component="app-overflow-toolbar"
-                data-actions='${DEMO_ACTIONS_JSON}'
+                data-actions="actions"
                 (actionclick)="handleActionClick"
               ></div>
             </div>
 
-            @if(state.lastAction)
-              <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700">
-                <i data-icon="{state.lastAction.icon}" class="size-4 text-indigo-500 shrink-0"></i>
-                <div class="text-sm">
-                  <span class="font-medium text-indigo-700 dark:text-indigo-300">{state.lastAction.label}</span>
-                  <span class="text-slate-500 dark:text-slate-400 ml-2">{state.lastAction.tooltip}</span>
-                </div>
+            <div
+              data-bind="show:state.lastAction"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700">
+              <div data-bind="fn:renderIcon"></div>
+              <div class="text-sm">
+                <span 
+                  data-bind="text:state.lastAction.label"
+                  class="font-medium text-indigo-700 dark:text-indigo-300">{state.lastAction.label}</span>
+                <span 
+                  data-bind="text:state.lastAction.tooltip"
+                  class="text-slate-500 dark:text-slate-400 ml-2">{state.lastAction.tooltip}</span>
               </div>
-            @endif
+            </div>
           </div>
 
           <!-- Fixed width examples -->
@@ -128,7 +138,7 @@ export default class OverflowToolbarPage extends BaseComponent {
                 <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-2 w-full">
                   <div
                     data-component="app-overflow-toolbar"
-                    data-actions='${DEMO_ACTIONS_JSON}'
+                    data-actions="actions"
                   ></div>
                 </div>
               </div>
@@ -138,7 +148,7 @@ export default class OverflowToolbarPage extends BaseComponent {
                 <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-2" style="width: 400px; max-width: 100%;">
                   <div
                     data-component="app-overflow-toolbar"
-                    data-actions='${DEMO_ACTIONS_JSON}'
+                    data-actions="actions"
                   ></div>
                 </div>
               </div>
@@ -148,7 +158,7 @@ export default class OverflowToolbarPage extends BaseComponent {
                 <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-2" style="width: 200px; max-width: 100%;">
                   <div
                     data-component="app-overflow-toolbar"
-                    data-actions='${DEMO_ACTIONS_JSON}'
+                    (actions)="actions_small"
                   ></div>
                 </div>
               </div>

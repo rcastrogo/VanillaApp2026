@@ -2,6 +2,7 @@
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { $, buildAndInterpolate } from '@/core/dom';
 import { FloatingPortal } from '@/core/floating-portal';
+import { getValue } from '@/core/template';
 import { BaseComponent } from '@/core/types';
 
 export interface ToolbarAction {
@@ -22,6 +23,8 @@ export class OverflowToolbarComponent extends BaseComponent {
   private resizeObserver: ResizeObserver | null = null;
   private rafId = 0;
 
+  private actions: ToolbarAction[] | null = null;
+
   constructor(ctx: ComponentContext) {
     super(ctx);
   }
@@ -30,9 +33,17 @@ export class OverflowToolbarComponent extends BaseComponent {
     super.init(ctx);
     let actions: ToolbarAction[] = [];
     try {
-      actions = JSON.parse(this.props.actions || '[]');
-    } catch { /* ignore malformed JSON */ }
+      console.log(this.actions);
+      actions = this.actions || this.resolveDataSource() || '[]';
+    } catch { /* ignore */ }
     this.setState({ actions });
+  }
+
+  private resolveDataSource(): ToolbarAction[] {
+    const key = this.props.actions;
+    if (!key) return [];
+    const raw = getValue(key, this.ctx);
+    return raw;
   }
 
   clickAction(_el: HTMLElement, _ev: Event, actionId: string): void {
@@ -44,7 +55,10 @@ export class OverflowToolbarComponent extends BaseComponent {
   }
 
   toggleOverflow(): void {
-    this.portalOpen ? this.closeOverflow() : this.openOverflow();
+    if(this.portalOpen)
+      this.closeOverflow() 
+    else
+      this.openOverflow();
   }
 
   private openOverflow(): void {
@@ -53,18 +67,14 @@ export class OverflowToolbarComponent extends BaseComponent {
     if (!triggerEl) return;
 
     const dropdownTemplate = `
-      <div class="min-w-[160px] p-1 rounded-xl border bg-white dark:bg-slate-800 dark:border-slate-700 shadow-2xl">
+      <div class="min-w-40 p-1 rounded-xl border bg-white dark:bg-slate-800 dark:border-slate-700 shadow-2xl">
         <div data-each="action in overflowItems" class="contents">
           <button
             title="{action.tooltip | default : @action.label}"
             on-click="clickAction:{action.id}"
             class="flex items-center gap-2 w-full px-3 py-2 text-sm text-left rounded-md transition-colors
-                   @if(action.disabled)
-                     opacity-40 cursor-not-allowed text-slate-400 dark:text-slate-500
-                   @endif
-                   @if(!action.disabled)
-                     text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer
-                   @endif"
+                   @if(action.disabled) opacity-40 cursor-not-allowed text-slate-400 dark:text-slate-500  @endif
+                   @if(!action.disabled) text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer @endif"
           >
             @if(action.icon)
               <i data-icon="{action.icon}" class="size-4 shrink-0"></i>
@@ -93,6 +103,7 @@ export class OverflowToolbarComponent extends BaseComponent {
 
   private updateOverflowLayout(): void {
     if (!this.element) return;
+    this.closeOverflow();
 
     const actionBtns = $<HTMLButtonElement>('[data-action-btn]', this.element).all();
     const moreBtn = $<HTMLButtonElement>('[data-overflow-trigger]', this.element).one();
@@ -132,15 +143,12 @@ export class OverflowToolbarComponent extends BaseComponent {
 
     if (moreBtn) {
       moreBtn.style.display = 'flex';
-      const badge = moreBtn.querySelector<HTMLElement>('[data-overflow-count]');
-      if (badge) badge.textContent = String(this.overflowItems.length);
     }
   }
 
   mounted(): void {
     if (!this.element) return;
 
-    // Disconnect any previous observer before setting up a new one
     this.resizeObserver?.disconnect();
     this.resizeObserver = new ResizeObserver(() => {
       cancelAnimationFrame(this.rafId);
@@ -201,7 +209,6 @@ export class OverflowToolbarComponent extends BaseComponent {
                  transition-colors"
         >
           <i data-icon="more-horizontal" class="size-4"></i>
-          <span data-overflow-count class="text-xs font-semibold text-indigo-500 min-w-[14px] text-center"></span>
         </button>
       </div>
     `;
