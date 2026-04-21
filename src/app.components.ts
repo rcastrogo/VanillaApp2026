@@ -31,7 +31,6 @@ const components = {
   'app-the-simpsons': () => import('./components/test/the-simpsons-component'),
   'app-tab-component': () => import('./components/tab.component'),
   'app-overflow-toolbar': () => import('./features/overflow-toolbar/overflow-toolbar.component'),
-  'app-table-menu': () => import('./features/table/table-menu.component'),
 } as Record<string, ComponentProvider>
 
 function registerComponent(name: string, componentProvider: ComponentProvider){

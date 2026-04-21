@@ -2,6 +2,8 @@ export interface PortalOptions {
   offset?: number;
   onClose?: () => void;
   onClickInside?: (e: MouseEvent) => void;
+  onOpen?: (portalEl: HTMLElement) => void;
+  placement?: string;
 }
 
 export class FloatingPortal {
@@ -34,6 +36,7 @@ export class FloatingPortal {
     document.addEventListener('click', this.clickOutsideBound, true);
 
     this.scheduleUpdate();
+    this.options.onOpen?.(this.portalElement);
   }
 
   public close() {
@@ -70,7 +73,7 @@ export class FloatingPortal {
     this.portalElement.style.minWidth = `${this.triggerElement.offsetWidth}px`;
     const portalWidth = this.portalElement.offsetWidth;
 
-    const shouldShowLeft = rect.left + portalWidth > viewportWidth && rect.right > portalWidth;
+    const shouldShowLeft = this.options.placement === 'top-end' || (rect.left + portalWidth > viewportWidth && rect.right > portalWidth);
     let left = shouldShowLeft ? rect.right - portalWidth : rect.left;
 
     const minLeft = offset;

@@ -1,4 +1,6 @@
 import { resolveBindingValue } from "./hydrate";
+import { pubSub } from "./services/pubsub.service";
+import { getValue } from "./template";
 import type { 
   Component, 
   ComponentBinding, 
@@ -6,7 +8,6 @@ import type {
   ComponentCreator, 
   ComponentInitValue 
 } from "../components/component.model";
-import { pubSub } from "./services/pubsub.service";
 
 export type ArgType = 'string' | 'number' | 'boolean' | 'null' | 'undefined';
 export type NavigateEventArg = {
@@ -68,11 +69,11 @@ export abstract class BaseComponent implements Component {
     });
   }
 
-  protected setState(state: ComponentState){
+  protected setState(state: ComponentState, update = true) {
     this.isInitializing = true;
     Object.assign(this.state, state);
     this.isInitializing = false;
-    this.update('state');
+    if(update) this.update('state');
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -162,7 +163,7 @@ export abstract class BaseComponent implements Component {
       const kebabName = attr.name.slice(1, -1);
       const outputName = kebabName.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
       const handlerName = attr.value.trim();
-      const target = parentContext[handlerName];
+      const target = parentContext[handlerName] || getValue(handlerName, parentContext);
 
       if (typeof target === 'function') {
         childInstance[outputName] = target.bind(this.ctx);
@@ -171,9 +172,9 @@ export abstract class BaseComponent implements Component {
         });
         return;        
       }
-      if (Array.isArray(target)) {
-        childInstance[outputName] = Array.from(target);
-      }
+      // if (Array.isArray(target)) {
+        childInstance[outputName] = target;
+      // }
     });
   }
 

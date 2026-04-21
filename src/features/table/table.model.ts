@@ -1,7 +1,5 @@
-/**
- * Table Feature — Type definitions and models
- * Migrated from AngularApp2026 table component
- */
+import type { Identifiable, SortDirection } from "@/core/types";
+
 
 export const TABLE_ACTIONS = {
   SELECT_ALL: 'select-all',
@@ -12,44 +10,25 @@ export const TABLE_ACTIONS = {
 
 export type TableAction = (typeof TABLE_ACTIONS)[keyof typeof TABLE_ACTIONS];
 
-export type SortDirection = 'asc' | 'desc' | null;
-export type SortState = [string, SortDirection] | undefined;
-
-export interface Identifiable {
-  id: string | number;
-}
-
-/**
- * Column definition — describes a table column
- */
 export interface Column<T extends Identifiable> {
   key: string;
-  title: string; // Use `{key: 'i18n-key'}` for i18n later
+  title: string; 
   className?: string;
   isVisible?: boolean;
-  /** Can be property name or custom sorter function */
   sorter?: keyof T | ((a: T, b: T) => number);
-  /** Can be property name or custom accessor function */
   accessor?: keyof T | ((item: T) => string | number | boolean | null);
-  /** Custom cell template function (returns HTML string) */
   cellRender?: (item: T, column: Column<T>) => string;
 }
 
-/**
- * Action button definition
- */
 export interface ActionButton {
   key: string;
   label: string;
   icon?: string;
-  show?: 'menu' | 'button' | 'both'; // Button toolbar vs context menu
+  show?: 'menu' | 'button' | 'both';
   onClick?: () => void;
   enabledWhen?: (selected: Set<string | number>) => boolean;
 }
 
-/**
- * Action handlers — CRUD callbacks
- */
 export interface ActionHandlers<T> {
   onCreate?: (callback: (item: T) => void) => void;
   onDelete?: (ids: (string | number)[], callback: () => void) => void;
@@ -57,9 +36,6 @@ export interface ActionHandlers<T> {
   onCustomAction?: (action: string, payload?: unknown) => void;
 }
 
-/**
- * Table state snapshot
- */
 export interface TableState<T extends Identifiable> {
   data: T[];
   selected: Set<string | number>;

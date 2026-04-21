@@ -101,11 +101,12 @@ body:has(.fixed.inset-0) {
    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors
           px-3 py-2 rounded-md border border-gray-300 dark:border-gray-800 hover:border-slate-700
           bg-background hover:bg-accent
+          disabled:pointer-events-none disabled:opacity-50 disabled:bg-gray-200 disabled:dark:bg-gray-600
 
 }
 .app-menu-item {
   @apply relative flex cursor-pointer select-none items-center gap-3 
-         rounded-md px-3 py-2.5 text-sm outline-none transition-colors;
+         rounded-md px-3 py-2.5 text-sm outline-none transition-colors
 }
 
 .app-menu-item:hover,

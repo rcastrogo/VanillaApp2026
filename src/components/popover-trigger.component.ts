@@ -12,6 +12,7 @@ export class PopoverTriggerComponent extends BaseComponent {
 
   private readonly handleTriggerClick = () => this.toggle();
   private clickInside : ((e: Event) => boolean) | null = null;
+  private beforeOpen : ((e: HTMLElement) => void) | null = null;
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -68,7 +69,13 @@ export class PopoverTriggerComponent extends BaseComponent {
         onClickInside: (e: MouseEvent) => {
           const shouldClose = this.clickInside?.(e);
           if(shouldClose) this.close();
-        }
+        },
+        onOpen: (el: HTMLElement) => {
+          setTimeout(() => {
+            this.beforeOpen?.(el);
+          }, 0)
+        },
+        placement: this.props.placement || ''
       }
     );
     this.contentEl.style.display = '';

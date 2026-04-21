@@ -1,9 +1,10 @@
 import { TableComponent } from './table.component';
-import type { Column, Identifiable } from './table.model';
+import type { ActionButton, Column } from './table.model';
 
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { buildAndInterpolate } from '@/core/dom';
-import { BaseComponent } from '@/core/types';
+import { notificationService } from '@/core/services/notification.service';
+import { BaseComponent, type Identifiable } from '@/core/types';
 
 interface Country extends Identifiable {
   id: number;
@@ -13,11 +14,12 @@ interface Country extends Identifiable {
   population: number;
 }
 
-/**
- * Example page showing basic table usage
- */
+
 export default class TableBasicPage extends BaseComponent {
-  private tableComponent: TableComponent<Country> | null = null;
+
+  actions: ActionButton[] = [];
+  columns: Column<Country>[] = [];
+  data: Country[] = []; 
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -25,13 +27,15 @@ export default class TableBasicPage extends BaseComponent {
 
   init(ctx: ComponentInitValue) {
     super.init(ctx);
-
     this.setState({
       countries: this.loadSampleData(),
       title: 'Countries Table — Basic Example',
-    });
+      actions : this.defineActions(),
+      columns : this.defineColumns(),
+      data : this.loadSampleData()
+    }, false);
   }
-
+  
   private loadSampleData(): Country[] {
     return [
       { id: 1, name: 'Spain', capital: 'Madrid', region: 'Europe', population: 47_560_000 },
@@ -46,6 +50,27 @@ export default class TableBasicPage extends BaseComponent {
       { id: 10, name: 'India', capital: 'New Delhi', region: 'Asia', population: 1_417_170_000 },
       { id: 11, name: 'USA', capital: 'Washington', region: 'North America', population: 338_290_000 },
       { id: 12, name: 'Canada', capital: 'Ottawa', region: 'North America', population: 39_740_000 },
+    ];
+  }
+
+  private defineActions(): ActionButton[] {
+    return [  
+      { 
+        key: 'export', label: 'Exportar datos', icon: 'text', show: 'menu', 
+        enabledWhen : (selected) => selected.size === 2 
+      },
+      {
+        key: 'duplicate', label: 'Duplicar', icon: 'timer', show: 'button',
+        enabledWhen: (selected) => selected.size === 3
+      },
+      { 
+        key: 'custom', 
+        label: 'Alert',
+        icon: 'sun', 
+        show: 'both',
+        onClick: () => alert('custom'),
+        enabledWhen: (selected) => selected.size === 4
+      },
     ];
   }
 
@@ -87,14 +112,26 @@ export default class TableBasicPage extends BaseComponent {
     ];
   }
 
-  mounted() {
-    setTimeout(() => {
-        this.tableComponent = BaseComponent.getInstance<TableComponent<Country>>('[app-table]', this.element || undefined);
-        if (this.tableComponent) {
-        this.tableComponent.setColumns(this.defineColumns());
-        this.tableComponent.setData(this.state.countries);
-        }        
-    }, 500);
+  onRefresh = () => {
+    const table = BaseComponent.getInstance<TableComponent<Country>>('[app-table]');
+    table?.setData(this.loadSampleData());
+    notificationService.info('Page: Refresh action triggered');   
+  }
+
+  onCreate = () => {
+    notificationService.info('Page: Create action triggered');
+  }
+
+  onDelete = (ids: (string | number)[]) => {
+    notificationService.info('Page: Delete action triggered for IDs: ' + ids.join(', '));
+  }
+
+  onEdit = (id: string | number) => {
+    notificationService.info('Page: Edit action triggered for ID: ' +  id);
+  }
+
+  onAction = (action: string) => {
+    notificationService.info('Page: Custom action triggered:' + action);
   }
 
   render() {
@@ -111,7 +148,17 @@ export default class TableBasicPage extends BaseComponent {
         </header>
 
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
-          <div data-component="app-table" data-key="countries-table"></div>
+          <div 
+            data-component="app-table"
+            data-key="countries-table"            
+            (on-refresh)="onRefresh"
+            (on-create)="onCreate"
+            (on-delete)="onDelete"
+            (on-edit)="onEdit"
+            (on-action)="onAction"
+            (actions)="state.actions"
+            (columns)="state.columns"
+            (data)="state.data"></div>
         </div>
 
         <div class="mt-10 grid gap-6 md:grid-cols-2">
