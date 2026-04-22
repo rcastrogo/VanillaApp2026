@@ -5,6 +5,9 @@ import type { ComponentContext, ComponentInitValue } from '@/components/componen
 import { buildAndInterpolate } from '@/core/dom';
 import { notificationService } from '@/core/services/notification.service';
 import { BaseComponent, type Identifiable } from '@/core/types';
+import { getCharacters, type Character } from '@/services/the-simpsons.service';
+
+const SIMPSONS_CDN = 'https://cdn.thesimpsonsapi.com/200';
 
 interface Country extends Identifiable {
   id: number;
@@ -13,7 +16,6 @@ interface Country extends Identifiable {
   region: string;
   population: number;
 }
-
 
 export default class TableBasicPage extends BaseComponent {
 
@@ -32,8 +34,10 @@ export default class TableBasicPage extends BaseComponent {
       title: 'Countries Table — Basic Example',
       actions : this.defineActions(),
       columns : this.defineColumns(),
+      characterColumns : this.defineCharacterColumns(),      
       data : this.loadSampleData()
     }, false);
+    this.loadSimpsonsTable();
   }
   
   private loadSampleData(): Country[] {
@@ -112,9 +116,94 @@ export default class TableBasicPage extends BaseComponent {
     ];
   }
 
+  private defineCharacterColumns(): Column<Character>[] {
+    return [
+      {
+        key: 'id',
+        title: 'ID',
+        className: 'w-12 text-center',
+        sorter: (a, b) => a.id - b.id,
+      },
+      {
+        key: 'name',
+        title: 'Character',
+        className: 'min-w-40',
+        sorter: (a, b) => a.name.localeCompare(b.name),
+      },
+      {
+        key: 'occupation',
+        title: 'Occupation',
+        className: 'min-w-40',
+        sorter: (a, b) => a.occupation.localeCompare(b.occupation),
+      },
+      {
+        key: 'status',
+        title: 'Status',
+        sorter: (a, b) => a.status.localeCompare(b.status),
+        cellRender: (row) => {
+          const statusClass = row.status === 'Alive'
+            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+            : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300';
+          return `<span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusClass}">${row.status}</span>`;
+        },
+      },
+      {
+        key: 'age',
+        title: 'Age',
+        className: 'text-right',
+        sorter: (a, b) => a.age - b.age,
+      },
+      {
+        key: 'gender',
+        title: 'Gender',
+        sorter: (a, b) => a.gender.localeCompare(b.gender),
+      },      
+      {
+        key: 'portrait_path',
+        title: 'Portrait',
+        className: 'w-20',
+        cellRender: (row) => {
+          const src = `${SIMPSONS_CDN}${row.portrait_path}`;
+          return `
+            <img
+              src="${src}"
+              alt="${row.name}"
+              loading="lazy"
+              class="h-14 w-14 rounded-lg object-contain bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1"
+            />
+          `;
+        },
+      }
+    ];
+  }
+
+  private getTable(selector: string): TableComponent<Identifiable> | null {
+    if (!this.element) return null;
+    return BaseComponent.getInstance<TableComponent<Identifiable>>(selector, this.element);
+  }
+
+  pageNumber = 1;
+  characterData: Character[] = [];
+  private async loadSimpsonsTable(): Promise<void> {
+    const result = await getCharacters(this.pageNumber++);
+    if (typeof result === 'string') {
+      notificationService.error?.(`Error loading Simpsons characters: ${result}`);
+      notificationService.info(`Error loading Simpsons characters: ${result}`);
+      return;
+    }
+    this.characterData = this.characterData.concat(result.data);
+    const table = this.getTable('[data-table-slot="simpsons"] [app-table]') as TableComponent<Character> | null;
+    table?.setData(this.characterData);
+  }
+
   onRefresh = () => {
-    const table = BaseComponent.getInstance<TableComponent<Country>>('[app-table]');
+    const table = BaseComponent.getInstance<TableComponent<Country>>('[data-table-slot="countries"] [app-table]');
     table?.setData(this.loadSampleData());
+    notificationService.info('Page: Refresh action triggered');   
+  }
+
+  onRefreshTheSimpson = () => {
+    this.loadSimpsonsTable();
     notificationService.info('Page: Refresh action triggered');   
   }
 
@@ -147,18 +236,45 @@ export default class TableBasicPage extends BaseComponent {
           </p>
         </header>
 
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
+        <div
+            data-component="app-tab-component"
+            data-selected="the-simpsons"
+            data-variant="underline"
+            class="w-full"
+          >
+
           <div 
-            data-component="app-table"
-            data-key="countries-table"            
-            (on-refresh)="onRefresh"
-            (on-create)="onCreate"
-            (on-delete)="onDelete"
-            (on-edit)="onEdit"
-            (on-action)="onAction"
-            (actions)="state.actions"
-            (columns)="state.columns"
-            (data)="state.data"></div>
+            class="p-4"
+            data-id="countries" data-title="Países" data-icon-name="zap" data-table-slot="countries">
+            <div 
+              data-component="app-table"
+              data-key="countries-table"            
+              (on-refresh)="onRefresh"
+              (on-create)="onCreate"
+              (on-delete)="onDelete"
+              (on-edit)="onEdit"
+              (on-action)="onAction"
+              (actions)="state.actions"
+              (columns)="state.columns"
+              (data)="state.data"></div>
+          </div>
+
+
+          <div 
+            class="p-4"
+            data-id="the-simpsons" data-title="Los Simpsons" data-icon-name="zap" data-table-slot="simpsons">
+            <div 
+              data-component="app-table"
+              data-key="simpsons-table"
+              (on-refresh)="onRefreshTheSimpson"
+              (on-create)="onCreate"
+              (on-delete)="onDelete"
+              (on-edit)="onEdit"
+              (on-action)="onAction"
+              (actions)="state.actions"
+              (columns)="state.characterColumns"
+              (data)="state.characterData"></div>
+          </div>
         </div>
 
         <div class="mt-10 grid gap-6 md:grid-cols-2">

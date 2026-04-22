@@ -38,10 +38,24 @@ export interface ActionHandlers<T> {
 
 export interface TableState<T extends Identifiable> {
   data: T[];
+  actions: ActionButton[],
+  columns: Column<T>[],
   selected: Set<string | number>;
   currentPage: number;
   pageSize: number;
   sortColumn: string | null;
   sortDirection: SortDirection;
   visibleColumns: Set<string>;
+  activeFiltersCount: 0;
+}
+
+export interface FilterCriteria {
+  searchText: string;
+  selectedValues: Set<string | number>;
+}
+
+export interface UniqueValue {
+  name: string;
+  value: string | number | null | undefined;
+  isSelected?: boolean;
 }

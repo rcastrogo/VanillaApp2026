@@ -121,7 +121,7 @@ const formatNumber = (value: number, lng = 'es') => new Intl.NumberFormat(lng).f
  * @returns An array of unique string values sorted in their original order of appearance
  */
 function getUniqueValues(data: [], key: string) {
-  return [...new Set(data.map((row) => String((row as any)[key])))];
+  return [...new Set(data.map((row) => (row as any)[key]))];
 }
 
 function getUniqueValuesSorted<T>(

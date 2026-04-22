@@ -139,7 +139,7 @@ export abstract class BaseComponent implements Component {
   updateBindings() {
     this.bindings.forEach(binding => {
       if (binding.element.isConnected) {
-        resolveBindingValue(binding, this);
+        resolveBindingValue(binding, this as Record<string, unknown>);
       }
     });    
   }

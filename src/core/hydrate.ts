@@ -205,22 +205,32 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
     .filter(el => !el.parentElement?.closest('[data-each]'))
     .forEach(repeater => {
       const expression = repeater.dataset.each!; // "item in tasks"
-      const [itemName, , listName] = expression.split(' ');
-      const list = getValue(listName, ctx) || [];   
+      const [itemName, , ...listParts] = expression.split(' ');
+      const listExpression = listParts.join(' ').trim();
+      let list: unknown[] = [];
+      if (listExpression.startsWith('[') && listExpression.endsWith(']')) {
+        try {
+          list = JSON.parse(listExpression.replace(/'/g, '"')); 
+        } catch (e) {
+          console.error("Error parseando array estático en data-each:", e);
+        }
+      } else {
+        list = getValue(listExpression, ctx) || [];
+      }
+  
       const templateHTML = repeater.innerHTML.replaceAll('~', '|');
       repeater.innerHTML = '';
       repeater.removeAttribute('data-each');
       // Si la lista está vacía, dejamos un ancla invisible      
       if (list.length === 0) {
         repeater.appendChild(
-          document.createComment(`anchor:each-${listName}`)
+          document.createComment(`anchor:each-${listExpression}`)
         );
         return;
       }
       // 1. Creamos el saco virtual fuera del bucle
       const fragment = document.createDocumentFragment();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      list.forEach((item: any, index: number) => {
+      list.forEach((item: unknown, index: number) => {
         // Si el item es un elemento del DOM, lo añadimos directamente
         if (item instanceof Node) {
           fragment.appendChild(item);
@@ -231,6 +241,9 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
         itemCtx.index = index;
         itemCtx['#'] = ctx; 
         const instance = buildAndInterpolate(templateHTML, itemCtx, false);
+
+        assingLocalCtxToElement(instance, itemCtx);
+
         hydrateDirectives(instance, itemCtx);
         while (instance.firstChild) {
           fragment.appendChild(instance.firstChild);
@@ -239,6 +252,7 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
       repeater.appendChild(fragment);
     });
 }
+
 
 export function getResolver(binding: ComponentBinding): BindingResolver {
   const { type, prop } = binding;
@@ -266,9 +280,34 @@ export function getResolver(binding: ComponentBinding): BindingResolver {
   return resolvers[type] || resolvers.text;
 }
 
+type ElementWithCtx = HTMLElement & { __localCtx__?: ComponentContext };
+
+function assingLocalCtxToElement(element: HTMLElement, ctx: ComponentContext) {
+  if (element.firstElementChild) {
+    (element.firstElementChild as ElementWithCtx).__localCtx__ = ctx;
+  }
+}
+
+function findLocalCtx(element: HTMLElement): ComponentContext | null {
+  let current: ElementWithCtx | null = element;
+  while (current) {
+    const localCtx = current.__localCtx__; 
+    if (localCtx) return localCtx;
+    current = current.parentElement;
+  }
+  return null;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function resolveBindingValue( binding: ComponentBinding, ctx: Record<string, any>): any {
+export function resolveBindingValue( binding: ComponentBinding, ctx: Record<string, unknown>): any {
   const resolver = getResolver(binding);
   const value = getValue(binding.path, ctx);
-  resolver(binding.element, value);
+  if(value !== undefined){
+    resolver(binding.element, value);
+    return;
+  }
+  const localCtx = findLocalCtx(binding.element);
+  const localValue = getValue(binding.path, localCtx);
+  // console.log(`Resolviendo binding:`, { path: binding.path, value, localCtx });
+  resolver(binding.element, localValue);
 }

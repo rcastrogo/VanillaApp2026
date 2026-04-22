@@ -75,7 +75,8 @@ export class PopoverTriggerComponent extends BaseComponent {
             this.beforeOpen?.(el);
           }, 0)
         },
-        placement: this.props.placement || ''
+        placement: this.props.placement || '',
+        offset: this.props.offset ? parseInt(this.props.offset) : 4,
       }
     );
     this.contentEl.style.display = '';
