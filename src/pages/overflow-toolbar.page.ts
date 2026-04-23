@@ -1,7 +1,6 @@
 
-import type { ToolbarAction } from './overflow-toolbar.component';
 
-import { APP_CONFIG } from '@/app.config';
+import type { ToolbarAction } from '@/components/overflow-toolbar/overflow-toolbar.component';
 import { buildAndInterpolate } from '@/core/dom';
 import { hydrateIcons } from '@/core/hydrate';
 import { BaseComponent } from '@/core/types';
@@ -31,10 +30,6 @@ export default class OverflowToolbarPage extends BaseComponent {
 
 
   init() {
-    APP_CONFIG.registerComponent(
-      'app-overflow-toolbar',
-      () => import('./overflow-toolbar.component')
-    );
     this.setState({
       lastAction: null as ToolbarAction | null,
       containerWidth: '580px',

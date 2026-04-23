@@ -11,6 +11,9 @@ export class PopoverTriggerComponent extends BaseComponent {
   private contentEl: HTMLElement | null = null;
 
   private readonly handleTriggerClick = () => this.toggle();
+  private readonly handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && this.state.isOpen) this.close();
+  };
   private clickInside : ((e: Event) => boolean) | null = null;
   private beforeOpen : ((e: HTMLElement) => void) | null = null;
 
@@ -35,8 +38,10 @@ export class PopoverTriggerComponent extends BaseComponent {
     }
     this.contentEl.style.display = 'none';
     this.triggerEl.addEventListener('click', this.handleTriggerClick);
+    document.addEventListener('keydown', this.handleKeyDown);
     this.addCleanup(() => {
       this.triggerEl?.removeEventListener('click', this.handleTriggerClick);
+      document.removeEventListener('keydown', this.handleKeyDown);
     });
   }
 

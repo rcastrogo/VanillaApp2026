@@ -18,6 +18,12 @@ export interface Column<T extends Identifiable> {
   sorter?: keyof T | ((a: T, b: T) => number);
   accessor?: keyof T | ((item: T) => string | number | boolean | null);
   cellRender?: (item: T, column: Column<T>) => string;
+  options?: {
+    shouldShowFilterButton?: boolean;
+    shouldShowTextBox?: boolean;
+    shouldShowValueList?: boolean;
+    canBeRemoved?: boolean;
+  };
 }
 
 export interface ActionButton {
@@ -58,4 +64,15 @@ export interface UniqueValue {
   name: string;
   value: string | number | null | undefined;
   isSelected?: boolean;
+}
+
+export interface TableComponentRef<T extends Identifiable> {
+  setData(data: T[]): void;
+  // setColumns(columns: Column<T>[]): void;
+  // setActions(actions: ActionButton[]): void;
+  // setPage(page: number): void;
+  // setPageSize(size: number): void;
+  // setSort(columnKey: string, direction: SortDirection): void;
+  // toggleColumnVisibility(columnKey: string): void;
+  // applyFilter(criteria: FilterCriteria): void;
 }

@@ -3,8 +3,6 @@ import type { WrappedFetchResponse } from "../core/services/http-client.utils";
 
 import type { Identifiable } from "@/core/types";
 
-
-
 export interface SecureEndPoint {
   id: string | number,
   url: string,

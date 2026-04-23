@@ -43,7 +43,7 @@ const homePage: ComponentFactory = () => {
       notificationService.show(`Tab cerrada: <b>${tab.title}</b> <small>(${tab.id}, #${tab.index + 1})</small>`, 2_000);
     },
     cycleTabMode() {
-      const tabRef = BaseComponent.getInstance('[app-tab-component]');
+      const tabRef = BaseComponent.getInstance('[app-tab]');
       tabRef?.cycleVariant();
       if(this.bindings) {
         this.bindings.forEach((binding: ComponentBinding) => {
@@ -53,10 +53,10 @@ const homePage: ComponentFactory = () => {
       }
     },
     addRandomTab() {
-      const tab = BaseComponent.getInstance('[app-tab-component]');
+      const tab = BaseComponent.getInstance('[app-tab]');
       const id = `tab-${Math.random().toString(16).slice(2)}`;
       const close = () => {
-        const tabRef = BaseComponent.getInstance('[app-tab-component]');
+        const tabRef = BaseComponent.getInstance('[app-tab]');
         tabRef?.removeTab(id);
       }
       const template = `
@@ -113,7 +113,7 @@ const homePage: ComponentFactory = () => {
           </div>
 
           <div 
-            data-component="app-tab-component" 
+            data-component="app-tab" 
             data-selected="overview" 
             data-variant="segmented" 
             (tabchange)="handleTabChange"

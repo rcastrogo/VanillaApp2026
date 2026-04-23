@@ -1,36 +1,22 @@
 
-import { CollapsibleComponent } from './components/collapsible.component';
-import { FooterComponent } from './components/footer.component';
-import { HeaderComponent } from './components/header/header.component';
-import { LanguageSelector } from './components/language-selector.component';
-import { LoaderComponent } from './components/loader.component';
-import { LogoComponent } from './components/logo.component';
-import NotificationPanel from './components/notification-panel/notification-panel.component';
-import { ProgressBarComponent } from './components/progress-bar.component';
-import { ThemeToggleComponent } from './components/theme-toggle.component';
 import type { ComponentProvider } from './core/services/router.service';
 
+// =========================================================================================
+// Este archivo se encarga de registrar los componentes personalizados 
+// que pueden ser utilizados en las vistas.
+// Se pueden registrar componentes de forma manual.
+// Los componentes de carpeta de componentes se registran automáticamente por convención, 
+// tomando el nombre del archivo y convirtiéndolo en un tag de componente.
+// =========================================================================================
 const components = {
-  'app-logo': LogoComponent,
-  'app-progress-bar': ProgressBarComponent,
-  'app-footer': FooterComponent,
-  'app-header': HeaderComponent,
-  'app-notification-panel': NotificationPanel,
-  'app-user-list': () => import('./components/test/user-list.component'),
-  'app-theme-toggle': ThemeToggleComponent,
-  'app-language-selector': LanguageSelector,
-  'app-loader': LoaderComponent,
-  'app-collapsible': CollapsibleComponent,
-  'app-dashboard': () => import('./components/test/dashboard.component'),
-  'app-table': () => import('./features/table/table.component'),
-  'app-binding-reference': () => import('./components/test/binding-reference.component'),
-  'app-entity-master-detail': () => import('./components/test/entity-master-detail.component'),
+  // Componentes registrados manualmente
+  // 'app-language-selector': LanguageSelector,
+  // 'app-loader': LoaderComponent,
+  // 'app-collapsible': CollapsibleComponent,
+  // Componentes registrados manualmente para carga asíncrona perezosa o lazy loading
   'app-combo-box': () => import('./components/combo-box.component'),
-  'app-menu-trigger': () => import('./components/menu-trigger.component'),
+  'app-tab': () => import('./components/tab.component'),
   'app-counter': () => import('./components/test/counter-component'),
-  'app-the-simpsons': () => import('./components/test/the-simpsons-component'),
-  'app-tab-component': () => import('./components/tab.component'),
-  'app-overflow-toolbar': () => import('./features/overflow-toolbar/overflow-toolbar.component'),
 } as Record<string, ComponentProvider>
 
 function registerComponent(name: string, componentProvider: ComponentProvider){

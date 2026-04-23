@@ -55,9 +55,14 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   private initColumns(): void {
     const columns = this.state.columns as Column<T>[];
-    const defaultVisible = columns.filter(c => c.isVisible !== false).map(c => c.key);
+    const defaultVisible = columns
+      .filter(c => c.isVisible !== false || c.options?.canBeRemoved === false)
+      .map(c => c.key);
     const savedVisibleColumns = storage.readValue<string[]>(this.visibleColumnsStorageKey(), defaultVisible);
     const visible = new Set(Array.isArray(savedVisibleColumns) ? savedVisibleColumns : defaultVisible);
+    columns
+      .filter(col => col.options?.canBeRemoved === false)
+      .forEach(col => visible.add(col.key));
     this.invalidateSort();
     this.setState({ 
       visibleColumns: visible,
@@ -104,18 +109,18 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     const data = this.state.data as T[];
     if (action === TABLE_ACTIONS.SELECT_ALL) {
       const ids = data.map(r => r.id);
-      this.state.selected = new Set(ids);
+      this.patchSelectedRows(new Set(ids));
       return;
     }
     if (action === TABLE_ACTIONS.CLEAR_ALL) {
-      this.state.selected = new Set();
+      this.patchSelectedRows(new Set());
       return;
     }
     if (action === TABLE_ACTIONS.INVERT_SELECTION) {
       const current = this.state.selected as Set<string | number>;
       const all = data.map(r => r.id);
       const next = new Set<string | number>(all.filter(id => !current.has(id)));
-      this.state.selected = next;
+      this.patchSelectedRows(next);
       return;
     }
     if (action === TABLE_ACTIONS.SHOW_ONLY_SELECTED) {
@@ -139,6 +144,8 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
   }
 
   handleToggleColumn(_el: HTMLElement, _e: Event, colKey: string): void {
+    const column = (this.state.columns as Column<T>[]).find(col => col.key === colKey);
+    if (column?.options?.canBeRemoved === false) return;
     const next = new Set<string>(this.state.visibleColumns as Set<string>);
     if (next.has(colKey)) next.delete(colKey);
     else next.add(colKey);
@@ -216,16 +223,34 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   toggleRow(_el: HTMLElement, _e: Event, id: string | number): void {
     const next = new Set<string | number>(this.state.selected as Set<string | number>);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    this.state.selected = next;
+    if (next.has(id)) 
+      next.delete(id);
+    else 
+      next.add(id);
+    this.patchSelectedRows(next);
+  }
+
+  patchSelectedRows(selected: Set<string | number>): void {
+    this.setState({ selected }, false);
+    const rows = $('[data-row]', this.element).all();
+    rows.forEach(row => {
+      const rowId = row.id.replace('row-', '');
+      const isSelected = selected.has(rowId) || selected.has(Number(rowId));
+      row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      if(isSelected) {  
+        row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+      }
+      const checkbox = $<HTMLInputElement>('input[type="checkbox"]', row).one();
+      if(checkbox) checkbox.checked = isSelected;
+    });
+    this.patchStatus();
+    this.patchToolbar();
   }
 
   selectAll(el: HTMLInputElement): void {
     const data = this.state.data as T[];
-    this.state.selected = el.checked
-      ? new Set(data.map(r => r.id))
-      : new Set<string | number>();
+    const next = el.checked ? new Set(data.map(r => r.id)) : new Set<string | number>();
+    this.patchSelectedRows(next);
   }
 
   toggleColumn(_el: HTMLElement, _e: Event, columnKey: string): void {
@@ -370,6 +395,8 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     }, false);
 
     this.rebuildRows();
+    this.patchStatus();
+    this.patchToolbar();
   }
 
   // ─── Template builders ────────────────────────────────────────
@@ -392,7 +419,9 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     const sortDirection = this.state.sortDirection as 'asc' | 'desc' | null;
     const visibleColumns = columns.filter(c => visibleColumnIds.has(c.key));
     return visibleColumns
-      .map((col, i) => {
+      .map((col) => {
+        const index = columns.findIndex(c => c.key === col.key);
+        const shouldShowFilterButton = col.options?.shouldShowFilterButton !== false;
         const sortMarker =
           sortColumn === col.key && sortDirection
             ? `<i data-icon="${sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}" class="size-3 shrink-0 ml-1"></i>`
@@ -402,15 +431,18 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
           : '';
         return `
           <th on-click="toggleSort:${col.key}"
-            class="px-3 py-2 text-left text-sm font-semibold border-b ${sortableClass} ${col.className || ''}">
+            class="px-2 py-0 text-left text-sm font-semibold border-l border-b ${sortableClass} ${col.className || ''}">
             <div class="flex items-center">
               <span class="flex-1 text-left">${col.title}</span>${sortMarker}
-              <span 
-                data-component="app-column-filter-button"
-                (filter-changed)="handleFilterChanged"
-                (column)="state.columns.${i}"
-                (data)="state.data"
-              ></span>              
+              ${shouldShowFilterButton ? `
+                <span 
+                  data-component="app-column-filter-button"
+                  (filter-changed)="handleFilterChanged"
+                  (column)="state.columns[${index}]"
+                  (data)="state.data"
+                  (filter)="activeFilters[${col.key}]"
+                ></span>
+              ` : ''}
             </div>
           </th>
         `;
@@ -439,7 +471,10 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
           })
           .join('');
         return `
-          <tr class="${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}">
+          <tr 
+            id="row-${row.id}"
+            data-row
+            class="${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}">
             <td class="px-3 py-2 border-b w-10">
               <input type="checkbox" on-change="toggleRow:${row.id}" class="cursor-pointer" ${isSelected ? 'checked' : ''} />
             </td>
@@ -519,7 +554,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
               <button disabled data-btn="prev" on-click="prevPage" class="app-button btn-ghost p-2! shrink-0">
                 <i data-icon="chevron-left" class="size-4"></i>
               </button>
-              <input disabled
+              <input
                 data-page-input
                 value="1"
                 on-change="goToPage"
@@ -620,11 +655,15 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                       <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 px-2 py-1 transition select-none rounded">                 
                       <input
                         type="checkbox"
-                        data-bind="checked:state.columns.{index}.isVisible"
+                        data-bind="
+                          checked:state.columns.{index}.isVisible;
+                          disabled:state.columns.{index}.options.canBeRemoved | equal : false
+                        "
                         on-change="handleToggleColumn:@col.key"
+                        @if(col.options?.canBeRemoved === false) disabled @endif
                         class="w-3 h-3 accent-indigo-500 cursor-pointer shrink-0"
                       />
-                      <span class="text-sm">{col.title}</span>                      
+                      <span class="text-sm @if(col.options?.canBeRemoved === false) opacity-60 @endif">{col.title}</span>                      
                       </label>                
                   </div>
 
@@ -656,7 +695,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
           <table class="w-full border-collapse text-sm">
             <thead class="bg-slate-100 dark:bg-slate-900">
               <tr>
-                <th class="px-3 py-2 border-b w-10">
+                <th class="px-3 py-2 border-b border-r w-10">
                   <input type="checkbox" on-change="selectAll" class="cursor-pointer"/>
                 </th>
                 <!-- Headers will be rendered here -->
@@ -800,6 +839,7 @@ class ColumnFilterButtonComponent extends BaseComponent {
   private searchText = '';
   private column: Column<Identifiable> | null = null;
   private data: Identifiable[] = [];
+  private filter: FilterCriteria | null = null;
   private debouncedNotifyFilterChange: (searchText: string) => void;
   private filterChanged?: (key: string, searchText: string, values: Set<string | number>) => void;
 
@@ -813,8 +853,12 @@ class ColumnFilterButtonComponent extends BaseComponent {
 
   init(ctx?: ComponentInitValue): void {
     super.init(ctx);
+    if(this.filter) {
+      this.selectedValues = new Set(this.filter.selectedValues || []);
+      this.searchText = this.filter.searchText || '';
+    } 
     this.setState({
-      hasActiveFilter: false,
+      hasActiveFilter: this.isFilterActive,
     });    
   }
 
@@ -827,11 +871,19 @@ class ColumnFilterButtonComponent extends BaseComponent {
   };
 
   onOpenMenu = (): void => {
-    this.uniqueValues = this.getUniqueValues();
+    this.uniqueValues = this.shouldShowValueList ? this.getUniqueValues() : [];
     this.updateBindings();
   }
 
+  get shouldShowValueList(): boolean {
+    return this.column?.options?.shouldShowValueList !== false;
+  }
+
   renderUniqueValueList(el: HTMLElement){
+    if (!this.shouldShowValueList) {
+      el.innerHTML = '';
+      return;
+    }
     if(this.uniqueValues.length === 0) {
       el.innerHTML = `<div class="px-2 py-1 text-xs text-slate-600 dark:text-slate-300">No hay valores únicos</div>`;
       return;
@@ -885,7 +937,11 @@ class ColumnFilterButtonComponent extends BaseComponent {
       this.searchText, 
       this.selectedValues
     );
-    this.state.hasActiveFilter = this.selectedValues.size > 0 || this.searchText.length > 0 ;
+    this.state.hasActiveFilter = this.isFilterActive;
+  }
+
+  get isFilterActive(): boolean {
+    return this.selectedValues?.size > 0 || this.searchText?.length > 0;
   }
 
   private getUniqueValues() {
@@ -932,7 +988,8 @@ class ColumnFilterButtonComponent extends BaseComponent {
             data-popover-trigger
             type="button"
             on-click="handleMenuClick"
-            class="relative flex h-5 w-6 items-center justify-center rounded-none transition-colors hover:bg-slate-100 dark:hover:bg-slate-700">
+            class="app-buton relative flex h-5 w-6 items-center justify-center 
+            rounded-sm transition-colors hover:bg-slate-300 dark:hover:bg-slate-800">
             <i data-icon="menu" class="size-4"></i>
             <span
               data-bind="show:state.hasActiveFilter"
@@ -953,29 +1010,33 @@ class ColumnFilterButtonComponent extends BaseComponent {
             <div class="">
               <input
                 type="text"
+                data-bind="hide:column.options.shouldShowTextBox | equal : false"
                 placeholder="Buscar..."
+                value="{searchText}"
                 on-input="handleSearchInput"
                 class="w-full px-2 py-1.5 text-sm border rounded bg-white dark:bg-slate-700 dark:border-slate-600 
-                       text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500
-                       focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
 
             <!-- Unique Values List -->
 
-            <div class="mt-2">
-              <p class="text-xs text-slate-500 dark:text-slate-400 py-1 text-center">
-                Valores únicos (<span data-bind="text:uniqueValues.length">{uniqueValues.length}</span>):
-              </p>
-              <div 
-                class="space-y-0 rounded-sm overflow-hidden border dark:border-slate-700">
-                <div
-                  data-bind="fn:renderUniqueValueList"
-                  class="max-h-40 overflow-auto space-y-1">
-                  <!-- Unique values will be rendered here -->
-                </div>               
+            @if(shouldShowValueList)
+              <div class="mt-2">
+                <p class="text-xs text-slate-500 dark:text-slate-400 py-1 text-center">
+                  Valores únicos (<span data-bind="text:uniqueValues.length">{uniqueValues.length}</span>):
+                </p>
+                <div 
+                  class="space-y-0 rounded-sm overflow-hidden border dark:border-slate-700">
+                  <div
+                    data-bind="fn:renderUniqueValueList"
+                    class="max-h-40 overflow-auto space-y-1">
+                    <!-- Unique values will be rendered here -->
+                  </div>               
+                </div>
               </div>
-            </div>
+            @endif
 
           </div>
       </div>

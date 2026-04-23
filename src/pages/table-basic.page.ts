@@ -1,27 +1,21 @@
-import { TableComponent } from './table.component';
-import type { ActionButton, Column } from './table.model';
+
+import type { ActionButton, Column, TableComponentRef } from '../components/table/table.model';
 
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { buildAndInterpolate } from '@/core/dom';
 import { notificationService } from '@/core/services/notification.service';
 import { BaseComponent, type Identifiable } from '@/core/types';
+import { CountriesService, type Country } from '@/services/countries.service';
 import { getCharacters, type Character } from '@/services/the-simpsons.service';
 
 const SIMPSONS_CDN = 'https://cdn.thesimpsonsapi.com/200';
-
-interface Country extends Identifiable {
-  id: number;
-  name: string;
-  capital: string;
-  region: string;
-  population: number;
-}
 
 export default class TableBasicPage extends BaseComponent {
 
   actions: ActionButton[] = [];
   columns: Column<Country>[] = [];
   data: Country[] = []; 
+  private countriesService = new CountriesService();
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -30,31 +24,21 @@ export default class TableBasicPage extends BaseComponent {
   init(ctx: ComponentInitValue) {
     super.init(ctx);
     this.setState({
-      countries: this.loadSampleData(),
       title: 'Countries Table — Basic Example',
       actions : this.defineActions(),
       columns : this.defineColumns(),
       characterColumns : this.defineCharacterColumns(),      
-      data : this.loadSampleData()
+      data : [] as Country[],
+      characterData: [] as Character[]
     }, false);
-    this.loadSimpsonsTable();
+    
   }
-  
-  private loadSampleData(): Country[] {
-    return [
-      { id: 1, name: 'Spain', capital: 'Madrid', region: 'Europe', population: 47_560_000 },
-      { id: 2, name: 'France', capital: 'Paris', region: 'Europe', population: 67_970_000 },
-      { id: 3, name: 'Germany', capital: 'Berlin', region: 'Europe', population: 83_370_000 },
-      { id: 4, name: 'Italy', capital: 'Rome', region: 'Europe', population: 58_940_000 },
-      { id: 5, name: 'Portugal', capital: 'Lisbon', region: 'Europe', population: 10_880_000 },
-      { id: 6, name: 'Japan', capital: 'Tokyo', region: 'Asia', population: 125_100_000 },
-      { id: 7, name: 'China', capital: 'Beijing', region: 'Asia', population: 1_412_000_000 },
-      { id: 8, name: 'Brazil', capital: 'Brasília', region: 'South America', population: 215_300_000 },
-      { id: 9, name: 'Mexico', capital: 'Mexico City', region: 'North America', population: 128_900_000 },
-      { id: 10, name: 'India', capital: 'New Delhi', region: 'Asia', population: 1_417_170_000 },
-      { id: 11, name: 'USA', capital: 'Washington', region: 'North America', population: 338_290_000 },
-      { id: 12, name: 'Canada', capital: 'Ottawa', region: 'North America', population: 39_740_000 },
-    ];
+
+  mounted(): void {
+    setTimeout(() => {
+      void this.loadCountriesTable();
+      void this.loadSimpsonsTable();
+    }, 1500);
   }
 
   private defineActions(): ActionButton[] {
@@ -83,26 +67,63 @@ export default class TableBasicPage extends BaseComponent {
       {
         key: 'id',
         title: 'ID',
-        className: 'w-12 text-center',
+        className: 'w-16 text-center',
         sorter: (a, b) => a.id - b.id,
+        options: {
+          shouldShowFilterButton: false,
+          canBeRemoved: false,
+        },
+      },
+      {
+        key: 'flag',
+        title: 'Bandera',
+        className: 'w-20',
+        options: {
+          shouldShowFilterButton: false,
+          canBeRemoved: false,
+        },
+        cellRender: (row) => {
+          return `
+            <img
+              src="${row.flag}"
+              alt="Bandera de ${row.name}"
+              loading="lazy"
+              class="h-10 w-14 rounded object-cover border border-slate-200 dark:border-slate-700"
+            />
+          `;
+        },
       },
       {
         key: 'name',
         title: 'Country',
-        className: 'text-left min-w-32',
+        className: 'text-left min-w-40',
         sorter: (a, b) => a.name.localeCompare(b.name),
       },
       {
         key: 'capital',
         title: 'Capital',
-        className: 'text-left',
+        className: 'text-left min-w-32',
         sorter: (a, b) => a.capital.localeCompare(b.capital),
       },
       {
         key: 'region',
         title: 'Region',
-        className: 'text-left',
+        className: 'text-left min-w-28',
         sorter: (a, b) => a.region.localeCompare(b.region),
+      },
+      {
+        key: 'subregion',
+        title: 'Subregion',
+        className: 'text-left min-w-32',
+        accessor: (row) => row.subregion || '-',
+        sorter: (a, b) => (a.subregion || '').localeCompare(b.subregion || ''),
+      },
+      {
+        key: 'language',
+        title: 'Language',
+        className: 'text-left min-w-32',
+        accessor: (row) => row.language || 'unknown',
+        sorter: (a, b) => (a.language || '').localeCompare(b.language || ''),
       },
       {
         key: 'population',
@@ -123,6 +144,10 @@ export default class TableBasicPage extends BaseComponent {
         title: 'ID',
         className: 'w-12 text-center',
         sorter: (a, b) => a.id - b.id,
+        options: {
+          shouldShowFilterButton: false,
+          canBeRemoved: false,
+        },
       },
       {
         key: 'name',
@@ -152,11 +177,20 @@ export default class TableBasicPage extends BaseComponent {
         title: 'Age',
         className: 'text-right',
         sorter: (a, b) => a.age - b.age,
+        options: {
+          shouldShowValueList: false,
+          canBeRemoved: true,
+        },
       },
       {
         key: 'gender',
         title: 'Gender',
         sorter: (a, b) => a.gender.localeCompare(b.gender),
+        options: {
+          shouldShowValueList: true,
+          shouldShowTextBox: false,
+          canBeRemoved: true,
+        },
       },      
       {
         key: 'portrait_path',
@@ -173,33 +207,45 @@ export default class TableBasicPage extends BaseComponent {
             />
           `;
         },
+        options: {
+          shouldShowFilterButton: false
+        },
       }
     ];
   }
 
-  private getTable(selector: string): TableComponent<Identifiable> | null {
+  private getTable(selector: string): TableComponentRef<Identifiable> | null {
     if (!this.element) return null;
-    return BaseComponent.getInstance<TableComponent<Identifiable>>(selector, this.element);
+    return BaseComponent.getInstance<TableComponentRef<Identifiable>>(selector, this.element);
   }
 
   pageNumber = 1;
   characterData: Character[] = [];
+  private async loadCountriesTable(): Promise<void> {
+    const result = await this.countriesService.getAll();
+    if (typeof result === 'string') {
+      notificationService.error(`Error loading countries: ${result}`);
+      return;
+    }
+    const table = this.getTable('#countries-table');
+    table?.setData(result.data);
+  }
+
   private async loadSimpsonsTable(): Promise<void> {
     const result = await getCharacters(this.pageNumber++);
     if (typeof result === 'string') {
-      notificationService.error?.(`Error loading Simpsons characters: ${result}`);
+      notificationService.error(`Error loading Simpsons characters: ${result}`);
       notificationService.info(`Error loading Simpsons characters: ${result}`);
       return;
     }
     this.characterData = this.characterData.concat(result.data);
-    const table = this.getTable('[data-table-slot="simpsons"] [app-table]') as TableComponent<Character> | null;
+    const table = this.getTable('#the-simpsons-table');
     table?.setData(this.characterData);
   }
 
   onRefresh = () => {
-    const table = BaseComponent.getInstance<TableComponent<Country>>('[data-table-slot="countries"] [app-table]');
-    table?.setData(this.loadSampleData());
-    notificationService.info('Page: Refresh action triggered');   
+    void this.loadCountriesTable();
+    notificationService.info('Countries refreshed from API');
   }
 
   onRefreshTheSimpson = () => {
@@ -237,7 +283,7 @@ export default class TableBasicPage extends BaseComponent {
         </header>
 
         <div
-            data-component="app-tab-component"
+            data-component="app-tab"
             data-selected="the-simpsons"
             data-variant="underline"
             class="w-full"
@@ -247,6 +293,7 @@ export default class TableBasicPage extends BaseComponent {
             class="p-4"
             data-id="countries" data-title="Países" data-icon-name="zap" data-table-slot="countries">
             <div 
+              id="countries-table"
               data-component="app-table"
               data-key="countries-table"            
               (on-refresh)="onRefresh"
@@ -259,11 +306,11 @@ export default class TableBasicPage extends BaseComponent {
               (data)="state.data"></div>
           </div>
 
-
           <div 
             class="p-4"
             data-id="the-simpsons" data-title="Los Simpsons" data-icon-name="zap" data-table-slot="simpsons">
             <div 
+              id="the-simpsons-table"
               data-component="app-table"
               data-key="simpsons-table"
               (on-refresh)="onRefreshTheSimpson"

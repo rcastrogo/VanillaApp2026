@@ -163,8 +163,26 @@ export abstract class BaseComponent implements Component {
       const kebabName = attr.name.slice(1, -1);
       const outputName = kebabName.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
       const handlerName = attr.value.trim();
-      const target = parentContext[handlerName] || getValue(handlerName, parentContext);
-
+      // ==========================================================================================
+      // Support for array access in handler names, e.g. (on-action)="actions[edit]"
+      // ==========================================================================================
+      const arrayMatch = handlerName.match(/^([\w\\.]+)\[(.+)\]$/);
+      let arrayValue;
+      if (arrayMatch) {
+        const [, name, idx] = arrayMatch;
+        const target = getValue(name, parentContext);
+        const resolvers = {
+          Map: () => target.get(idx),
+          Set: () => Array.from(target)[Number(idx)],
+          Default: () => target?.[idx]
+        };
+        const type = target instanceof Map ? 'Map' : target instanceof Set ? 'Set' : 'Default';
+        arrayValue = resolvers[type]();
+      }
+      const target = arrayValue || parentContext[handlerName] || getValue(handlerName, parentContext);
+      // ==========================================================================================
+      // If the target is a function, bind it to the parent context to preserve 'this'
+      // ==========================================================================================
       if (typeof target === 'function') {
         childInstance[outputName] = target.bind(this.ctx);
         this.addCleanup(() => {
@@ -172,9 +190,7 @@ export abstract class BaseComponent implements Component {
         });
         return;        
       }
-      // if (Array.isArray(target)) {
-        childInstance[outputName] = target;
-      // }
+      childInstance[outputName] = target;
     });
   }
 

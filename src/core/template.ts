@@ -18,7 +18,7 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
     const num = Number(val);
     return isNaN(num) ? 0 : num;
   },
-  equal: (a: string, b: string) => a == b,
+  equal: (a: string, b: string) => String(a) === String(b),
   join: (arr: unknown[], sep = '') => Array.isArray(arr) ? arr.join(sep) : '',
   upper: (val:string) => val?.toUpperCase(),
   lower: (val:string) => val?.toLowerCase(),
@@ -64,7 +64,11 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function existsBaseProp(name: string, scope: any){
-  return name in scope || name in GLOBAL_FUNCTIONS || name in self || scope['#']
+  try {
+    return (scope && name in scope) || name in GLOBAL_FUNCTIONS || name in self || (scope && scope['#']);
+  } catch {     
+    return false;
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

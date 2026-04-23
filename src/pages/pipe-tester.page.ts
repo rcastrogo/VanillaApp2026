@@ -41,7 +41,7 @@ export default class PipeTesterPage extends BaseComponent {
           </div>
 
           <div
-            data-component="app-tab-component"
+            data-component="app-tab"
             data-selected="pipe-tester"
             data-variant="boxed"
             class="w-full"
@@ -106,7 +106,7 @@ export default class PipeTesterPage extends BaseComponent {
   mounted(): void {
     setTimeout(() => {
       if (!this.element) return;
-      this.tabComponent = BaseComponent.getInstance('[app-tab-component]', this.element);
+      this.tabComponent = BaseComponent.getInstance('[app-tab]', this.element);
       this.tabComponent?.setVariant('segmented');
       this.updateBindings();    
     }, 500);

@@ -117,7 +117,7 @@ You can bind handlers in the host markup using output syntax:
 
 ```html
 <div
-  data-component="app-tab-component"
+  data-component="app-tab"
   (tabchange)="handleTabChange"
   (tabclose)="handleTabClose"
 ></div>
