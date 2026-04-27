@@ -1,53 +1,64 @@
+import type { AutocompleteItem } from '@/components/autocomplete.component';
 import type { MenuItem } from '@/components/menu-trigger.component';
 import { buildAndInterpolate } from '@/core/dom';
 import { notificationService } from '@/core/services/notification.service';
 import { BaseComponent } from '@/core/types';
+import { CountriesService } from '@/services/countries.service';
 
 export default class MenuShowcasePage extends BaseComponent {
 
   /* ━━━━ 1. Basic menu (flat items) ━━━━━━━━━━━━━━━━━━━━━━━━━ */
   basicItems: MenuItem[] = [
-    { id: 'edit',   label: 'Editar',   icon: 'edit',   action: () => this.notify('Editar') },
-    { id: 'copy',   label: 'Copiar',   icon: 'copy',   action: () => this.notify('Copiar') },
-    { id: 'delete', label: 'Eliminar', icon: 'trash',  separator: true, action: () => this.notify('Eliminar') },
+    { id: 'edit', label: 'Editar', icon: 'edit', action: () => this.notify('Editar') },
+    { id: 'copy', label: 'Copiar', icon: 'copy', action: () => this.notify('Copiar') },
+    { id: 'delete', label: 'Eliminar', icon: 'trash', separator: true, action: () => this.notify('Eliminar') },
   ];
 
   /* ━━━━ 2. Menu with disabled items ━━━━━━━━━━━━━━━━━━━━━━━━ */
   disabledItems: MenuItem[] = [
-    { id: 'open',      label: 'Abrir',      icon: 'folder',   action: () => this.notify('Abrir') },
-    { id: 'save',      label: 'Guardar',    icon: 'download',  action: () => this.notify('Guardar') },
-    { id: 'save-as',   label: 'Guardar como…', icon: 'file',  disabled: true },
-    { id: 'export',    label: 'Exportar',   icon: 'upload',   disabled: true },
-    { id: 'close',     label: 'Cerrar',     icon: 'x',        separator: true, action: () => this.notify('Cerrar') },
+    { id: 'open', label: 'Abrir', icon: 'folder', action: () => this.notify('Abrir') },
+    { id: 'save', label: 'Guardar', icon: 'download', action: () => this.notify('Guardar') },
+    { id: 'save-as', label: 'Guardar como…', icon: 'file', disabled: true },
+    { id: 'export', label: 'Exportar', icon: 'upload', disabled: true },
+    { id: 'close', label: 'Cerrar', icon: 'x', separator: true, action: () => this.notify('Cerrar') },
   ];
 
   /* ━━━━ 3. Menu with sub-menus ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
   submenuItems: MenuItem[] = [
-    { id: 'file',   label: 'Archivo', icon: 'file', children: [
-      { id: 'new',    label: 'Nuevo',       icon: 'plus',     action: () => this.notify('Archivo → Nuevo') },
-      { id: 'open',   label: 'Abrir',       icon: 'folder',   action: () => this.notify('Archivo → Abrir') },
-      { id: 'recent', label: 'Recientes',   icon: 'timer',    children: [
-        { id: 'r1', label: 'proyecto-alpha.ts', icon: 'code', action: () => this.notify('Recientes → alpha') },
-        { id: 'r2', label: 'config.json',       icon: 'settings', action: () => this.notify('Recientes → config') },
-        { id: 'r3', label: 'README.md',         icon: 'book-open', action: () => this.notify('Recientes → README') },
-      ]},
-      { id: 'save',   label: 'Guardar',     icon: 'download', separator: true, action: () => this.notify('Archivo → Guardar') },
-    ]},
-    { id: 'edit-grp', label: 'Editar', icon: 'edit', children: [
-      { id: 'cut',   label: 'Cortar',  icon: 'clipboard', action: () => this.notify('Editar → Cortar') },
-      { id: 'copy',  label: 'Copiar',  icon: 'copy',      action: () => this.notify('Editar → Copiar') },
-      { id: 'paste', label: 'Pegar',   icon: 'clipboard', action: () => this.notify('Editar → Pegar') },
-    ]},
-    { id: 'view', label: 'Ver', icon: 'eye', children: [
-      { id: 'zoom-in',  label: 'Acercar',  icon: 'plus',  action: () => this.notify('Ver → Acercar') },
-      { id: 'zoom-out', label: 'Alejar',   icon: 'minus', action: () => this.notify('Ver → Alejar') },
-    ]},
+    {
+      id: 'file', label: 'Archivo', icon: 'file', children: [
+        { id: 'new', label: 'Nuevo', icon: 'plus', action: () => this.notify('Archivo → Nuevo') },
+        { id: 'open', label: 'Abrir', icon: 'folder', action: () => this.notify('Archivo → Abrir') },
+        {
+          id: 'recent', label: 'Recientes', icon: 'timer', children: [
+            { id: 'r1', label: 'proyecto-alpha.ts', icon: 'code', action: () => this.notify('Recientes → alpha') },
+            { id: 'r2', label: 'config.json', icon: 'settings', action: () => this.notify('Recientes → config') },
+            { id: 'r3', label: 'README.md', icon: 'book-open', action: () => this.notify('Recientes → README') },
+          ]
+        },
+        { id: 'save', label: 'Guardar', icon: 'download', separator: true, action: () => this.notify('Archivo → Guardar') },
+      ]
+    },
+    {
+      id: 'edit-grp', label: 'Editar', icon: 'edit', children: [
+        { id: 'cut', label: 'Cortar', icon: 'clipboard', action: () => this.notify('Editar → Cortar') },
+        { id: 'copy', label: 'Copiar', icon: 'copy', action: () => this.notify('Editar → Copiar') },
+        { id: 'paste', label: 'Pegar', icon: 'clipboard', action: () => this.notify('Editar → Pegar') },
+      ]
+    },
+    {
+      id: 'view', label: 'Ver', icon: 'eye', children: [
+        { id: 'zoom-in', label: 'Acercar', icon: 'plus', action: () => this.notify('Ver → Acercar') },
+        { id: 'zoom-out', label: 'Alejar', icon: 'minus', action: () => this.notify('Ver → Alejar') },
+      ]
+    },
     { id: 'settings', label: 'Configuración', icon: 'settings', separator: true, action: () => this.notify('Configuración') },
   ];
 
   /* ━━━━ 4. Menu with popover content ━━━━━━━━━━━━━━━━━━━━━━━ */
   popoverItems: MenuItem[] = [
-    { id: 'profile',  label: 'Mi Perfil', icon: 'user', popover: `
+    {
+      id: 'profile', label: 'Mi Perfil', icon: 'user', popover: `
       <div class="p-4 rounded-xl border bg-white dark:bg-slate-800 dark:border-slate-700 shadow-2xl w-64">
         <div class="flex items-center gap-3 mb-3">
           <div class="size-10 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm">JD</div>
@@ -62,18 +73,20 @@ export default class MenuShowcasePage extends BaseComponent {
         </div>
       </div>
     ` },
-    { id: 'notif',    label: 'Notificaciones', icon: 'mail', popover: () => this.buildNotificationPopover() },
-    { id: 'settings', label: 'Configuración',  icon: 'settings', separator: true, action: () => this.notify('Configuración') },
-    { id: 'logout',   label: 'Cerrar sesión',  icon: 'power',    action: () => this.notify('Cerrando sesión…') },
+    { id: 'notif', label: 'Notificaciones', icon: 'mail', popover: () => this.buildNotificationPopover() },
+    { id: 'settings', label: 'Configuración', icon: 'settings', separator: true, action: () => this.notify('Configuración') },
+    { id: 'logout', label: 'Cerrar sesión', icon: 'power', action: () => this.notify('Cerrando sesión…') },
   ];
 
   /* ━━━━ 5. Mixed: sub-menus + popovers + actions ━━━━━━━━━━━ */
   mixedItems: MenuItem[] = [
-    { id: 'dashboard', label: 'Dashboard',   icon: 'layers',   action: () => this.notify('Dashboard') },
-    { id: 'reports',   label: 'Informes',    icon: 'bar-chart', children: [
-      { id: 'sales',  label: 'Ventas',       icon: 'star',     action: () => this.notify('Informes → Ventas') },
-      { id: 'users',  label: 'Usuarios',     icon: 'users',    action: () => this.notify('Informes → Usuarios') },
-      { id: 'detail', label: 'Detalle',      icon: 'eye',      popover: `
+    { id: 'dashboard', label: 'Dashboard', icon: 'layers', action: () => this.notify('Dashboard') },
+    {
+      id: 'reports', label: 'Informes', icon: 'bar-chart', children: [
+        { id: 'sales', label: 'Ventas', icon: 'star', action: () => this.notify('Informes → Ventas') },
+        { id: 'users', label: 'Usuarios', icon: 'users', action: () => this.notify('Informes → Usuarios') },
+        {
+          id: 'detail', label: 'Detalle', icon: 'eye', popover: `
         <div class="w-80">
           <p class="font-bold text-sm mb-2 text-slate-900 dark:text-white">Vista previa</p>
           <div class="h-30 w-full flex-row items-center justify-center">
@@ -85,12 +98,16 @@ export default class MenuShowcasePage extends BaseComponent {
           </div>
         </div>
       ` },
-    ]},
-    { id: 'security', label: 'Seguridad',   icon: 'lock',     children: [
-      { id: 'pwd',   label: 'Cambiar contraseña', icon: 'edit', action: () => this.notify('Seguridad → Contraseña') },
-      { id: '2fa',   label: 'Activar 2FA',        icon: 'check', action: () => this.notify('Seguridad → 2FA') },
-    ]},
-    { id: 'fav',     label: 'Favoritos',    icon: 'heart',    separator: true, popover: `
+      ]
+    },
+    {
+      id: 'security', label: 'Seguridad', icon: 'lock', children: [
+        { id: 'pwd', label: 'Cambiar contraseña', icon: 'edit', action: () => this.notify('Seguridad → Contraseña') },
+        { id: '2fa', label: 'Activar 2FA', icon: 'check', action: () => this.notify('Seguridad → 2FA') },
+      ]
+    },
+    {
+      id: 'fav', label: 'Favoritos', icon: 'heart', separator: true, popover: `
       <div class="p-4 rounded-xl border bg-white dark:bg-slate-800 dark:border-slate-700 shadow-2xl w-56">
         <p class="font-bold text-sm mb-2 text-slate-900 dark:text-white">Favoritos</p>
         <ul class="text-sm space-y-1 text-slate-600 dark:text-slate-300">
@@ -100,12 +117,50 @@ export default class MenuShowcasePage extends BaseComponent {
         </ul>
       </div>
     ` },
-    { id: 'logout',  label: 'Salir',        icon: 'power',    separator: true, action: () => this.notify('Salir') },
+    { id: 'logout', label: 'Salir', icon: 'power', separator: true, action: () => this.notify('Salir') },
   ];
 
   /* ━━━━ 6. Popover standalone samples ━━━━━━━━━━━━━━━━━━━━━━ */
 
   clickInside = (): boolean => false;
+
+  /* ━━━━ 7. Autocomplete outputs ━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+  countrieService = new CountriesService();
+
+  searchCountries = async (query: string): Promise<AutocompleteItem[]> => {
+    if (query && query.trim().length > 2) {
+      const results = await this.countrieService.searchByName(query);
+      if (typeof results === 'string') {
+        console.error('Error en búsqueda de países:', results);
+        return [];
+      }
+      return results.data.map(c => ({ id: c.cca2, label: c.name, raw: c }));
+    }
+    return [];
+  }
+
+  onCountrySelected(item: AutocompleteItem) {
+    notificationService.show(
+      `País seleccionado: <b>${item.label}</b> <small>(id: ${item.id})</small>`,
+      3_000,
+    );
+    console.log('Item completo:', item);
+  }
+
+  renderCountry(item: AutocompleteItem): HTMLElement | string {
+    const country = item.raw as { flag?: string; capital?: string; region?: string };
+    return buildAndInterpolate(`
+      <div class="flex items-center gap-3">
+        <img src="{country.flag}" alt="" class="size-6 rounded-sm object-cover" />
+        <div class="flex-1 min-w-0 ">
+          <span class="font-medium">{item.label | undefined}</span>
+          <span class="text-xs text-slate-400 ml-1">{country.capital | undefined}</span>
+        </div>
+        <span class="text-xs text-slate-400 shrink-0">{country.region | undefined}</span>
+      </div>
+    `, { country, item });
+  }
 
   /* ━━━━ Helpers ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
@@ -300,6 +355,45 @@ export default class MenuShowcasePage extends BaseComponent {
           </section>
 
           </div><!-- /grid -->
+
+          <!-- 7. Autocomplete ──────────────────────────────── -->
+          <section class="mt-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-6">
+            <h2 class="text-xl font-bold mb-1 text-slate-800 dark:text-white">7 · Autocomplete</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              Componente <code class="text-indigo-500">app-autocomplete</code> con búsqueda debounced, dropdown flotante y outputs <code>(selected)</code> / <code>(custom-render)</code>.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              <div>
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">Básico</p>
+                <div
+                  data-component="app-autocomplete"
+                  data-placeholder="Buscar país…"
+                  data-name="country-basic"
+                  data-min-length="2"
+                  data-delay-ms="250"
+                  (selected)="onCountrySelected"
+                  (data-provider)="searchCountries">
+                </div>
+              </div>
+
+              <div>
+                <p class="text-xs font-medium text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wide">Custom render</p>
+                <div
+                  data-component="app-autocomplete"
+                  data-placeholder="Buscar país (custom)…"
+                  data-name="country-custom"
+                  data-min-length="2"
+                  data-delay-ms="250"
+                  (selected)="onCountrySelected"
+                  (custom-render)="renderCountry"
+                  (data-provider)="searchCountries">
+                </div>
+              </div>
+
+            </div>
+          </section>
+
         </div>
       </div>
     `;
