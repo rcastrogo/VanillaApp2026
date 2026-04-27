@@ -648,7 +648,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
                   <!-- Column visibility -->
                   
-                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">Columnas</p>
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">Columnas</p>                  
                   <div 
                     class="p-1 border rounded-lg h-30 overflow-auto" 
                     data-each="col in state.columns">
@@ -659,11 +659,10 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                           checked:state.columns.{index}.isVisible;
                           disabled:state.columns.{index}.options.canBeRemoved | equal : false
                         "
-                        on-change="handleToggleColumn:@col.key"
-                        @if(col.options?.canBeRemoved === false) disabled @endif
+                        on-change="handleToggleColumn:@col.key"                        
                         class="w-3 h-3 accent-indigo-500 cursor-pointer shrink-0"
                       />
-                      <span class="text-sm @if(col.options?.canBeRemoved === false) opacity-60 @endif">{col.title}</span>                      
+                      <span class="text-sm opacity-60 @endif">{col.title}</span>                      
                       </label>                
                   </div>
 
@@ -687,6 +686,34 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
               </div>
 
             </div>
+
+            <!-- Configuration button -->
+
+            <div 
+              data-component="app-popover-trigger"
+              data-mode="hover"
+              (click-inside)="clickInside"
+              class="mb-1">
+                <button 
+                  data-popover-trigger 
+                  class="app-button px-2! btn-ghost shrink-0">
+                  <i data-icon="settings" class="size-4"></i>
+                </button>
+                <div data-popover-content class="min-w-60">
+                  <div class="text-xs text-slate-500 mt-0.5 ">
+                    <div data-component="app-skeleton" class="w-60" data-type="avatar">
+                    </div>
+                    <div data-component="app-skeleton" class="w-48 mt-2" data-type="text"></div>
+                    <div data-component="app-badge" data-variant="primary" data-size="sm">
+                      Administrador
+                    </div>
+                      <div data-component="app-badge" data-variant="outline" data-size="sm">
+                      Xj25
+                    </div>
+                  </div>
+                </div>
+            </div>
+
           </div>
         </div>
 

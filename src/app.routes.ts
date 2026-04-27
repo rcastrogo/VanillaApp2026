@@ -34,6 +34,7 @@ export function configureRouter(){
     .addKeepAlive('keep-alive', () => import('./pages/samples/functional/keep-alive.page'))
     .add('pipe-tester', () => import('./pages/pipe-tester.page'), null)
     .add('table', () => import('./pages/table-basic.page'))
+    .add('menu-showcase', () => import('./pages/menu-showcase.page'))
     .notFound(() => import('./pages/not-found.page'));
 
   router.addRoute({

@@ -4,10 +4,12 @@ import type { ComponentElement } from "../types";
 import { APP_CONFIG } from "@/app.config";
 import {
   AlertComponent,
-  type afterOpenCallback, 
-  type AlertOptions, 
-  type AlertRef
 } from "@/components/alert/alert.component";
+import {
+  type afterOpenCallback,
+  type AlertOptions,
+  type AlertRef
+} from "@/components/alert/alert.model";
 
 class DialogService {
 

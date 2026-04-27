@@ -1,30 +1,15 @@
 
 import type { ComponentContext, ComponentInitValue, PublishContext } from '../component.model';
+import {
+  type NotificationPosition,
+  type NotificationType,
+} from './notification-panel.model';
 
 import { APP_CONFIG } from '@/app.config';
 import { $, buildAndInterpolate } from '@/core/dom';
 import { pubSub } from '@/core/services/pubsub.service';
 import { buildAndInterpolateDSL } from '@/core/template-compiler';
 import { BaseComponent } from '@/core/types';
-
-export type NotificationType = 'info' | 'error' | 'success' | 'warning' | '';
-
-export type NotificationPosition =
-  | 'top-right'
-  | 'top-left'
-  | 'top-center'
-  | 'bottom-right'
-  | 'bottom-left'
-  | 'bottom-center';
-
-export const notificationPositionEnum = {
-  TopRight: 'top-right',
-  TopLeft: 'top-left',
-  TopCenter: 'top-center',
-  BottomRight: 'bottom-right',
-  BottomLeft: 'bottom-left',
-  BottomCenter: 'bottom-center',
-} as const;
 
 interface NotificationInput {
   message: string;

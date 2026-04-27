@@ -14,9 +14,13 @@ const components = {
   // 'app-loader': LoaderComponent,
   // 'app-collapsible': CollapsibleComponent,
   // Componentes registrados manualmente para carga asíncrona perezosa o lazy loading
-  'app-combo-box': () => import('./components/combo-box.component'),
-  'app-tab': () => import('./components/tab.component'),
+  // 'app-combo-box': () => import('./components/combo-box.component'),
+  // 'app-tab': () => import('./components/tab.component'),
   'app-counter': () => import('./components/test/counter-component'),
+  'app-badge': () =>
+    import('./features/poc-1/components/github').then(module => ({ default: module.BadgeComponent })),
+  'app-skeleton': () =>
+     import('./features/poc-1/components/github').then(module => ({ default: module.SkeletonComponent })),
 } as Record<string, ComponentProvider>
 
 function registerComponent(name: string, componentProvider: ComponentProvider){

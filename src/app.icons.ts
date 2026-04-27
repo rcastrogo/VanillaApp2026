@@ -6,6 +6,7 @@ import {
   CheckCircle, XCircle, AlertTriangle, Check, CircleQuestionMark, CircleX, Text,
   MoreHorizontal, ArrowLeft,
   RefreshCcw, Edit, Search, Menu, BookOpen, CheckSquare, Square, Shuffle, Filter,
+  Clipboard, Copy, File, Folder, Layers, Eye, Lock, Mail, Star, Heart, Download, Upload,
   type IconNode,
 } from 'lucide';
 
@@ -58,6 +59,18 @@ const icons = {
   'square': Square,
   'shuffle': Shuffle,
   'filter': Filter,
+  'clipboard': Clipboard,
+  'copy': Copy,
+  'file': File,
+  'folder': Folder,
+  'layers': Layers,
+  'eye': Eye,
+  'lock': Lock,
+  'mail': Mail,
+  'star': Star,
+  'heart': Heart,
+  'download': Download,
+  'upload': Upload,
 } as Record<string, IconNode>;
 
 export const iconRegistry = {

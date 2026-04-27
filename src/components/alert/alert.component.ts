@@ -1,26 +1,14 @@
 
 
 import type { ComponentInitValue } from "../component.model";
+import { literals, type AlertOptions, type AlertSize } from "./alert.model";
 import template from "./alert.template.html?raw";
 
 import { APP_CONFIG } from "@/app.config";
+import { setupFocusTrap } from "@/core/dom";
 import { pubSub } from "@/core/services/pubsub.service";
 import { buildAndInterpolateDSL } from "@/core/template-compiler";
 import { BaseComponent } from "@/core/types";
-
-export const literals = {
-  noYes : ['ui.actions.no', 'ui.actions.yes' ],
-  cancelYes : ['ui.actions.cancel', 'ui.actions.yes' ]
-}
-
-export type AlertSize =
-  | 'sm'
-  | 'md'
-  | 'lg'
-  | 'xl'
-  | 'fullscreen' 
-  | 'none'
-  | 'image';
 
 const ALERT_SIZE_CLASS_MAP: Record<AlertSize, string> = {
   sm: 'w-[400px] max-w-[85vw] max-h-[90vh]',
@@ -31,37 +19,6 @@ const ALERT_SIZE_CLASS_MAP: Record<AlertSize, string> = {
   none: '',
   image : 'w-[80vw] !p-1'
 };
-
-export interface AlertRef {
-  afterOpen: (callback: (sender: AlertComponent) => void) => void;
-  instance?: AlertComponent
-}
-export type afterOpenCallback = ((data: AlertComponent) => void ) | null;
-
-export interface confirmParams {
-  element: HTMLElement;
-  setFeedback: (text: string) => void;
-  data: AlertComponent;
-}
-
-export interface AlertOptions {
-  title?: string;
-  subTitle?: string;
-  message?: string;
-  asHtml?: boolean;
-  onAfterOpen?: afterOpenCallback ;
-  context?: unknown; 
-  icon?: string;
-  showFooter?: boolean;
-  showConfirmButton?:boolean;
-  autoCloseMs?: number;
-  onConfirm?: (sender: AlertComponent) => boolean | void;
-  onCancel?: () => void;
-  onClose?: () => void;
-  literals?: string[];
-  disableClose?: boolean;
-  size?: AlertSize;
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isAlertOptions(obj: any): obj is AlertOptions {
@@ -75,6 +32,7 @@ export class AlertComponent extends BaseComponent {
   private onConfirm!: (sender: AlertComponent) => boolean;
 
   private disableClose = false;
+  private releaseFocusTrap?: () => void;
   showFooter = false;
   showConfirmButton = false;
 
@@ -107,6 +65,11 @@ export class AlertComponent extends BaseComponent {
 
   render(){
     this.element = buildAndInterpolateDSL(template, this);
+    requestAnimationFrame(() => {
+      if (this.element) {
+        this.releaseFocusTrap = setupFocusTrap(this.element);
+      }
+    });
     return this.bind(this.element);
   }
 
@@ -123,6 +86,7 @@ export class AlertComponent extends BaseComponent {
       this.element.remove();
     }
     pubSub.publish(APP_CONFIG.messages.app.dialogClosed, this)
+    this.releaseFocusTrap?.();    
   }
 
   canClose(){

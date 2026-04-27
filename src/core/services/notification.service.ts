@@ -2,7 +2,7 @@
 import { pubSub } from "./pubsub.service";
 
 import { APP_CONFIG } from "@/app.config";
-import type { NotificationType } from "@/components/notification-panel/notification-panel.component";
+import type { NotificationType } from "@/components/notification-panel/notification-panel.model";
 
 
 class NotificationService {

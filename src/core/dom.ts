@@ -69,3 +69,62 @@ export function getQueryParams(): Record<string, string> {
   const params = new URLSearchParams(window.location.search);
   return Object.fromEntries(params.entries());
 }
+
+
+export function setupFocusTrap(container: HTMLElement) {
+  if (!container) return;
+
+  const SELECTOR = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+    '[contenteditable]',
+    'iframe'
+  ].join(', ');
+
+  const getVisibleControls = () => {
+    const elements = container.querySelectorAll<HTMLElement>(SELECTOR);
+    return Array.from(elements).filter((el) => {
+      return el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0;
+    });
+  };
+
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+
+    const targets = getVisibleControls();
+    if (targets.length === 0) {
+      e.preventDefault();
+      return;
+    }
+
+    const first = targets[0];
+    const last = targets[targets.length - 1];
+    const active = document.activeElement;
+
+    if (!e.shiftKey && active === last) {
+      first.focus();
+      e.preventDefault();
+    } 
+
+    else if (e.shiftKey && (active === first || !container.contains(active))) {
+      last.focus();
+      e.preventDefault();
+    }
+  };
+
+  const initialTargets = getVisibleControls();
+  if (initialTargets.length > 0) {
+    initialTargets[0].focus();
+  }
+
+  window.addEventListener("keydown", onKeyDown, true);
+
+  return function cleanup() {
+    window.removeEventListener("keydown", onKeyDown, true);
+  };
+  
+}

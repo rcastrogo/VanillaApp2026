@@ -198,7 +198,9 @@ const homePage: ComponentFactory = () => {
 
                 <div data-component="app-menu-trigger" data-items="menuItems">
                   <div>
-                    <span class="text-slate-700 dark:text-slate-200 block truncate max-w-50">Haz click en el icono de ajustes</span>
+                    <span class="text-slate-700 dark:text-slate-200 block truncate max-w-50">
+                      Haz click en el icono de ajustes
+                    </span>
                     <div data-menu-trigger
                         class="flex items-center gap-2 cursor-pointer rounded-full px-3 py-2 text-sm
                                 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600">

@@ -1,7 +1,7 @@
 
 
 import { APP_CONFIG } from "@/app.config";
-import { literals, type AlertComponent, type AlertSize } from "@/components/alert/alert.component";
+import { type AlertComponentRef, literals, type AlertSize } from "@/components/alert/alert.model";
 import type { Component } from "@/components/component.model";
 import { buildAndInterpolate } from "@/core/dom";
 import { dialogService } from "@/core/services/dialog.service";
@@ -428,7 +428,7 @@ export default class IndexPage implements Component {
     });
   }
 
-  private confirmSave(opener: AlertComponent) {
+  private confirmSave(opener: AlertComponentRef) {
     dialogService.confirm('¿Estás seguro de que quieres sobreescribir los datos?', {
       title: 'Confirmación Crítica',
       literals: literals.noYes,
@@ -478,7 +478,7 @@ export default class IndexPage implements Component {
         asHtml:true,
         icon: undefined,
         showConfirmButton: true,
-        onConfirm : (sender: AlertComponent) => {
+        onConfirm : (sender: AlertComponentRef) => {
           const target = sender.getContainer()?.querySelector<HTMLInputElement>(':checked');
           const id = target && ~~target.value
           if(id){            

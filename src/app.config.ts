@@ -3,7 +3,7 @@ import { ComponentRegistry } from './app.components';
 import { iconRegistry } from './app.icons';
 import { messagesRegistry } from './app.messages';
 import { reportRegistry } from './app.reports';
-import { notificationPositionEnum, type NotificationPosition } from './components/notification-panel/notification-panel.component';
+import { notificationPositionEnum, type NotificationPosition } from './components/notification-panel/notification-panel.model';
 import { i18nService } from './i18n';
 
 const notificationPosition: NotificationPosition = notificationPositionEnum.TopCenter;

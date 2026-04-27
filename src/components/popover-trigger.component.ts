@@ -1,5 +1,5 @@
 import type { ComponentContext, ComponentInitValue } from "./component.model";
-import { $, buildAndInterpolate } from "../core/dom";
+import { $, buildAndInterpolate, setupFocusTrap } from "../core/dom";
 import { BaseComponent } from "../core/types";
 
 import { FloatingPortal } from "@/core/floating-portal";
@@ -9,8 +9,23 @@ export class PopoverTriggerComponent extends BaseComponent {
   private portal: FloatingPortal | null = null;
   private triggerEl: HTMLElement | null = null;
   private contentEl: HTMLElement | null = null;
+  private portalEl: HTMLElement | null = null;
+  private closeTimeout: ReturnType<typeof setTimeout> | null = null;
+  private releaseFocusTrap?: () => void;
 
   private readonly handleTriggerClick = () => this.toggle();
+  private readonly handleMouseEnter = () => {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
+    }
+    if (!this.state.isOpen) this.open();
+  };
+
+  private readonly handleMouseLeave = () => {
+    this.scheduleClose();
+  };
+
   private readonly handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape' && this.state.isOpen) this.close();
   };
@@ -26,6 +41,35 @@ export class PopoverTriggerComponent extends BaseComponent {
     this.setState({ isOpen: false });
   }
 
+  private get openMode(): 'click' | 'hover' {
+    const raw = (this.props.mode || this.props.trigger || 'click').toLowerCase();
+    return raw === 'hover' ? 'hover' : 'click';
+  }
+
+  private get isHoverMode(): boolean {
+    return this.openMode === 'hover';
+  }
+
+  private scheduleClose(): void {
+    if (this.closeTimeout) clearTimeout(this.closeTimeout);
+    this.closeTimeout = setTimeout(() => {
+      this.close();
+    }, 150);
+  }
+
+  private bindPortalHoverEvents(el: HTMLElement): void {
+    this.portalEl = el;
+    el.addEventListener('mouseenter', this.handleMouseEnter);
+    el.addEventListener('mouseleave', this.handleMouseLeave);
+  }
+
+  private unbindPortalHoverEvents(): void {
+    if (!this.portalEl) return;
+    this.portalEl.removeEventListener('mouseenter', this.handleMouseEnter);
+    this.portalEl.removeEventListener('mouseleave', this.handleMouseLeave);
+    this.portalEl = null;
+  }
+
   mounted(): void {
     if(!this.element) return;
    
@@ -37,15 +81,26 @@ export class PopoverTriggerComponent extends BaseComponent {
       return;
     }
     this.contentEl.style.display = 'none';
-    this.triggerEl.addEventListener('click', this.handleTriggerClick);
+    if (this.isHoverMode) {
+      this.triggerEl.addEventListener('mouseenter', this.handleMouseEnter);
+      this.triggerEl.addEventListener('mouseleave', this.handleMouseLeave);
+    } else {
+      this.triggerEl.addEventListener('click', this.handleTriggerClick);
+    }
     document.addEventListener('keydown', this.handleKeyDown);
     this.addCleanup(() => {
       this.triggerEl?.removeEventListener('click', this.handleTriggerClick);
+      this.triggerEl?.removeEventListener('mouseenter', this.handleMouseEnter);
+      this.triggerEl?.removeEventListener('mouseleave', this.handleMouseLeave);
+      this.unbindPortalHoverEvents();
+      if (this.closeTimeout) clearTimeout(this.closeTimeout);
       document.removeEventListener('keydown', this.handleKeyDown);
     });
   }
 
   destroy(): void {
+    this.unbindPortalHoverEvents();
+    if (this.closeTimeout) clearTimeout(this.closeTimeout);
     this.portal?.close();
     super.destroy();
   }
@@ -76,6 +131,9 @@ export class PopoverTriggerComponent extends BaseComponent {
           if(shouldClose) this.close();
         },
         onOpen: (el: HTMLElement) => {
+          if (this.isHoverMode) {
+            this.bindPortalHoverEvents(el);
+          }
           setTimeout(() => {
             this.beforeOpen?.(el);
           }, 0)
@@ -87,14 +145,27 @@ export class PopoverTriggerComponent extends BaseComponent {
     this.contentEl.style.display = '';
     this.state.isOpen = true;
     this.portal.open();
+    if (!this.isHoverMode) {
+      requestAnimationFrame(() => {
+        const portalEl = this.portal?.getPortalElement();
+        if (portalEl) this.releaseFocusTrap = setupFocusTrap(portalEl);
+      });
+    }
   }
 
   close(): void {
     if (!this.state.isOpen) return;
+    this.releaseFocusTrap?.();
+    this.releaseFocusTrap = undefined;
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
+    }
     this.state.isOpen = false;
+    this.unbindPortalHoverEvents();
     this.portal?.close();
     this.portal = null;
-    this.triggerEl?.focus();
+    if (!this.isHoverMode) this.triggerEl?.focus();
   }
 
   render(changedProp?: string): HTMLElement | null {

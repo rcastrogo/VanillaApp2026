@@ -223,7 +223,7 @@ export function evaluateExpression(expression: string, context: any): any {
     `);
     return fn(context);
   } catch (e) {
-    console.log(e)
+    console.log(e || 'evaluateExpression', expression, context)
     return false;
   }
 }
