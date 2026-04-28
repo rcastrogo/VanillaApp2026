@@ -32,3 +32,9 @@ export interface ComponentBinding {
   prop: string | null;
   path: string;
 }
+
+export interface AutocompleteItem {
+  id: string | number;
+  label: string;
+  raw?: unknown;
+}

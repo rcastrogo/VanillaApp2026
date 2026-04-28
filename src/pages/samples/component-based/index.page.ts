@@ -342,7 +342,7 @@ export default class IndexPage implements Component {
   showTemplateAlert(_e : HTMLElement, _ev: Event, size: AlertSize = 'sm') {
     dialogService.showDialog({
       message: `
-        <div data-component="app-red-progress-bar"></div>
+        <div data-component="app-pol-red-progress-bar"></div>
         <p class="text-center text-gray-700">This is a template-based alert with size ${size}.</p>
       `,
       title: 'Template mode',

@@ -1,16 +1,11 @@
 
-import type { ComponentContext, ComponentInitValue } from "./component.model";
+import type { AutocompleteItem, ComponentContext, ComponentInitValue } from "./component.model";
 
 import { $, buildAndInterpolate } from "@/core/dom";
 import { FloatingPortal } from "@/core/floating-portal";
 import { BaseComponent } from "@/core/types";
 import { debounce } from "@/core/utils";
 
-export interface AutocompleteItem {
-  id: string | number;
-  label: string;
-  raw?: unknown;
-}
 
 export class AutocompleteComponent extends BaseComponent {
 
@@ -34,8 +29,10 @@ export class AutocompleteComponent extends BaseComponent {
       selectedId: '',
       selectedLabel: '',
     });
-    const delay = Number(this.props.delayMs ?? 300);
-    this.debouncedSearch = debounce((value: string) => this.search(value), delay);
+    this.debouncedSearch = debounce(
+      (value: string) => this.search(value), 
+      Number(this.props.delayMs ?? 300)
+    );
   }
 
   /* ──────────────── Input / search ──────────────── */
@@ -49,9 +46,15 @@ export class AutocompleteComponent extends BaseComponent {
     }
     this.debouncedSearch(value);
   }
+  onFocus(el: HTMLInputElement) {
+    if(this.portal) return;
+    this.onInput(el);
+  }
 
   private async search(term: string) {
     if(this.dataProvider){
+      this.close();
+      this.open();
       try {
         this.items = await this.dataProvider(term);
       } catch (error) {
@@ -64,12 +67,16 @@ export class AutocompleteComponent extends BaseComponent {
       }
     }
     this.highlightIndex = -1;
-    this.updateList();
+
+    setTimeout(() => {
+      this.updateList();  
+    }, 100);
+    
   }
 
   /* ──────────────── Selection ──────────────── */
 
-  private selectByTarget(el:HTMLElement){
+  private selectElement(el:HTMLElement){
     const idx = el.getAttribute('data-idx');
     if(idx){
       this.selectByIndex(Number(idx));
@@ -143,7 +150,7 @@ export class AutocompleteComponent extends BaseComponent {
         <input
           type="text"
           on-input="onInput"
-          on-focus="onInput"
+          on-focus="onFocus"
           on-keydown="handleKeyDown"
           data-bind="value:state.selectedLabel"
           placeholder="${this.props?.placeholder ?? 'Buscar…'}"
@@ -166,9 +173,31 @@ export class AutocompleteComponent extends BaseComponent {
   private open() {
     if (this.portal || !this.element) return;
 
-    this.listEl = document.createElement('div');
-    this.listEl.className = 'rounded-lg border border-slate-200 dark:border-slate-600 shadow-xl bg-white dark:bg-slate-800 overflow-hidden';
-    this.listEl.setAttribute('role', 'listbox');
+    const tempate = `
+      <div
+        role="listbox"
+        class="rounded-lg border border-slate-200 dark:border-slate-600 
+        shadow-xl bg-white dark:bg-slate-800 overflow-hidden"
+        > 
+        <div class="p-2 text-sm text-slate-500 overflow-auto max-h-60">
+          <div class="px-2">
+            Cargando resultados...
+            <div data-component="app-progress-bar" class="my-2"></div>
+            </div>
+            <div data-component="app-pol-red-progress-bar" class="my-2" data-message="Cargando resultados...">
+              Cargando resultados...
+            </div>    
+          </div>
+          <div class="px-4 text-sm text-slate-500">
+            <div data-component="app-skeleton" data-lines="1"></div>
+            <div data-component="app-skeleton" data-lines="1"></div>
+            <div data-component="app-skeleton" data-lines="1"></div>            
+            <div class="my-2"></div>
+          </div
+        </div>
+      </div>
+    `;
+    this.listEl = buildAndInterpolate(tempate, this);
 
     this.portal = new FloatingPortal(this.element, this.listEl, {
       onClose: () => this.close(),
@@ -189,7 +218,7 @@ export class AutocompleteComponent extends BaseComponent {
             type="button" 
             role="option" 
             data-idx="{index}"
-            on-click="selectByTarget"
+            on-click="selectElement"
             class="
               flex items-center gap-2 w-full px-3 py-2 text-sm text-left
             text-slate-700 dark:text-slate-200 hover:bg-indigo-50 
@@ -200,7 +229,7 @@ export class AutocompleteComponent extends BaseComponent {
         </div>
       </div>
     `;
-    const rendered = buildAndInterpolate(listTemplate, {items: this.items, selectByTarget: this.selectByTarget});
+    const rendered = buildAndInterpolate(listTemplate, {items: this.items, selectElement: this.selectElement});
     if(this.customRender){
       const buttons = $('[role="option"]', rendered).all();
       buttons.forEach((btn, i) => {

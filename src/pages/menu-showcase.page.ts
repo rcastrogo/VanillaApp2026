@@ -1,4 +1,5 @@
-import type { AutocompleteItem } from '@/components/autocomplete.component';
+
+import type { AutocompleteItem } from '@/components/component.model';
 import type { MenuItem } from '@/components/menu-trigger.component';
 import { buildAndInterpolate } from '@/core/dom';
 import { notificationService } from '@/core/services/notification.service';
