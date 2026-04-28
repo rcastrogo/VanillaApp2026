@@ -1,7 +1,6 @@
 import { buildAndInterpolate } from "../../core/dom";
 import { BaseComponent } from "../../core/types";
-import type { ComboItem } from "../combo-box.component";
-import type { ComponentContext, ComponentInitValue } from "../component.model";
+import type { ComboItem, ComponentContext, ComponentInitValue } from "../component.model";
 
 import { notificationService } from "@/core/services/notification.service";
 
@@ -219,7 +218,7 @@ export default class EntityMasterDetailComponent extends BaseComponent {
     this.syncSelectionUI();
   }
 
-  updateTextField2(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, _event: Event, item: ComboItem) {
+  updateWarehouseField(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, _event: Event, item: ComboItem) {
     if(el.attributes.getNamedItem('app-combo-box')) {
       this.syncDraft({ warehouse: item.id });
     }
@@ -448,7 +447,7 @@ export default class EntityMasterDetailComponent extends BaseComponent {
                      data-items="warehouseItems"
                      data-placeholder="Elige un almacén"
                      data-name="warehouse"
-                     (selected)="updateTextField2"
+                     (selected)="updateWarehouseField"
                      data-bind="value:view.current.warehouse"
                   >
                 </div>  
