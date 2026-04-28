@@ -78,7 +78,7 @@ const homePage: ComponentFactory = () => {
       { id: 'archive', label: 'Archivar',  icon: 'check',  disabled: true,  action() { /* disabled */ } },
       { id: 'delete',  label: 'Eliminar',  icon: 'trash',  separator: true, action() { notificationService.show('<b>Eliminar</b> pulsado', 1_500); } },
     ],
-    onSelectCode(item: { id: string | number; label: string }) {
+    onSelectCode(_el: HTMLElement, _ev: Event, item: { id: string | number; label: string }) {
       notificationService.show(`Código seleccionado: <b>${item.label}</b> (id: ${item.id})`, 2_000);
     },
     customRender(data:{ id: string | number; label: string }) {

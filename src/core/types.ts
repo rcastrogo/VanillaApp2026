@@ -140,11 +140,15 @@ export abstract class BaseComponent implements Component {
     this.bindings.forEach(binding => {
       if (binding.element.isConnected) {
         resolveBindingValue(binding, this as Record<string, unknown>);
+      } else {
+        // console.log('Elemento desconectado', binding);        
+        resolveBindingValue(binding, this as Record<string, unknown>);        
       }
     });    
   }
 
   abstract render(changedProp?: string): HTMLElement | null;
+  setProp?(prop: string, value: string | number): void;
 
   mounted() { /* empty */ }
   init(ctx?: ComponentInitValue) { 
@@ -200,6 +204,8 @@ export abstract class BaseComponent implements Component {
       this.props = { ...ctx.parent.dataset };
       this.children = Array.from(ctx.parent.childNodes);
       this.setupOutputs(ctx);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (ctx.parent as any).__instance = this;
     }    
   }
 

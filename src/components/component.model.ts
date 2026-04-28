@@ -38,3 +38,9 @@ export interface AutocompleteItem {
   label: string;
   raw?: unknown;
 }
+
+export interface ComboItem {
+  id: string | number;
+  label: string;
+}
+

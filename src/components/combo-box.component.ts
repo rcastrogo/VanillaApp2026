@@ -1,18 +1,13 @@
-import type { ComponentContext, ComponentInitValue } from "./component.model";
+import type { ComboItem, ComponentContext, ComponentInitValue } from "./component.model";
 import { $, build, buildAndInterpolate } from "../core/dom";
 import { getValue } from "../core/template";
 import { BaseComponent } from "../core/types";
 
 import { FloatingPortal } from "@/core/floating-portal";
 
-interface ComboItem {
-  id: string | number;
-  label: string;
-}
-
 export class ComboBoxComponent extends BaseComponent {
 
-  public selected?: (item: ComboItem) => void;
+  public selected?: (el: HTMLElement, ev: Event, item: ComboItem) => void;
   public customRender?: (item: ComboItem) => HTMLElement;
 
   private items: ComboItem[] = [];
@@ -22,6 +17,18 @@ export class ComboBoxComponent extends BaseComponent {
 
   constructor(ctx: ComponentContext) {
     super(ctx);
+  }
+
+  public setProp(name: string, value: string | number) {
+    if (name === 'value') {
+      const item = this.items.find(it => String(it.id) === String(value));
+      if (item) {
+        this.setState({
+          selectedLabel: item.label,
+          selectedId: String(item.id),
+        });
+      }
+    }
   }
 
   private normalizeItems(raw: unknown[]): ComboItem[] {
@@ -86,7 +93,7 @@ export class ComboBoxComponent extends BaseComponent {
       const input = $('input[type="text"]', this.element).one();
       input?.focus();
     });
-    this.selected?.({ id: item.id, label: item.label });
+    this.selected?.(this.element!, null as unknown as Event, { id: item.id, label: item.label });
   }
 
   handleKeyDown(_el: HTMLElement, ev: KeyboardEvent) {

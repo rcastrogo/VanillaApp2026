@@ -1,5 +1,6 @@
 import { buildAndInterpolate } from "../../core/dom";
 import { BaseComponent } from "../../core/types";
+import type { ComboItem } from "../combo-box.component";
 import type { ComponentContext, ComponentInitValue } from "../component.model";
 
 import { notificationService } from "@/core/services/notification.service";
@@ -218,6 +219,12 @@ export default class EntityMasterDetailComponent extends BaseComponent {
     this.syncSelectionUI();
   }
 
+  updateTextField2(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, _event: Event, item: ComboItem) {
+    if(el.attributes.getNamedItem('app-combo-box')) {
+      this.syncDraft({ warehouse: item.id });
+    }
+  }
+
   updateTextField(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, _event: Event, field: string) {
     this.syncDraft({ [field]: el.value });
   }
@@ -324,6 +331,8 @@ export default class EntityMasterDetailComponent extends BaseComponent {
     const warehouseOptions = SELECT_OPTIONS.warehouses.map((option) => `<option value="${option}">${option}</option>`).join("");
     const statusOptions = SELECT_OPTIONS.statuses.map((option) => `<option value="${option}">${option}</option>`).join("");
     const countryOptions = SELECT_OPTIONS.countries.map((option) => `<option value="${option}">${option}</option>`).join("");
+
+    const warehouseItems = SELECT_OPTIONS.warehouses.map((name) => ({ value: name, label: name }));
 
     const template = `
       <section class="overflow-hidden rounded-4xl border border-slate-200/80 bg-linear-to-br from-white via-cyan-50/70 to-slate-100 shadow-[0_30px_80px_-45px_rgba(8,47,73,0.45)] dark:border-slate-800 dark:from-slate-950 dark:via-slate-900 dark:to-cyan-950/30">
@@ -433,6 +442,17 @@ export default class EntityMasterDetailComponent extends BaseComponent {
 
               <label class="space-y-2">
                 <span class="text-xs font-bold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Almacén</span>
+                
+                <div class="w-full"
+                     data-component="app-combo-box"
+                     data-items="warehouseItems"
+                     data-placeholder="Elige un almacén"
+                     data-name="warehouse"
+                     (selected)="updateTextField2"
+                     data-bind="value:view.current.warehouse"
+                  >
+                </div>  
+                
                 <select
                   on-change="updateTextField:warehouse"
                   data-bind="value:view.current.warehouse"
@@ -565,6 +585,6 @@ export default class EntityMasterDetailComponent extends BaseComponent {
       </section>
     `;
 
-    return buildAndInterpolate(template, this);
+    return buildAndInterpolate(template, {...this, warehouseItems });
   }
 }

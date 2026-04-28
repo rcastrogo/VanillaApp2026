@@ -7,7 +7,7 @@ import { APP_CONFIG } from "../app.config";
 import type { BindingResolver, ComponentBinding, ComponentContext } from "../components/component.model";
 import { loader } from "./services/loader.service";
 import { pubSub } from "./services/pubsub.service";
-import { router} from "./services/router.service";
+import { router } from "./services/router.service";
 
 export function hydrateElement(element: HTMLElement, ctx: ComponentContext) {
   hydrateIcons(element);
@@ -45,7 +45,7 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
       // 1. SUSCRIPCIÓN REACTIVA (on-publish)
       // =======================================================================
       if (attrName === 'on-publish') {
-        const [topic, scope, action, ...extraArgs] = attrValue.split(':');  
+        const [topic, scope, action, ...extraArgs] = attrValue.split(':');
         const instanceId = scope === 'local' ? ctx.instanceId : undefined;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const unsubscribe = pubSub.subscribe(topic, (payload: any) => {
@@ -55,9 +55,9 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
             case 'classname': el.className = data; break;
             case 'html':
             case 'innerhtml': el.innerHTML = data; break;
-            case 'json':      el.innerHTML = JSON.stringify(getValue(data,ctx), null, 2); break;
+            case 'json': el.innerHTML = JSON.stringify(getValue(data, ctx), null, 2); break;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            case 'style':     (el.style as any)[extraArgs[0]] = data; break;
+            case 'style': (el.style as any)[extraArgs[0]] = data; break;
             case 'toggleclass': el.classList.toggle(extraArgs[0]); break;
             default:
               if (action && typeof ctx[action] === 'function') {
@@ -91,7 +91,7 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
       // 3. EVENTOS DEL DOM (on-click, on-change, on-input...)
       // =======================================================================
       else if (attrName.startsWith('on-')) {
-        const eventName = attrName.replace('on-', '');    
+        const eventName = attrName.replace('on-', '');
         // Caso A: El evento dispara una publicación global
         if (attrValue.startsWith('publish')) {
           const [, topic, scope, ...extraArgs] = attrValue.split(':');
@@ -102,13 +102,13 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
           const publisherId = scope === 'local' ? ctx.instanceId : undefined;
           el.addEventListener(eventName, (ev) => {
             const params = extraArgs.length > 0 ? resolveArgs(extraArgs, ctx) : [];
-            pubSub.publish(topic, { 
-              event: ev, 
-              target: el, 
-              args: params 
+            pubSub.publish(topic, {
+              event: ev,
+              target: el,
+              args: params
             }, publisherId);
           });
-        } 
+        }
         // Caso B: El evento dispara un método del componente
         else {
           const [handlerName, ...eventArgs] = attrValue.split(':');
@@ -135,7 +135,7 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
             const [type, prop] = typeAndProp.includes('.')
               ? typeAndProp.split('.')
               : [typeAndProp, null];
-            const binding: ComponentBinding = {
+            const binding = {
               element: el,
               type,
               prop,
@@ -170,23 +170,23 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
       const component = await loader.resolve(provider, ctx) as BaseComponent;
       el.removeAttribute('data-component');
       const customClasses = el.className.trim();
-      component.init?.({parent: el});
+      component.init?.({ parent: el });
       const element = component.render() as ComponentElement;
-      if(element){
+      if (element) {
         BaseComponent.bind(component, element);
-        if(!element.id) {
+        if (!element.id) {
           element.setAttribute('id', el.id);
         }
         element.setAttribute(componentName, '');
         if (customClasses) {
           const classesArray = customClasses.split(/\s+/).filter(c => c.length > 0);
           element.classList.add(...classesArray);
-        }        
+        }
       }
       el.replaceWith(
         element || document.createComment(`Component ${componentName} rendered an empty element`)
       );
-      component.mounted?.();    
+      component.mounted?.();
     } else {
       console.error(`Componente ${componentName} no encontrado en el registro.`);
     }
@@ -199,7 +199,7 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
   container.querySelectorAll<HTMLElement>('[data-t]').forEach(el => {
     const key = el.dataset.t!;
     const cleanKey = key.startsWith('t:') ? key.slice(2) : key;
-    el.textContent = APP_CONFIG.i18n.t(cleanKey, ctx);    
+    el.textContent = APP_CONFIG.i18n.t(cleanKey, ctx);
     el.setAttribute('data-i18n-key', cleanKey);
   });
   // 1. Buscamos solo los bucles de PRIMER NIVEL (los que no tienen otro data-each encima)
@@ -213,14 +213,14 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
       let list: unknown[] = [];
       if (listExpression.startsWith('[') && listExpression.endsWith(']')) {
         try {
-          list = JSON.parse(listExpression.replace(/'/g, '"')); 
+          list = JSON.parse(listExpression.replace(/'/g, '"'));
         } catch (e) {
           console.error("Error parseando array estático en data-each:", e);
         }
       } else {
         list = getValue(listExpression, ctx) || [];
       }
-  
+
       const templateHTML = repeater.innerHTML.replaceAll('~', '|');
       repeater.innerHTML = '';
       repeater.removeAttribute('data-each');
@@ -242,7 +242,7 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
         const itemCtx = Object.create(ctx);
         itemCtx[itemName] = item;
         itemCtx.index = index;
-        itemCtx['#'] = ctx; 
+        itemCtx['#'] = ctx;
         const instance = buildAndInterpolate(templateHTML, itemCtx, false);
 
         assingLocalCtxToElement(instance, itemCtx);
@@ -269,7 +269,14 @@ export function getResolver(binding: ComponentBinding): BindingResolver {
     },
     text: (el, value) => el.innerText = value ?? '',
     html: (el, value) => el.innerHTML = value ?? '',
-    value: (el, value) => (el as HTMLInputElement).value = value ?? '',
+    value: (el, value) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ref = (el as any).__instance;
+      if (ref) 
+        ref.setProp?.('value', value);
+      else
+        (el as HTMLInputElement).value = value ?? '';
+    },
     checked: (el, value) => (el as HTMLInputElement).checked = !!value,
     attr: (el, value) => value === null || value === undefined ? el.removeAttribute(prop!) : el.setAttribute(prop!, String(value)),
     class: (el, value) => el.className = value ?? '',
@@ -279,7 +286,7 @@ export function getResolver(binding: ComponentBinding): BindingResolver {
     show: (el, value) => el.style.display = value ? '' : 'none',
     hide: (el, value) => el.style.display = value ? 'none' : '',
     disabled: (el, value) => (el as HTMLButtonElement | HTMLInputElement).disabled = !!value
-  };  
+  };
   return resolvers[type] || resolvers.text;
 }
 
@@ -294,7 +301,7 @@ function assingLocalCtxToElement(element: HTMLElement, ctx: ComponentContext) {
 function findLocalCtx(element: HTMLElement): ComponentContext | null {
   let current: ElementWithCtx | null = element;
   while (current) {
-    const localCtx = current.__localCtx__; 
+    const localCtx = current.__localCtx__;
     if (localCtx) return localCtx;
     current = current.parentElement;
   }
@@ -302,10 +309,10 @@ function findLocalCtx(element: HTMLElement): ComponentContext | null {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function resolveBindingValue( binding: ComponentBinding, ctx: Record<string, unknown>): any {
+export function resolveBindingValue(binding: ComponentBinding, ctx: Record<string, unknown>): any {
   const resolver = getResolver(binding);
   const value = getValue(binding.path, ctx);
-  if(value !== undefined){
+  if (value !== undefined) {
     resolver(binding.element, value);
     return;
   }
