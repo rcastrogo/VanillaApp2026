@@ -9,6 +9,17 @@ import { loader } from "./services/loader.service";
 import { pubSub } from "./services/pubsub.service";
 import { router } from "./services/router.service";
 
+const pendingHydrations = new WeakMap<object, Promise<void>>();
+
+export function trackHydration(ctx: object, promise: Promise<void>) {
+  const existing = pendingHydrations.get(ctx);
+  pendingHydrations.set(ctx, existing ? existing.then(() => promise) : promise);
+}
+
+export function getHydrationPromise(ctx: object): Promise<void> {
+  return pendingHydrations.get(ctx) || Promise.resolve();
+}
+
 export function hydrateElement(element: HTMLElement, ctx: ComponentContext) {
   hydrateIcons(element);
   hydrateEventListeners(element, ctx);

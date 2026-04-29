@@ -1,4 +1,4 @@
-import { hydrateComponents, hydrateDirectives, hydrateEventListeners, hydrateIcons } from "./hydrate";
+import { hydrateComponents, hydrateDirectives, hydrateEventListeners, hydrateIcons, trackHydration } from "./hydrate";
 import { interpolate } from "./template";
 import type { ComponentContext } from "../components/component.model";
 
@@ -25,7 +25,10 @@ export function build<T extends HTMLElement>(
   // 2. Hidratar iconos (cosas estéticas)
   hydrateIcons(el);
   // 3. Hidratar componentes (ya sobre los nodos finales generados por el each)
-  if (ctx) hydrateComponents(el, ctx);
+  if (ctx) {
+    const hydrationPromise = hydrateComponents(el, ctx);
+    trackHydration(ctx, hydrationPromise);
+  }
   // 4. Listeners (al final, para que los componentes hidratados no pierdan sus eventos)
   if (ctx) hydrateEventListeners(el, ctx);
   // Forzamos que siempre devuelva UN nodo
