@@ -10,6 +10,7 @@ import { initObserver } from '../dom-observer';
 import { setupIcons } from '../icons';
 import { setupReports } from '../report-registry';
 import { BaseComponent } from '../types';
+import { setupTooltip } from './tooltip.service';
 
 import type { ComponentConstructor } from '@/components/component.model';
 
@@ -88,8 +89,10 @@ class ViewRenderer {
     const routeElement = BaseComponent.renderAndBind(component);
     if(routeElement){
       outlet.appendChild(routeElement);
-    } 
-    this.currentComponent.mounted?.();
+    }
+
+    this.currentComponent?.mounted?.();
+
   }
 }
 
@@ -149,6 +152,7 @@ class AppEngine {
     setupIcons(APP_CONFIG.icons);
     setupComponents(APP_CONFIG.components);
     setupReports(APP_CONFIG.reports);
+    setupTooltip()   
     this.initEventListeners();
     initObserver();
   }

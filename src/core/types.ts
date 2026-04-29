@@ -240,6 +240,31 @@ export abstract class BaseComponent implements Component {
     return (el as any)?.__componentInstance || null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static waitForInstance<T = any>(
+    selector: string, 
+    root: HTMLElement, 
+    timeout = 5000
+  ): Promise<T | null> {
+    const existing = BaseComponent.getInstance<T>(selector, root);
+    if (existing) return Promise.resolve(existing);
+
+    return new Promise((resolve) => {
+      const observer = new MutationObserver(() => {
+        const instance = BaseComponent.getInstance<T>(selector, root);
+        if (instance) {
+          observer.disconnect();
+          resolve(instance);
+        }
+      });
+      observer.observe(root, { childList: true, subtree: true, attributes: true });
+      setTimeout(() => {
+        observer.disconnect();
+        resolve(null);
+      }, timeout);
+    });
+  }
+
   protected bind(el: HTMLElement): ComponentElement {
     return BaseComponent.bind(this, el);
   }

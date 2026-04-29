@@ -1,6 +1,6 @@
 
 import type { TabComponent, TabVariant } from '@/components/tab.component';
-import { buildAndInterpolate } from '@/core/dom';
+import { $, buildAndInterpolate } from '@/core/dom';
 import { BaseComponent } from '@/core/types';
 
 export default class PipeTesterPage extends BaseComponent {
@@ -16,8 +16,10 @@ export default class PipeTesterPage extends BaseComponent {
     return target.tagName === 'BUTTON' || target.closest('button') !== null;
   }
 
-  clonePipesDocumentation(container: HTMLElement): void {
-    const original = document.querySelector('[data-pipes-documentation]');
+  async clonePipesDocumentation(container: HTMLElement): Promise<void> {
+    if(!this.element) return;
+    const comp = await BaseComponent.waitForInstance('[app-pipe-tester]', this.element!);
+    const original = $<HTMLElement>('[data-pipes-documentation]', comp.element).one();
     if (!original) return;
     const clone = original.cloneNode(true) as HTMLElement;
     clone.removeAttribute('data-pipes-documentation');
@@ -103,12 +105,13 @@ export default class PipeTesterPage extends BaseComponent {
     return buildAndInterpolate(template, this);
   }
 
-  mounted(): void {
+   async mounted(): Promise<void> {
+    this.tabComponent = await BaseComponent.waitForInstance('[app-tab]', this.element!);
+    this.tabComponent?.setVariant('segmented');
+
     setTimeout(() => {
-      if (!this.element) return;
-      this.tabComponent = BaseComponent.getInstance('[app-tab]', this.element);
-      this.tabComponent?.setVariant('segmented');
       this.updateBindings();    
-    }, 500);
+    }, 100);
+
   }
 }

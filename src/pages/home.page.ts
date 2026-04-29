@@ -249,13 +249,13 @@ const homePage: ComponentFactory = () => {
 
             <div data-id="counter" data-title="Counter" data-icon-name="timer">
               <h2 class="text-2xl font-bold mb-2">Counter</h2>
-              <p class="text-gray-700 dark:text-gray-300">
+              <p  class="text-gray-700 dark:text-gray-300">
                 Esta es la pestaña del contador. Aquí puedes mostrar un contador o cualquier otro componente interactivo.
               </p>
               <div data-component="app-counter"></div>
             </div>
 
-            <div data-id="solo-icono" data-alt="Solo el icono" data-icon-name="zap">
+            <div data-id="solo-icono" data-icon-name="zap">
               <h3 class="font-bold text-lg">Sin icono</h3>
               <p>
                 Este tab no tiene icono, solo texto. Puedes usarlo para secciones donde el icono no es necesario o para mantener un diseño más limpio.

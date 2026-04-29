@@ -4,6 +4,7 @@ export interface PortalOptions {
   onClickInside?: (e: MouseEvent) => void;
   onOpen?: (portalEl: HTMLElement) => void;
   placement?: string;
+  type?: 'popover' | 'tooltip';
 }
 
 export class FloatingPortal {
@@ -75,6 +76,10 @@ export class FloatingPortal {
   }
 
   private updatePosition() {
+    if (this.options.type === 'tooltip') {
+      this.updatePositionTooltip();
+      return;
+    }
     const rect = this.triggerElement.getBoundingClientRect();
     const portalHeight = this.portalElement.offsetHeight;
     const portalWidth = this.portalElement.offsetWidth;
@@ -135,6 +140,70 @@ export class FloatingPortal {
 
     this.portalElement.style.left = `${left}px`;
     this.portalElement.style.top = `${top}px`;
+  }
+
+  private updatePositionTooltip() {
+    const rect    = this.triggerElement.getBoundingClientRect();
+    const pH      = this.portalElement.offsetHeight;
+    const pW      = this.portalElement.offsetWidth;
+    const vH      = window.innerHeight;
+    const vW      = window.innerWidth;
+    const offset  = this.options.offset ?? 6;
+    const placement = this.options.placement ?? 'top';
+
+    // Espacio disponible en cada lado
+    const space = {
+      top:    rect.top,
+      bottom: vH - rect.bottom,
+      left:   rect.left,
+      right:  vW - rect.right,
+    };
+
+    // Flip: si no cabe en el lado pedido, va al opuesto
+    const flip: Record<string, string> = {
+      top: 'bottom', bottom: 'top',
+      left: 'right', right: 'left',
+    };
+    const base = placement.split('-')[0] as keyof typeof space;
+    const fits = space[base] >= pH + offset;
+    const side = fits ? base : flip[base];
+
+    // Posición centrada en el eje cruzado
+    const centerX = rect.left + rect.width  / 2 - pW / 2;
+    const centerY = rect.top  + rect.height / 2 - pH / 2;
+
+    let top: number;
+    let left: number;
+
+    switch (side) {
+      case 'top':
+        top  = rect.top - pH - offset;
+        left = centerX;
+        break;
+      case 'bottom':
+        top  = rect.bottom + offset;
+        left = centerX;
+        break;
+      case 'left':
+        top  = centerY;
+        left = rect.left - pW - offset;
+        break;
+      case 'right':
+        top  = centerY;
+        left = rect.right + offset;
+        break;
+      default:
+        top  = rect.top - pH - offset;
+        left = centerX;
+    }
+
+    // Clamp para que no salga de la viewport
+    left = Math.min(Math.max(left, offset), vW - pW - offset);
+    top  = Math.min(Math.max(top,  offset), vH - pH - offset);
+
+    this.portalElement.style.left = `${left}px`;
+    this.portalElement.style.top  = `${top}px`;
+    this.portalElement.style.minWidth = ''; // no heredar ancho del trigger
   }
 
   private updateBound = () => this.scheduleUpdate();
