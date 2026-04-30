@@ -11,6 +11,7 @@ export interface Character {
   occupation: string;
   status: string;
   portrait_path: string;
+  phrases?: string[];
 }
 
 export async function getCharacters(page = 1): Promise<WrappedFetchResponse<Character[]> | string> {

@@ -1,5 +1,6 @@
 
 export type StateCallback<V> = (value: V) => void;
+export type SubscribeFn<T extends object> = <K extends keyof T>(prop: K, callback: StateCallback<T[K]>) => () => void;
 
 export function useState<T extends object>(initial: T) {
 

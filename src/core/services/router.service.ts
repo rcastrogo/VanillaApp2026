@@ -1,11 +1,11 @@
 
 import { dialogService } from "./dialog.service";
 import { pubSub } from "./pubsub.service";
+import { tooltip } from "./tooltip.service";
 import type { ComponentConstructor, ComponentCreator } from "../../components/component.model";
 import type { NavigateEventArg } from "../types";
 
 import { APP_CONFIG } from "@/app.config";
-
 
 export type ComponentProvider = 
   | ComponentCreator 
@@ -91,6 +91,7 @@ class RouterService {
     }
     // Clear alert messages on route change
     dialogService.forceClose();
+    tooltip.hide();
   }
 }
 

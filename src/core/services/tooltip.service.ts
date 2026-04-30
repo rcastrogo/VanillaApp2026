@@ -3,9 +3,7 @@ import { FloatingPortal } from "../floating-portal";
 
 export function setupTooltip(root: HTMLElement = document.body) {
   root.addEventListener('mouseover', handleTooltipEnter);
-  root.addEventListener('focusin',   handleTooltipEnter);
   root.addEventListener('mouseout',  handleTooltipLeave);
-  root.addEventListener('focusout',  handleTooltipLeave);
 }
 
 function handleTooltipEnter(e: Event) {
