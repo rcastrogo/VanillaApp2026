@@ -1,6 +1,6 @@
 
 import type { ComponentBinding, ComponentFactory } from '@/components/component.model';
-import { buildAndInterpolate } from '@/core/dom';
+import { $, buildAndInterpolate } from '@/core/dom';
 import { resolveBindingValue } from '@/core/hydrate';
 import { router } from '@/core/services/router.service';
 import { stravaService, type StravaActivity, type StravaAthlete } from './strava.service';
@@ -28,6 +28,12 @@ function formatDate(dateStr: string): string {
     month: 'short',
     day: 'numeric',
   });
+}
+
+function escapeHtml(str: string): string {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 function getActivityIcon(type: string): string {
@@ -151,9 +157,9 @@ const stravaActivitiesPage: ComponentFactory = () => {
 
     renderAthleteInfo() {
       if (!this.athlete || !this.element) return;
-      const avatar = this.element.querySelector('[data-ref="athleteAvatar"]') as HTMLElement;
-      const name = this.element.querySelector('[data-ref="athleteName"]') as HTMLElement;
-      const location = this.element.querySelector('[data-ref="athleteLocation"]') as HTMLElement;
+      const avatar = $('[data-ref="athleteAvatar"]', this.element).one();
+      const name = $('[data-ref="athleteName"]', this.element).one();
+      const location = $('[data-ref="athleteLocation"]', this.element).one();
 
       if (avatar && this.athlete.profile_medium) {
         avatar.innerHTML = `<img src="${this.athlete.profile_medium}" alt="Avatar" class="size-12 rounded-full" />`;
@@ -168,7 +174,7 @@ const stravaActivitiesPage: ComponentFactory = () => {
 
     renderActivities() {
       if (!this.element) return;
-      const list = this.element.querySelector('[data-ref="activitiesList"]') as HTMLElement;
+      const list = $('[data-ref="activitiesList"]', this.element).one();
       if (!list) return;
 
       list.innerHTML = this.activities.map((activity: StravaActivity) => `
@@ -177,7 +183,7 @@ const stravaActivitiesPage: ComponentFactory = () => {
             <div class="flex items-center gap-2">
               <span class="text-xl">${getActivityIcon(activity.type)}</span>
               <div>
-                <h3 class="font-semibold text-slate-800 dark:text-white">${activity.name}</h3>
+                <h3 class="font-semibold text-slate-800 dark:text-white">${escapeHtml(activity.name)}</h3>
                 <p class="text-xs text-slate-500 dark:text-slate-400">${formatDate(activity.start_date_local)} · ${activity.type}</p>
               </div>
             </div>

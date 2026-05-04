@@ -5,11 +5,13 @@
  * To use this module, register your application at https://www.strava.com/settings/api
  * and set the Authorization Callback Domain to your app's domain.
  * 
- * Replace CLIENT_ID and CLIENT_SECRET with your own values.
+ * Client ID and Secret are loaded from environment variables (set in .env):
+ *   VITE_STRAVA_CLIENT_ID
+ *   VITE_STRAVA_CLIENT_SECRET
  */
 export const STRAVA_CONFIG = {
-  clientId: '16293',
-  clientSecret: '1b1a9f1f2e554dab2dfdaf1e5182f406bb5a2291',
+  clientId: import.meta.env.VITE_STRAVA_CLIENT_ID || '',
+  clientSecret: import.meta.env.VITE_STRAVA_CLIENT_SECRET || '',
   authorizeUrl: 'https://www.strava.com/oauth/authorize',
   tokenUrl: 'https://www.strava.com/oauth/token',
   apiBase: 'https://www.strava.com/api/v3/',
