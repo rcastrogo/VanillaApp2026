@@ -1,8 +1,10 @@
 
+import { stravaService } from './strava.service';
+
 import type { ComponentFactory } from '@/components/component.model';
 import { buildAndInterpolate } from '@/core/dom';
 import { router } from '@/core/services/router.service';
-import { stravaService } from './strava.service';
+
 
 const stravaAuthPage: ComponentFactory = () => {
   const context = {

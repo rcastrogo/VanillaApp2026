@@ -1,9 +1,17 @@
 
-import type { ComponentBinding, ComponentFactory } from '@/components/component.model';
-import { $, buildAndInterpolate } from '@/core/dom';
-import { resolveBindingValue } from '@/core/hydrate';
+import { 
+  stravaService, 
+  type StravaActivity, 
+  type StravaAthlete 
+} from './strava.service';
+
+import { APP_CONFIG } from '@/app.config';
+import type { ComponentBinding, ComponentContext, ComponentFactory, ComponentInitValue } from '@/components/component.model';
+import { $, build, buildAndInterpolate } from '@/core/dom';
+import { hydrateComponents, resolveBindingValue } from '@/core/hydrate';
 import { router } from '@/core/services/router.service';
-import { stravaService, type StravaActivity, type StravaAthlete } from './strava.service';
+import { BaseComponent } from '@/core/types';
+
 
 function formatDistance(meters: number): string {
   return (meters / 1000).toFixed(2) + ' km';
@@ -36,6 +44,14 @@ function escapeHtml(str: string): string {
   return div.innerHTML;
 }
 
+function escapeAttribute(str: string): string {
+  return str
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
+}
+
 function getActivityIcon(type: string): string {
   const icons: Record<string, string> = {
     Run: '🏃',
@@ -47,6 +63,143 @@ function getActivityIcon(type: string): string {
     VirtualRun: '🏃‍♂️',
   };
   return icons[type] || '🏅';
+}
+
+function decodePolyline(encoded: string, precision = 5): [number, number][] {
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+  const coordinates: [number, number][] = [];
+  const factor = Math.pow(10, precision);
+
+  while (index < encoded.length) {
+    let result = 0;
+    let shift = 0;
+    let byte = 0;
+
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+
+    const deltaLat = (result & 1) ? ~(result >> 1) : (result >> 1);
+    lat += deltaLat;
+
+    result = 0;
+    shift = 0;
+
+    do {
+      byte = encoded.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+
+    const deltaLng = (result & 1) ? ~(result >> 1) : (result >> 1);
+    lng += deltaLng;
+
+    coordinates.push([lat / factor, lng / factor]);
+  }
+
+  return coordinates;
+}
+
+function buildPolylineSvg(encoded: string): string {
+  if (!encoded) return '';
+
+  const coords = decodePolyline(encoded);
+  if (coords.length < 2) return '';
+
+  const width = 760;
+  const height = 180;
+  const padding = 10;
+
+  const lats = coords.map(([lat]) => lat);
+  const lngs = coords.map(([, lng]) => lng);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  const latSpan = maxLat - minLat || 1;
+  const lngSpan = maxLng - minLng || 1;
+
+  const points = coords
+    .map(([lat, lng]) => {
+      const x = padding + ((lng - minLng) / lngSpan) * (width - padding * 2);
+      const y = padding + (1 - (lat - minLat) / latSpan) * (height - padding * 2);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(' ');
+
+  const staticMapUrl = getMapTilerStaticMapUrl(coords, width, height);
+
+  return `
+    <svg 
+      viewBox="0 0 ${width} ${height}" 
+      class="w-full h-32 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700" 
+      role="img" 
+      aria-label="Ruta de la actividad">
+        ${staticMapUrl ? `
+        <image href="${staticMapUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none" opacity="0.8"></image>
+        ` : ''}
+        <polyline 
+          points="${points}" 
+          fill="none" 
+          stroke="#f97316" 
+          stroke-width="3.5" 
+          stroke-linecap="round" 
+          stroke-linejoin="round">
+        </polyline>
+    </svg>
+  `;
+}
+
+function getMapTilerStaticMapUrl(coords: [number, number][], width: number, height: number): string {
+  const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || '';
+  if (!apiKey) return '';
+
+  const lats = coords.map(([lat]) => lat);
+  const lngs = coords.map(([, lng]) => lng);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+
+  const centerLat = (minLat + maxLat) / 2;
+  const centerLng = (minLng + maxLng) / 2;
+  const zoom = getStaticMapZoom(minLat, maxLat, minLng, maxLng, width, height);
+
+  const size = `${width}x${height}`;
+  return `https://api.maptiler.com/maps/streets-v2/static/${centerLng},${centerLat},${zoom}/${size}.png?key=${encodeURIComponent(apiKey)}`;
+}
+
+function getStaticMapZoom(
+  minLat: number,
+  maxLat: number,
+  minLng: number,
+  maxLng: number,
+  width: number,
+  height: number
+): number {
+  const WORLD_DIM = 256;
+  const ZOOM_MAX = 18;
+  const ZOOM_MIN = 2;
+  const latRad = (lat: number) => {
+    const sin = Math.sin((lat * Math.PI) / 180);
+    const radX2 = Math.log((1 + sin) / (1 - sin)) / 2;
+    return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
+  };
+
+  const latFraction = Math.max((latRad(maxLat) - latRad(minLat)) / Math.PI, 1e-6);
+  const lngDiff = maxLng - minLng;
+  const lngFraction = Math.max(((lngDiff < 0 ? lngDiff + 360 : lngDiff) / 360), 1e-6);
+
+  const zoomLat = Math.log2(height / WORLD_DIM / latFraction);
+  const zoomLng = Math.log2(width / WORLD_DIM / lngFraction);
+  const zoom = Math.floor(Math.min(zoomLat, zoomLng) - 0.5);
+
+  return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Number.isFinite(zoom) ? zoom : 12));
 }
 
 const stravaActivitiesPage: ComponentFactory = () => {
@@ -233,8 +386,16 @@ const stravaActivitiesPage: ComponentFactory = () => {
               <p class="font-semibold text-slate-700 dark:text-slate-200">${Math.round(activity.average_watts)} W</p>
             </div>` : ''}
           </div>` : ''}
+
+          <div 
+            data-component="app-polyline-viewer"
+            data-polyline="${escapeAttribute(activity.map?.summary_polyline || '')}"
+            class="mt-4">
+          </div>
         </div>
       `).join('');
+
+      hydrateComponents(list, this);
     },
 
     async refreshActivities() {
@@ -264,5 +425,49 @@ const stravaActivitiesPage: ComponentFactory = () => {
 
   return context;
 };
+
+
+class PolylineViewerComponent extends BaseComponent {
+
+  constructor(ctx: ComponentContext) {
+    super(ctx);
+  }
+
+  init(ctx: ComponentInitValue): void {
+    super.init(ctx);
+  }
+
+  render(): HTMLElement {
+    const polyline = this.props.polyline || '';
+    const svg = buildPolylineSvg(polyline);
+    const hasMapTilerKey = Boolean(import.meta.env.VITE_MAPTILER_API_KEY);
+    const template = `
+      <div>
+        ${svg || `
+          <div class="
+            h-20 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-xs
+            text-slate-500 dark:text-slate-400
+            grid place-items-center
+          ">
+            Sin ruta disponible
+          </div>
+        `}
+        ${svg && !hasMapTilerKey ? `
+          <p class="mt-2 text-[11px] text-amber-600 dark:text-amber-400">
+            Falta VITE_MAPTILER_API_KEY: se muestra solo la ruta SVG sin imagen de fondo.
+          </p>
+        ` : ''}
+      </div>
+    `;
+    return build('div', template);
+  }
+}
+
+Promise.resolve().then(() => {
+  APP_CONFIG.registerComponent(
+    'app-polyline-viewer', 
+    PolylineViewerComponent
+  );
+});
 
 export default stravaActivitiesPage;
