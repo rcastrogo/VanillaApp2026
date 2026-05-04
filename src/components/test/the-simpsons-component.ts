@@ -247,16 +247,21 @@ export class TheSimpsonsComponent extends BaseComponent {
   }
 }
 
+// ===============================================================
+// Componente para mostrar información detallada de un personaje
+// ===============================================================
 class CharacterInfoComponent extends BaseComponent {
 
+  // definimos un estado local para el personaje seleccionado
   character: Character | null = null;
+  // Este componente se suscribe a un estado compartido para recibir el personaje seleccionado
   dataSource?: SubscribeFn<{ character: Character | null }>;
 
   constructor(ctx: ComponentContext) {
     super(ctx);
   }
 
-  init(ctx?: ComponentInitValue): void {
+  init(ctx: ComponentInitValue): void {
     super.init(ctx);
     if (this.dataSource) {
       const unsubscribe = this.dataSource('character', (character) => {
@@ -293,7 +298,10 @@ class CharacterInfoComponent extends BaseComponent {
       <div class="">
         <div
           data-bind="show:character"
-          class="flex gap-4 p-4 overflow-clip bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 transition-all duration-300">
+          class="
+            flex gap-4 p-4 overflow-clip bg-white dark:bg-slate-900 
+            rounded-xl shadow-md border border-slate-200 dark:border-slate-800 
+            transition-all duration-300">
           <div 
             class="shrink-0 size-24 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
             <img 
@@ -302,14 +310,21 @@ class CharacterInfoComponent extends BaseComponent {
             />
           </div>
           <div class="flex flex-col justify-center gap-1 min-w-0">
-            <h3 data-bind="text:character.name" class="font-bold text-lg text-slate-800 dark:text-slate-100 truncate"></h3>
-            <p data-bind="text:character.occupation" class="text-sm text-slate-500 dark:text-slate-400 truncate"></p>
+            <h3 
+              data-bind="text:character.name" 
+              class="font-bold text-lg text-slate-800 dark:text-slate-100 truncate"></h3>
+            <p 
+              data-bind="text:character.occupation" 
+              class="text-sm text-slate-500 dark:text-slate-400 truncate"></p>
             <div class="flex items-center gap-3 text-xs text-slate-400 mt-1">
-              <span data-bind="text:character.gender"></span>
+              <span 
+                data-bind="text:character.gender"></span>
               <span> - </span>
-              <span data-bind="text:character.age | default : Desconocida"></span>
+              <span 
+                data-bind="text:character.age | default : Desconocida"></span>
               <span> - </span>
-              <span data-bind="text:character.status"></span>
+              <span 
+                data-bind="text:character.status"></span>
             </div>
             <ul 
               data-bind="fn:renderPhrases" 
@@ -320,7 +335,10 @@ class CharacterInfoComponent extends BaseComponent {
         <div 
           class="p-4 bg-white dark:bg-slate-900 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 transition-all duration-300"
           data-bind="hide:character">
-          <div data-component="app-skeleton" data-type="avatar" class=""></div>
+          <div 
+            data-component="app-skeleton" 
+            data-type="avatar" 
+            class=""></div>
         </div>
       </div>
     `;
@@ -329,4 +347,7 @@ class CharacterInfoComponent extends BaseComponent {
 
 }
 
-APP_CONFIG.components['app-character-info'] = CharacterInfoComponent;
+APP_CONFIG.registerComponent(
+  'app-character-info', 
+  CharacterInfoComponent
+);
