@@ -10,6 +10,7 @@ import type { ComponentBinding, ComponentContext, ComponentFactory, ComponentIni
 import { $, build, buildAndInterpolate } from '@/core/dom';
 import { hydrateComponents, resolveBindingValue } from '@/core/hydrate';
 import { router } from '@/core/services/router.service';
+import { safeAttribute, safeInnerHTML } from '@/core/template';
 import { BaseComponent } from '@/core/types';
 
 
@@ -39,17 +40,11 @@ function formatDate(dateStr: string): string {
 }
 
 function escapeHtml(str: string): string {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  return safeInnerHTML(str);
 }
 
 function escapeAttribute(str: string): string {
-  return str
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  return safeAttribute(str) 
 }
 
 function getActivityIcon(type: string): string {
@@ -132,17 +127,12 @@ function buildPolylineSvg(encoded: string): string {
     })
     .join(' ');
 
-  const staticMapUrl = getMapTilerStaticMapUrl(coords, width, height);
-
   return `
     <svg 
       viewBox="0 0 ${width} ${height}" 
       class="w-full h-32 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700" 
       role="img" 
       aria-label="Ruta de la actividad">
-        ${staticMapUrl ? `
-        <image href="${staticMapUrl}" x="0" y="0" width="${width}" height="${height}" preserveAspectRatio="none" opacity="0.8"></image>
-        ` : ''}
         <polyline 
           points="${points}" 
           fill="none" 
@@ -153,53 +143,6 @@ function buildPolylineSvg(encoded: string): string {
         </polyline>
     </svg>
   `;
-}
-
-function getMapTilerStaticMapUrl(coords: [number, number][], width: number, height: number): string {
-  const apiKey = import.meta.env.VITE_MAPTILER_API_KEY || '';
-  if (!apiKey) return '';
-
-  const lats = coords.map(([lat]) => lat);
-  const lngs = coords.map(([, lng]) => lng);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
-
-  const centerLat = (minLat + maxLat) / 2;
-  const centerLng = (minLng + maxLng) / 2;
-  const zoom = getStaticMapZoom(minLat, maxLat, minLng, maxLng, width, height);
-
-  const size = `${width}x${height}`;
-  return `https://api.maptiler.com/maps/streets-v2/static/${centerLng},${centerLat},${zoom}/${size}.png?key=${encodeURIComponent(apiKey)}`;
-}
-
-function getStaticMapZoom(
-  minLat: number,
-  maxLat: number,
-  minLng: number,
-  maxLng: number,
-  width: number,
-  height: number
-): number {
-  const WORLD_DIM = 256;
-  const ZOOM_MAX = 18;
-  const ZOOM_MIN = 2;
-  const latRad = (lat: number) => {
-    const sin = Math.sin((lat * Math.PI) / 180);
-    const radX2 = Math.log((1 + sin) / (1 - sin)) / 2;
-    return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
-  };
-
-  const latFraction = Math.max((latRad(maxLat) - latRad(minLat)) / Math.PI, 1e-6);
-  const lngDiff = maxLng - minLng;
-  const lngFraction = Math.max(((lngDiff < 0 ? lngDiff + 360 : lngDiff) / 360), 1e-6);
-
-  const zoomLat = Math.log2(height / WORLD_DIM / latFraction);
-  const zoomLng = Math.log2(width / WORLD_DIM / lngFraction);
-  const zoom = Math.floor(Math.min(zoomLat, zoomLng) - 0.5);
-
-  return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Number.isFinite(zoom) ? zoom : 12));
 }
 
 const stravaActivitiesPage: ComponentFactory = () => {
@@ -230,11 +173,17 @@ const stravaActivitiesPage: ComponentFactory = () => {
               <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Mis Actividades</h1>
             </div>
             <div class="flex items-center gap-2">
-              <button on-click="refreshActivities" class="app-button btn-secondary">
+              <button 
+                on-click="refreshActivities"
+                data-bind="disabled:loading"
+                class="app-button btn-secondary">
                 <i data-icon="refresh-ccw" class="inline-flex size-4 mr-1"></i>
                 Actualizar
               </button>
-              <button on-click="logout" class="app-button">
+              <button 
+                on-click="logout"
+                data-bind="disabled:loading"
+                class="app-button">
                 <i data-icon="power" class="inline-flex size-4 mr-1"></i>
                 Desconectar
               </button>
@@ -279,33 +228,33 @@ const stravaActivitiesPage: ComponentFactory = () => {
     },
 
     async loadData() {
-      try {
-        const athlete = await stravaService.getAthlete();
-        this.athlete = athlete;
-        this.renderAthleteInfo();
-        await this.fetchActivities();
-      } catch (err) {
-        this.errorMessage = `Error: ${err instanceof Error ? err.message : String(err)}`;
+      const athlete = await stravaService.getAthlete();
+      if (typeof athlete === 'string') {
+        this.errorMessage = `Error al cargar datos del atleta: ${athlete}`;
         this.loading = false;
         this.updateBindings();
+        return;
       }
+      this.athlete = athlete.data;
+      this.renderAthleteInfo();
+      await this.fetchActivities();
     },
 
     async fetchActivities() {
-      try {
-        this.loading = true;
-        this.updateBindings();
-        const newActivities = await stravaService.getActivities(this.currentPage, 20);
-        this.activities = [...this.activities, ...newActivities];
-        this.hasMore = newActivities.length === 20;
-        this.loading = false;
-        this.renderActivities();
-        this.updateBindings();
-      } catch (err) {
-        this.errorMessage = `Error al cargar actividades: ${err instanceof Error ? err.message : String(err)}`;
+      this.loading = true;
+      this.updateBindings();
+      const newActivities = await stravaService.getActivities(this.currentPage, 3);
+      if (typeof newActivities === 'string') {
+        this.errorMessage = `Error al cargar actividades: ${newActivities}`;
         this.loading = false;
         this.updateBindings();
+        return;
       }
+      this.activities = [...this.activities, ...newActivities.data];
+      this.hasMore = newActivities.data.length === 3;
+      this.loading = false;
+      this.renderActivities();
+      this.updateBindings();
     },
 
     renderAthleteInfo() {

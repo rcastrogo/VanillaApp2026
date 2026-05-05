@@ -12,6 +12,7 @@ const stravaAuthPage: ComponentFactory = () => {
     isError: false,
 
     render() {
+      
       // Process OAuth callback
       const params = new URLSearchParams(window.location.search);
       const code = params.get('code');
@@ -52,14 +53,14 @@ const stravaAuthPage: ComponentFactory = () => {
     },
 
     async exchangeCode(code: string) {
-      try {
-        await stravaService.exchangeToken(code);
-        this.message = '¡Autorización exitosa! Redirigiendo...';
-        setTimeout(() => router.navigateTo('/strava/activities'), 1000);
-      } catch (err) {
-        this.message = `Error al obtener token: ${err instanceof Error ? err.message : String(err)}`;
+      const result = await stravaService.exchangeToken(code);
+      if(typeof result === 'string') {
+        this.message = `Error al obtener token: ${result}`;
         this.isError = true;
-      }
+        return;
+      } 
+      this.message = '¡Autorización exitosa! Redirigiendo...';
+      setTimeout(() => router.navigateTo('/strava/activities'), 1000);
     },
 
     goToLogin() {

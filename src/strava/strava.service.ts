@@ -1,6 +1,10 @@
 
 import { STRAVA_CONFIG, STRAVA_STORAGE_KEYS } from './strava.config';
 
+import { RQ, createApiRequest } from '@/core/services/http-client.service';
+import type { WrappedFetchResponse } from '@/core/services/http-client.utils';
+import { storage } from '@/core/storageUtil';
+
 export interface StravaAthlete {
   id: number;
   firstname: string;
@@ -61,52 +65,47 @@ class StravaService {
   /**
    * Exchange authorization code for access and refresh tokens.
    */
-  async exchangeToken(code: string): Promise<TokenResponse> {
-    const response = await fetch(STRAVA_CONFIG.tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  async exchangeToken(code: string): Promise<WrappedFetchResponse<TokenResponse> | string> {
+    const result = await createApiRequest<TokenResponse>()
+      .postTo(STRAVA_CONFIG.tokenUrl)
+      .useLog('Strava token exchange')
+      .usePayload({
         client_id: STRAVA_CONFIG.clientId,
         client_secret: STRAVA_CONFIG.clientSecret,
         code,
         grant_type: 'authorization_code',
-      }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      throw new Error(err?.message || `Token exchange failed: ${response.status}`);
+      })
+      .invoke();
+    if (typeof result !== 'string') {
+      this.storeTokens(result.data);
     }
-
-    const data: TokenResponse = await response.json();
-    this.storeTokens(data);
-    return data;
+    return result;
   }
 
   /**
    * Refresh the access token using the stored refresh token.
    */
   async refreshToken(): Promise<void> {
-    const refreshToken = localStorage.getItem(STRAVA_STORAGE_KEYS.refreshToken);
+    const refreshToken = storage.readValue(STRAVA_STORAGE_KEYS.refreshToken, '');
     if (!refreshToken) throw new Error('No refresh token available');
 
-    const response = await fetch(STRAVA_CONFIG.tokenUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const result = await createApiRequest<TokenResponse>()
+      .postTo(STRAVA_CONFIG.tokenUrl)
+      .useLog('Strava token refresh')
+      .usePayload({
         client_id: STRAVA_CONFIG.clientId,
         client_secret: STRAVA_CONFIG.clientSecret,
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
-      }),
-    });
+      })
+      .invoke();
 
-    if (!response.ok) {
+    if (typeof result === 'string') {
       this.clearTokens();
-      throw new Error('Token refresh failed');
+      throw new Error(`Token refresh failed: ${result}`);
     }
 
-    const data: TokenResponse = await response.json();
+    const data = result.data;
     this.storeTokens(data);
   }
 
@@ -114,8 +113,8 @@ class StravaService {
    * Check if the user is authenticated and tokens are valid.
    */
   isAuthenticated(): boolean {
-    const token = localStorage.getItem(STRAVA_STORAGE_KEYS.accessToken);
-    const expiresAt = localStorage.getItem(STRAVA_STORAGE_KEYS.expiresAt);
+    const token = storage.readValue(STRAVA_STORAGE_KEYS.accessToken, '');
+    const expiresAt = storage.readValue(STRAVA_STORAGE_KEYS.expiresAt, 0);
     if (!token || !expiresAt) return false;
     return Date.now() / 1000 < Number(expiresAt);
   }
@@ -124,11 +123,11 @@ class StravaService {
    * Get a valid access token, refreshing if necessary.
    */
   async getValidToken(): Promise<string> {
-    const expiresAt = Number(localStorage.getItem(STRAVA_STORAGE_KEYS.expiresAt) || 0);
+    const expiresAt = Number(storage.readValue(STRAVA_STORAGE_KEYS.expiresAt, 0));
     if (Date.now() / 1000 >= expiresAt) {
       await this.refreshToken();
     }
-    const token = localStorage.getItem(STRAVA_STORAGE_KEYS.accessToken);
+    const token = storage.readValue(STRAVA_STORAGE_KEYS.accessToken, '');
     if (!token) throw new Error('No access token');
     return token;
   }
@@ -136,62 +135,71 @@ class StravaService {
   /**
    * Fetch authenticated athlete info.
    */
-  async getAthlete(): Promise<StravaAthlete> {
+  async getAthlete(): Promise<WrappedFetchResponse<StravaAthlete> | string> {
     const token = await this.getValidToken();
-    const response = await fetch(`${STRAVA_CONFIG.apiBase}athlete`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error(`Failed to fetch athlete: ${response.status}`);
-    return response.json();
+    return await createApiRequest<StravaAthlete>()
+      .useBase(STRAVA_CONFIG.apiBase)
+      .useToken(token)
+      .useLog('Fetching Strava athlete')
+      .getFrom('athlete')
+      .invoke();
   }
 
   /**
    * Fetch athlete activities with pagination.
    */
-  async getActivities(page = 1, perPage = 20): Promise<StravaActivity[]> {
+  async getActivities(page = 1, perPage = 3): Promise<WrappedFetchResponse<StravaActivity[]> | string> {
     const token = await this.getValidToken();
-    const params = new URLSearchParams({
-      page: String(page),
-      per_page: String(perPage),
-    });
-    const response = await fetch(`${STRAVA_CONFIG.apiBase}athlete/activities?${params}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error(`Failed to fetch activities: ${response.status}`);
-    return response.json();
+    return await createApiRequest<StravaActivity[]>()
+      .useBase(STRAVA_CONFIG.apiBase)
+      .useToken(token)
+      .useLog('Fetching Strava activities')
+      .getFrom(`athlete/activities?page=${page}&per_page=${perPage}`)
+      .invoke();
   }
 
   /**
    * Get cached athlete from localStorage.
    */
   getCachedAthlete(): StravaAthlete | null {
-    const data = localStorage.getItem(STRAVA_STORAGE_KEYS.athlete);
-    return data ? JSON.parse(data) : null;
+    return storage.readValue<StravaAthlete | null>(STRAVA_STORAGE_KEYS.athlete, null);
   }
 
   /**
    * Logout: clear all stored tokens and data.
    */
   logout(): void {
+    const token = storage.readValue(STRAVA_STORAGE_KEYS.accessToken, '');
+    const payload = new URLSearchParams({ access_token: token });
+    if (token) {    
+      RQ.create()
+        .withHeader('Content-Type', 'application/x-www-form-urlencoded')
+        .usePayload(payload)
+        .postTo(STRAVA_CONFIG.deauthorizeUrl)
+        .invoke();
+    }
     this.clearTokens();
-    localStorage.removeItem(STRAVA_STORAGE_KEYS.activitiesCache);
+    storage.removeValue(STRAVA_STORAGE_KEYS.activitiesCache);
   }
 
   private storeTokens(data: TokenResponse): void {
-    localStorage.setItem(STRAVA_STORAGE_KEYS.accessToken, data.access_token);
-    localStorage.setItem(STRAVA_STORAGE_KEYS.refreshToken, data.refresh_token);
-    localStorage.setItem(STRAVA_STORAGE_KEYS.expiresAt, String(data.expires_at));
-    if (data.athlete) {
-      localStorage.setItem(STRAVA_STORAGE_KEYS.athlete, JSON.stringify(data.athlete));
-    }
+    storage
+      .writeValue(STRAVA_STORAGE_KEYS.accessToken, data.access_token)
+      .writeValue(STRAVA_STORAGE_KEYS.refreshToken, data.refresh_token)
+      .writeValue(STRAVA_STORAGE_KEYS.expiresAt, data.expires_at);
+    if (data.athlete)
+      storage.writeValue(STRAVA_STORAGE_KEYS.athlete, data.athlete);
   }
 
   private clearTokens(): void {
-    localStorage.removeItem(STRAVA_STORAGE_KEYS.accessToken);
-    localStorage.removeItem(STRAVA_STORAGE_KEYS.refreshToken);
-    localStorage.removeItem(STRAVA_STORAGE_KEYS.expiresAt);
-    localStorage.removeItem(STRAVA_STORAGE_KEYS.athlete);
+    storage
+      .removeValue(STRAVA_STORAGE_KEYS.accessToken)
+      .removeValue(STRAVA_STORAGE_KEYS.refreshToken)
+      .removeValue(STRAVA_STORAGE_KEYS.expiresAt)
+      .removeValue(STRAVA_STORAGE_KEYS.athlete);
   }
+
+
 }
 
 export const stravaService = new StravaService();

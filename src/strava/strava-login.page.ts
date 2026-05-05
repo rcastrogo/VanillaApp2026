@@ -5,11 +5,11 @@ import type { ComponentFactory } from '@/components/component.model';
 import { buildAndInterpolate } from '@/core/dom';
 import { router } from '@/core/services/router.service';
 
-
 const stravaLoginPage: ComponentFactory = () => {
   return {
+
     render() {
-      // If already authenticated, redirect to activities
+
       if (stravaService.isAuthenticated()) {
         setTimeout(() => router.navigateTo('/strava/activities'), 0);
       }

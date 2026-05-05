@@ -13,6 +13,7 @@ export const STRAVA_CONFIG = {
   clientId: import.meta.env.VITE_STRAVA_CLIENT_ID || '',
   clientSecret: import.meta.env.VITE_STRAVA_CLIENT_SECRET || '',
   authorizeUrl: 'https://www.strava.com/oauth/authorize',
+  deauthorizeUrl: 'https://www.strava.com/oauth/deauthorize',
   tokenUrl: 'https://www.strava.com/oauth/token',
   apiBase: 'https://www.strava.com/api/v3/',
   redirectUri: `${window.location.origin}/strava/auth`,

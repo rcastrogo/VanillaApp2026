@@ -28,6 +28,7 @@ export function createApiRequest<T>() {
   let _method: HttpMethod = 'GET';
   let _transform: ((data: T) => T) | undefined;
   let _accessToken: string;
+  const _headers: Record<string, string> = {};
 
   return {
     /**
@@ -139,6 +140,11 @@ export function createApiRequest<T>() {
       return this;
     },
 
+    withHeader(key: string, value: string) {
+      _headers[key] = value;
+      return this;
+    },
+
     /**
      * Executes the composed API request using `wrappedFetch`.
      * Automatically logs parameters and applies transformations if defined.
@@ -146,20 +152,42 @@ export function createApiRequest<T>() {
     async invoke(): Promise<WrappedFetchResponse<T> | string> {
       if (!_target) throw new Error('Target endpoint not defined. Use .getFrom(), .postTo(), etc.');
       const { url, payload, method } = logFetchParams((_base || '') + _target, _payload, _method);
+      // ====================================================================================
+      // Combine default headers with any custom headers, and include 
+      // Authorization if token is set
+      // ====================================================================================
+      const combinedHeaders: Record<string, string> = {
+        'Content-Type': 'application/json', // Valor por defecto
+        ...(_accessToken ? { Authorization: `Bearer ${_accessToken}` } : {}),
+        ..._headers, 
+      };
+      // ====================================================================================
+      // Adapt the request body based on content type.
+      // If the payload is a URLSearchParams or FormData, we can send it directly.
+      // ====================================================================================
+      const requestBody = (payload instanceof URLSearchParams || payload instanceof FormData)
+        ? (payload as BodyInit)
+        : (payload ? JSON.stringify(payload) : undefined);
+
       return wrappedFetch<T>(
         () =>
           fetch(url, {
             method,
-            headers: {
-              'Content-Type': 'application/json',
-              ...(_accessToken ? { Authorization: `Bearer ${_accessToken}` } : {}),
-            },
-            ...(payload ? { body: JSON.stringify(payload) } : {}),
+            headers: combinedHeaders,
+            body: requestBody as BodyInit | undefined,
           }),
-        _property,
-        _context,
-        _transform
+        _property,  // Optional property to extract from response
+        _context,   // Logging contextualizado
+        _transform  // Optional response transformation
       );
     },
   };
 }
+
+const RQ = {
+  create: function<T>(){
+    return createApiRequest<T>();
+  }
+};
+
+export { RQ };

@@ -110,6 +110,12 @@ const homePage: ComponentFactory = () => {
              <p class="text-slate-600 dark:text-slate-400">
               {innerHTML | safeHTML}
              </p>
+             <div class="mt-3">
+              <button route-to="/component-patterns-guide" class="app-button btn-primary">
+                <i data-icon="book-open" class="inline-flex size-4 mr-1"></i>
+                Guia de Patrones de Componentes
+              </button>
+             </div>
           </div>
 
           <div 

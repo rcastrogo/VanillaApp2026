@@ -35,8 +35,9 @@ export function configureRouter(){
     .add('pipe-tester', () => import('./pages/pipe-tester.page'), null)
     .add('table', () => import('./pages/table-basic.page'))
     .add('menu-showcase', () => import('./pages/menu-showcase.page'))
-    .add('strava', () => import('./strava/strava-login.page'))
-    .add('strava/auth', () => import('./strava/strava-auth.page'))
+    .add('component-patterns-guide', () => import('./pages/component-patterns-guide.page'))
+    .add('strava', () => import('./strava/strava-login.page'), null)
+    .add('strava/auth', () => import('./strava/strava-auth.page'), null)
     .add('strava/activities', () => import('./strava/strava-activities.page'))
     .notFound(() => import('./pages/not-found.page'));
 

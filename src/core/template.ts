@@ -56,9 +56,10 @@ const GLOBAL_FUNCTIONS: Record<string, (...args: any[]) => any> = {
     return val;
   },
   safeHTML: function(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return safeInnerHTML(text);
+  },
+  safeAttribute: function(text: string): string {
+    return safeAttribute(text);
   }
 };
 
@@ -300,6 +301,21 @@ function findClosingBracket(str: string, start: number, open: string, close: str
     if (count === 0) return i;
   }
   return -1;
+}
+
+export function safeInnerHTML(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+export function safeAttribute(text: string): string {
+  return String(text)
+     .replaceAll('&', '&amp;')
+     .replaceAll('"', '&quot;')
+     .replaceAll('<', '&lt;')
+     .replaceAll('>', '&gt;')
+     .replaceAll("'", '&#39;');
 }
 
 export function decodeHTMLEntities(text: string): string {
