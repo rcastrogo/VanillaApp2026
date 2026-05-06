@@ -68,11 +68,6 @@ export interface UniqueValue {
 
 export interface TableComponentRef<T extends Identifiable> {
   setData(data: T[]): void;
-  // setColumns(columns: Column<T>[]): void;
-  // setActions(actions: ActionButton[]): void;
-  // setPage(page: number): void;
-  // setPageSize(size: number): void;
-  // setSort(columnKey: string, direction: SortDirection): void;
-  // toggleColumnVisibility(columnKey: string): void;
-  // applyFilter(criteria: FilterCriteria): void;
+  setColumns(columns: Column<T>[]): void;
+  setActions(actions: ActionButton[]): void;
 }

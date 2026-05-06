@@ -34,6 +34,7 @@ export function configureRouter(){
     .addKeepAlive('keep-alive', () => import('./pages/samples/functional/keep-alive.page'))
     .add('pipe-tester', () => import('./pages/pipe-tester.page'), null)
     .add('table', () => import('./pages/table-basic.page'))
+    .add('table-imperative', () => import('./pages/table-imperative.page'))
     .add('menu-showcase', () => import('./pages/menu-showcase.page'))
     .add('component-patterns-guide', () => import('./pages/component-patterns-guide.page'))
     .add('api-test', () => import('./pages/api-test.page'), null)
