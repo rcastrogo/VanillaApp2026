@@ -170,8 +170,7 @@ export function mountTable<T extends Identifiable>(
   const host = createTableHost(config.key);
 
   // 2. Instantiate and initialise
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const component = new TableComponent<T>(undefined as any);
+  const component = new TableComponent<T>({});
   component.init({ parent: host });
 
   // 3. Wire output callbacks
