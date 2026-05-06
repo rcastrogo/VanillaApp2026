@@ -10,6 +10,7 @@ export class ProgressBarComponent extends BaseComponent {
 
   progress = 0;
   intervalId = 0;
+  running = true;
 
   init(ctx: ComponentInitValue) {
     super.init(ctx);
@@ -20,6 +21,7 @@ export class ProgressBarComponent extends BaseComponent {
     const timeout = parseInt(this.props.intervalSpeed || '100');
     const increment = parseInt(this.props.increment || '5');
     this.intervalId = setInterval(() => {
+      if (!this.running) return;
       if (this.progress >= 100) 
         this.progress = 0;
       else 
@@ -27,6 +29,16 @@ export class ProgressBarComponent extends BaseComponent {
       if(this.element?.isConnected) this.invalidate();
     }, timeout);
     this.addCleanup(() => clearInterval(this.intervalId))
+  }
+
+  stop() {
+    this.running = false;
+    this.progress = 0;
+    this.invalidate();
+  }
+
+  start() {
+    this.running = true;
   }
 
   resolveProgressClasses() {

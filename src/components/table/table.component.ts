@@ -236,9 +236,9 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     rows.forEach(row => {
       const rowId = row.id.replace('row-', '');
       const isSelected = selected.has(rowId) || selected.has(Number(rowId));
-      row.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      row.classList.remove('bg-blue-50!', 'dark:bg-blue-900/20!')
       if(isSelected) {  
-        row.classList.add('bg-blue-50', 'dark:bg-blue-900/20');
+        row.classList.add('bg-blue-50!', 'dark:bg-blue-900/20!');
       }
       const checkbox = $<HTMLInputElement>('input[type="checkbox"]', row).one();
       if(checkbox) checkbox.checked = isSelected;
@@ -474,7 +474,9 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
           <tr 
             id="row-${row.id}"
             data-row
-            class="${isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}">
+            class="${isSelected 
+              ? 'bg-blue-50! dark:bg-blue-900/20!' 
+              : 'odd:bg-white even:bg-slate-50/50 hover:bg-slate-100 dark:odd:bg-transparent dark:even:bg-slate-800/30 dark:hover:bg-slate-800'}">
             <td class="px-3 py-2 border-b w-10">
               <input type="checkbox" on-change="toggleRow:${row.id}" class="cursor-pointer" ${isSelected ? 'checked' : ''} />
             </td>

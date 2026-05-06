@@ -1,5 +1,5 @@
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
-import { buildAndInterpolate } from '@/core/dom';
+import { $, buildAndInterpolate } from '@/core/dom';
 import { BaseComponent } from '@/core/types';
 
 
@@ -585,6 +585,17 @@ export default class ComponentPatternsGuidePage extends BaseComponent {
     super.init(ctx);
   }
 
+  scroll(_el: HTMLAnchorElement, e: Event){
+    const target = e.target as HTMLAnchorElement;
+    if (target.tagName === 'A' && target.hash) {
+      const el = $(target.hash, this.element).one();
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    e.preventDefault();
+  }
+
   render(): HTMLElement {
     const template = `
       <section class="max-w-6xl mx-auto p-6 md:p-8 pb-20">
@@ -597,7 +608,7 @@ export default class ComponentPatternsGuidePage extends BaseComponent {
             encontrados en la aplicacion. Cada seccion incluye ejemplos completos con ciclo de vida,
             constructor y parametros reales de BaseComponent.
           </p>
-          <nav class="mt-4 flex flex-wrap gap-2 text-xs">
+          <nav class="mt-4 flex flex-wrap gap-2 text-xs" on-click="scroll">
             <a href="#lifecycle" class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900">Ciclo de vida</a>
             <a href="#functional" class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900">Factory</a>
             <a href="#reactive" class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-indigo-100 dark:hover:bg-indigo-900">Reactivo</a>
@@ -850,6 +861,12 @@ export default class ComponentPatternsGuidePage extends BaseComponent {
       </section>
     `;
 
-    return buildAndInterpolate(template, { snippets: SNIPPETS });
+    return buildAndInterpolate(
+      template,
+      { 
+        snippets: SNIPPETS,
+        scroll: this.scroll.bind(this)
+       }
+     );
   }
 }

@@ -44,3 +44,7 @@ export interface ComboItem {
   label: string;
 }
 
+export interface Runnable{
+  start(): void;
+  stop(): void;
+}
