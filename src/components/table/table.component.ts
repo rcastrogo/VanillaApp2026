@@ -75,6 +75,10 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     this.initColumns();
   }
 
+  setActions(actions: ActionButton[]): void {
+    this.setState({ actions }, false);
+  }
+
   setData(rows: T[]): void {
     this.setState({
       data: rows ?? [],
