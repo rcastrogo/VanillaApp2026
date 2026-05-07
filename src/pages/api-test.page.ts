@@ -1,6 +1,6 @@
 import type { ComponentFactory } from '@/components/component.model';
 import type { Column } from '@/components/table/table.model';
-import { $, buildAndInterpolate } from '@/core/dom';
+import { buildAndInterpolate } from '@/core/dom';
 import { hydrateComponents, hydrateEventListeners } from '@/core/hydrate';
 import { dialogService } from '@/core/services/dialog.service';
 import { BaseComponent, type Identifiable } from '@/core/types';
