@@ -26,7 +26,8 @@ export interface Distribuidor {
 }
 
 const HOST = import.meta.env.VITE_BACK_END || '';
-const BASE_ENDPOINT = HOST + '/api/Usuarios/';
+const BASE_ENDPOINT = HOST + '/api/';
+const ASHX_ENDPOINT = HOST + '/ashx/users';
 
 const UsuariosService = () => {
 
@@ -34,7 +35,7 @@ const UsuariosService = () => {
     return RQ.create<Usuario[]>()
       .useBase(BASE_ENDPOINT)
       .useLog('Fetching all usuarios')
-      .getFrom('')
+      .getFrom('Usuarios')
       .invoke();
   }
 
@@ -42,7 +43,7 @@ const UsuariosService = () => {
     return RQ.create<Usuario>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Fetching usuario with id ${id}`)
-      .getFrom(`${id}`)
+      .getFrom(`Usuarios/${id}`)
       .invoke();
   }
 
@@ -51,7 +52,7 @@ const UsuariosService = () => {
       .useBase(BASE_ENDPOINT)
       .useLog('Creating usuario')
       .usePayload(usuario)
-      .postTo('')
+      .postTo('Usuarios')
       .invoke();
   }
 
@@ -60,7 +61,7 @@ const UsuariosService = () => {
       .useBase(BASE_ENDPOINT)
       .useLog(`Updating usuario with id ${id}`)
       .usePayload(usuario)
-      .putTo(`${id}`)
+      .putTo(`Usuarios/${id}`)
       .invoke();
   }
 
@@ -68,7 +69,7 @@ const UsuariosService = () => {
     return RQ.create<void>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Deleting usuario with id ${id}`)
-      .deleteFrom(`${id}`)
+      .deleteFrom(`Usuarios/${id}`)
       .invoke();
   }
 
@@ -76,7 +77,7 @@ const UsuariosService = () => {
     return RQ.create<unknown>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Fetching table ${tablename}`)
-      .getFrom(`tables/${tablename}`)
+      .getFrom(`Usuarios/tables/${tablename}`)
       .invoke();
   }
 
@@ -84,7 +85,7 @@ const UsuariosService = () => {
     return RQ.create<Distribuidor[]>()
       .useBase(BASE_ENDPOINT)
       .useLog('Fetching all distribuidores')
-      .getFrom('distribuidores')
+      .getFrom('Usuarios/distribuidores')
       .invoke();
   }
 
@@ -92,7 +93,7 @@ const UsuariosService = () => {
     return RQ.create<Distribuidor[]>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Searching distribuidores by term: ${term}`)
-      .getFrom(`distribuidores/by/${term}`)
+      .getFrom(`Usuarios/distribuidores/by/${term}`)
       .invoke();
   }
 
@@ -100,7 +101,7 @@ const UsuariosService = () => {
     return RQ.create<Distribuidor>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Fetching distribuidor with id ${id}`)
-      .getFrom(`distribuidores/${id}`)
+      .getFrom(`Usuarios/distribuidores/${id}`)
       .invoke();
   }
 
@@ -108,7 +109,68 @@ const UsuariosService = () => {
     return RQ.create<unknown>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Fetching roles for distribuidor ${id}`)
-      .getFrom(`roles/distribuidor/${id}`)
+      .getFrom(`Usuarios/roles/distribuidor/${id}`)
+      .invoke();
+  }
+
+  // -------- ASHX Handler (legacy) --------
+
+  function ashxGetItems(q?: string) {
+    const query = q ? `&q=${encodeURIComponent(q)}` : '';
+    return RQ.create<Usuario[]>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog('ASHX getItems' + (q ? ` (q=${q})` : ''))
+      .getFrom(`?action=getItems${query}`)
+      .invoke();
+  }
+
+  function ashxGetItemById(id: number) {
+    return RQ.create<Usuario>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog(`ASHX getItemById (id=${id})`)
+      .getFrom(`?action=getItemById&id=${id}`)
+      .invoke();
+  }
+
+  function ashxDelete(id: number) {
+    return RQ.create<string>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog(`ASHX delete (id=${id})`)
+      .getFrom(`?action=delete&id=${id}`)
+      .invoke();
+  }
+
+  function ashxDeleteItems(ids: number[]) {
+    return RQ.create<string>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog(`ASHX deleteItems (ids=${ids.join(',')})`)
+      .getFrom(`?action=deleteItems&ids=${ids.join(',')}`)
+      .invoke();
+  }
+
+  function ashxChangeNames(ids: number[]) {
+    return RQ.create<Usuario[]>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog(`ASHX changeNames (ids=${ids.join(',')})`)
+      .getFrom(`?action=changeNames&ids=${ids.join(',')}`)
+      .invoke();
+  }
+
+  function ashxNew(usuario: Partial<Usuario>) {
+    return RQ.create<Usuario>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog('ASHX new user')
+      .usePayload(usuario)
+      .postTo('?action=new')
+      .invoke();
+  }
+
+  function ashxSave(usuario: Usuario) {
+    return RQ.create<Usuario>()
+      .useBase(ASHX_ENDPOINT)
+      .useLog(`ASHX save user (id=${usuario.id})`)
+      .usePayload(usuario)
+      .putTo(`?action=save&id=${usuario.id}`)
       .invoke();
   }
 
@@ -124,6 +186,15 @@ const UsuariosService = () => {
       search: searchDistribuidores,
       getById: getDistribuidorById,
       getRoles: getRolesByDistribuidor,
+    },
+    ashx: {
+      getItems: ashxGetItems,
+      getItemById: ashxGetItemById,
+      delete: ashxDelete,
+      deleteItems: ashxDeleteItems,
+      changeNames: ashxChangeNames,
+      new: ashxNew,
+      save: ashxSave,
     },
   };
 };

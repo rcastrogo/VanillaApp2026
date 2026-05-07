@@ -126,6 +126,7 @@ class DialogService {
     element.style.zIndex = (currentZIndex + 1).toString();    
     document.body.appendChild(element);
     this.dialogStack++;
+    queueMicrotask(() => options.onAfterOpen?.(instance));
     return instance;
   }
 

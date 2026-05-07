@@ -1,19 +1,105 @@
 import type { ComponentFactory } from '@/components/component.model';
-import { buildAndInterpolate } from '@/core/dom';
+import type { Column } from '@/components/table/table.model';
+import { $, buildAndInterpolate } from '@/core/dom';
+import { hydrateComponents, hydrateEventListeners } from '@/core/hydrate';
+import { dialogService } from '@/core/services/dialog.service';
+import { BaseComponent, type Identifiable } from '@/core/types';
 import masterTablesService from '@/services/master-tables.service';
 import usuariosService from '@/services/usuarios.service';
 import type { Usuario } from '@/services/usuarios.service';
+
+function showInTable<T extends Identifiable>(title: string, data: T[]) {
+  if (!data.length) return;
+
+  const columns: Column<T>[] = Object.keys(data[0])
+    .filter(key => key !== '__proto__')
+    .map(key => ({
+      key,
+      title: key.charAt(0).toUpperCase() + key.slice(1),
+      className: 'text-left min-w-24',
+      sorter: (a: T, b: T) => {
+        const va = (a as Record<string, unknown>)[key];
+        const vb = (b as Record<string, unknown>)[key];
+        if (va == null && vb == null) return 0;
+        if (va == null) return -1;
+        if (vb == null) return 1;
+        if (typeof va === 'number' && typeof vb === 'number') return va - vb;
+        return String(va).localeCompare(String(vb));
+      },
+    }));
+
+  const ref = dialogService.showDialog({
+    title: `${title} (${data.length} registros)`,
+    message: `
+      <div class="w-full p-4">
+        <div class="w-full h-96 overflow-auto">
+          <div
+            data-component="app-table"
+            data-key="dialog-table"
+          ></div>
+        </div>
+      </div>
+    `,
+    asHtml: true,
+    size: 'xl',
+    showFooter: true,
+  });
+
+  ref.afterOpen((dialog) => {
+    const container = dialog.getContainer();
+    if (container) {
+      hydrateComponents(container, { }).then(() => {
+        const instance = BaseComponent.getInstance('[app-table]', container);
+        if (instance) {
+          instance.setColumns(columns);
+          instance.setData(data);
+        }
+      });      
+    }
+  });
+}
 
 const ApiTestPage: ComponentFactory = () => {
 
   const context = {
     results: '' as string,
+    lastData: null as unknown,
+    lastSection: '' as string,
 
     log(section: string, data: unknown) {
       const timestamp = new Date().toLocaleTimeString();
       const json = JSON.stringify(data, null, 2);
-      context.results += `<div class="mb-4"><span class="text-xs text-slate-400">[${timestamp}]</span> <strong class="text-indigo-600 dark:text-indigo-400">${section}</strong><pre class="mt-1 p-2 rounded bg-slate-100 dark:bg-slate-800 text-xs overflow-auto">${json}</pre></div>`;
+      const payload = context.extractArray(data);
+      const tableBtn = payload
+        ? `<button on-click="showLastInTable" class="ml-2 px-2 py-0.5 text-[10px] font-medium rounded bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 cursor-pointer">View in Table (${payload.length})</button>`
+        : '';
+      context.lastData = data;
+      context.lastSection = section;
+      context.results += `<div class="mb-4"><span class="text-xs text-slate-400">[${timestamp}]</span> <strong class="text-indigo-600 dark:text-indigo-400">${section}</strong>${tableBtn}<pre class="mt-1 p-2 rounded bg-slate-100 dark:bg-slate-800 text-xs overflow-auto">${json}</pre></div>`;      
       context.updateOutput();
+    },
+
+    extractArray(data: unknown): Identifiable[] | null {
+      if (Array.isArray(data) && data.length > 0 && 'id' in data[0]) return data;
+      if (data && typeof data === 'object') {
+        const obj = data as Record<string, unknown>;
+        // Check data.response (e.g. { data: { response: [...] } })
+        if (obj.data && typeof obj.data === 'object') {
+          const inner = obj.data as Record<string, unknown>;
+          if (Array.isArray(inner.response) && inner.response.length > 0 && 'id' in inner.response[0]) return inner.response;
+          if (Array.isArray(inner) && inner.length > 0 && 'id' in inner[0]) return inner;
+        }
+        // Check top-level .data as array
+        if (Array.isArray(obj.data) && obj.data.length > 0 && 'id' in obj.data[0]) return obj.data;
+        // Check top-level .response as array
+        if (Array.isArray(obj.response) && (obj.response as Identifiable[]).length > 0 && 'id' in obj.response[0]) return obj.response as Identifiable[];
+      }
+      return null;
+    },
+
+    showLastInTable() {
+      const payload = context.extractArray(context.lastData);
+      if (payload) showInTable(context.lastSection, payload);
     },
 
     logError(section: string, err: unknown) {
@@ -24,7 +110,10 @@ const ApiTestPage: ComponentFactory = () => {
 
     updateOutput() {
       const el = context.element?.querySelector('[data-ref="output"]');
-      if (el) el.innerHTML = context.results;
+      if (el) {
+        el.innerHTML = context.results;
+        hydrateEventListeners(el as HTMLElement, context);
+      }
     },
 
     clearResults() {
@@ -146,6 +235,54 @@ const ApiTestPage: ComponentFactory = () => {
       catch (e) { context.logError('Distribuidores.getRoles(1)', e); }
     },
 
+    // -------- ASHX (legacy handler) --------
+    async testAshxGetItems() {
+      try { context.log('ASHX.getItems()', await usuariosService.ashx.getItems()); }
+      catch (e) { context.logError('ASHX.getItems()', e); }
+    },
+    async testAshxGetItemsSearch() {
+      try { context.log('ASHX.getItems("test")', await usuariosService.ashx.getItems('test')); }
+      catch (e) { context.logError('ASHX.getItems("test")', e); }
+    },
+    async testAshxGetItemById() {
+      try { context.log('ASHX.getItemById(1)', await usuariosService.ashx.getItemById(1)); }
+      catch (e) { context.logError('ASHX.getItemById(1)', e); }
+    },
+    async testAshxDelete() {
+      try { context.log('ASHX.delete(999)', await usuariosService.ashx.delete(999)); }
+      catch (e) { context.logError('ASHX.delete(999)', e); }
+    },
+    async testAshxDeleteItems() {
+      try { context.log('ASHX.deleteItems([998,999])', await usuariosService.ashx.deleteItems([998, 999])); }
+      catch (e) { context.logError('ASHX.deleteItems([998,999])', e); }
+    },
+    async testAshxChangeNames() {
+      try { context.log('ASHX.changeNames([1,2])', await usuariosService.ashx.changeNames([1, 2])); }
+      catch (e) { context.logError('ASHX.changeNames([1,2])', e); }
+    },
+    async testAshxNew() {
+      const user: Partial<Usuario> = { nombre: 'ASHX New User', descripcion: 'Created via ASHX', nif: '99999999Z' };
+      try { context.log('ASHX.new()', await usuariosService.ashx.new(user)); }
+      catch (e) { context.logError('ASHX.new()', e); }
+    },
+    async testAshxSave() {
+      const user: Usuario = { id: 1, nombre: 'ASHX Updated', descripcion: 'Saved via ASHX', nif: '12345678A', fechaDeAlta: null };
+      try { context.log('ASHX.save()', await usuariosService.ashx.save(user)); }
+      catch (e) { context.logError('ASHX.save()', e); }
+    },
+
+    async runAllAshx() {
+      context.clearResults();
+      await context.testAshxGetItems();
+      await context.testAshxGetItemsSearch();
+      await context.testAshxGetItemById();
+      await context.testAshxDelete();
+      await context.testAshxDeleteItems();
+      await context.testAshxChangeNames();
+      await context.testAshxNew();
+      await context.testAshxSave();
+    },
+
     // -------- Run All --------
     async runAllMasterTables() {
       context.clearResults();
@@ -186,6 +323,7 @@ const ApiTestPage: ComponentFactory = () => {
       context.clearResults();
       await context.runAllMasterTables();
       await context.runAllUsuarios();
+      await context.runAllAshx();
     },
 
     element: null as HTMLElement | null,
@@ -200,12 +338,12 @@ const ApiTestPage: ComponentFactory = () => {
 
           <!-- Sidebar -->
           <aside class="w-80 min-w-80 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 overflow-y-auto p-3 space-y-2">
-            <div class="flex items-center justify-between mb-3 px-1">
-              <h1 class="text-lg font-black text-slate-900 dark:text-slate-100">API Tester</h1>
-              <div class="flex gap-1">
-                <button on-click="runAll" class="${btnPrimary}">All</button>
-                <button on-click="clearResults" class="${btn}">Clear</button>
-              </div>
+            <div data-component="app-logo">
+              Api Test
+            </div>            
+            <div class="text-right mb-3 px-1">
+              <button on-click="runAll" class="${btnPrimary}">All</button>
+              <button on-click="clearResults" class="${btn}">Clear</button>
             </div>
 
             <!-- MasterDataTables group -->
@@ -301,6 +439,27 @@ const ApiTestPage: ComponentFactory = () => {
 
             <div class="pt-2">
               <button on-click="runAllUsuarios" class="${btnSuccess} w-full">Run All Usuarios</button>
+            </div>
+
+            <!-- Separator -->
+            <hr class="border-slate-200 dark:border-slate-700 my-2" />
+
+            <!-- ASHX Legacy -->
+            <div data-component="app-collapsible" data-title="ASHX Users (legacy)" data-expanded="false">
+              <div class="flex flex-wrap gap-1.5">
+                <button on-click="testAshxGetItems" class="${btn}">getItems</button>
+                <button on-click="testAshxGetItemsSearch" class="${btn}">getItems("test")</button>
+                <button on-click="testAshxGetItemById" class="${btn}">getItemById(1)</button>
+                <button on-click="testAshxDelete" class="${btn}">delete(999)</button>
+                <button on-click="testAshxDeleteItems" class="${btn}">deleteItems</button>
+                <button on-click="testAshxChangeNames" class="${btn}">changeNames</button>
+                <button on-click="testAshxNew" class="${btn}">new</button>
+                <button on-click="testAshxSave" class="${btn}">save</button>
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <button on-click="runAllAshx" class="${btn} !bg-amber-600 !text-white !border-amber-600 hover:!bg-amber-700 w-full">Run All ASHX</button>
             </div>
           </aside>
 
