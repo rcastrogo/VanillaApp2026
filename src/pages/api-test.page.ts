@@ -271,207 +271,138 @@ const ApiTestPage: ComponentFactory = () => {
       catch (e) { context.logError('ASHX.save()', e); }
     },
 
-    async runAllAshx() {
-      context.clearResults();
-      await context.testAshxGetItems();
-      await context.testAshxGetItemsSearch();
-      await context.testAshxGetItemById();
-      await context.testAshxDelete();
-      await context.testAshxDeleteItems();
-      await context.testAshxChangeNames();
-      await context.testAshxNew();
-      await context.testAshxSave();
-    },
-
-    // -------- Run All --------
-    async runAllMasterTables() {
-      context.clearResults();
-      await context.testDepartamentosGetAll();
-      await context.testDepartamentosGetById();
-      await context.testCategoriasGetAll();
-      await context.testCategoriasGetById();
-      await context.testEstadosPedidosGetAll();
-      await context.testEstadosPedidosGetById();
-      await context.testMonedasGetAll();
-      await context.testMonedasGetById();
-      await context.testPaisesGetAll();
-      await context.testPaisesGetById();
-      await context.testRolesUsuarioGetAll();
-      await context.testRolesUsuarioGetById();
-      await context.testTiposDeDocumentoGetAll();
-      await context.testTiposDeDocumentoGetById();
-      await context.testTiposDeTransaccionGetAll();
-      await context.testTiposDeTransaccionGetById();
-      await context.testSerializers();
-    },
-
-    async runAllUsuarios() {
-      context.clearResults();
-      await context.testUsuariosGetAll();
-      await context.testUsuariosGetById();
-      await context.testUsuariosCreate();
-      await context.testUsuariosUpdate();
-      await context.testUsuariosDelete();
-      await context.testUsuariosGetTable();
-      await context.testDistribuidoresGetAll();
-      await context.testDistribuidoresSearch();
-      await context.testDistribuidoresGetById();
-      await context.testDistribuidoresGetRoles();
-    },
-
-    async runAll() {
-      context.clearResults();
-      await context.runAllMasterTables();
-      await context.runAllUsuarios();
-      await context.runAllAshx();
-    },
-
     element: null as HTMLElement | null,
 
     render() {
       const btn = 'px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer';
-      const btnPrimary = `${btn} !bg-indigo-600 !text-white !border-indigo-600 hover:!bg-indigo-700`;
-      const btnSuccess = `${btn} !bg-emerald-600 !text-white !border-emerald-600 hover:!bg-emerald-700`;
 
       const template = `
-        <div class="flex h-[calc(100vh)] overflow-hidden">
+        <div class="">
+          <div 
+            data-component="app-logo" 
+            class="w-full border-b p-4 sticky top-0 bg-slate-50 dark:bg-slate-900 z-10">
+            Api Test
+          </div> 
+          <div class="flex h-[calc(100vh)] overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-80 min-w-80 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 overflow-y-auto p-3 space-y-2">           
 
-          <!-- Sidebar -->
-          <aside class="w-80 min-w-80 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 overflow-y-auto p-3 space-y-2">
-            <div data-component="app-logo">
-              Api Test
-            </div>            
-            <div class="text-right mb-3 px-1">
-              <button on-click="runAll" class="${btnPrimary}">All</button>
-              <button on-click="clearResults" class="${btn}">Clear</button>
-            </div>
-
-            <!-- MasterDataTables group -->
-            <div data-component="app-collapsible" data-title="Departamentos" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testDepartamentosGetAll" class="${btn}">getAll</button>
-                <button on-click="testDepartamentosGetById" class="${btn}">getById(1)</button>
+              <!-- MasterDataTables group -->
+              <div data-component="app-collapsible" data-title="Departamentos" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testDepartamentosGetAll" class="${btn}">getAll</button>
+                  <button on-click="testDepartamentosGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="Categorias" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testCategoriasGetAll" class="${btn}">getAll</button>
-                <button on-click="testCategoriasGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="Categorias" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testCategoriasGetAll" class="${btn}">getAll</button>
+                  <button on-click="testCategoriasGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="EstadosPedidos" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testEstadosPedidosGetAll" class="${btn}">getAll</button>
-                <button on-click="testEstadosPedidosGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="EstadosPedidos" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testEstadosPedidosGetAll" class="${btn}">getAll</button>
+                  <button on-click="testEstadosPedidosGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="Monedas" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testMonedasGetAll" class="${btn}">getAll</button>
-                <button on-click="testMonedasGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="Monedas" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testMonedasGetAll" class="${btn}">getAll</button>
+                  <button on-click="testMonedasGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="Paises" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testPaisesGetAll" class="${btn}">getAll</button>
-                <button on-click="testPaisesGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="Paises" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testPaisesGetAll" class="${btn}">getAll</button>
+                  <button on-click="testPaisesGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="RolesUsuario" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testRolesUsuarioGetAll" class="${btn}">getAll</button>
-                <button on-click="testRolesUsuarioGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="RolesUsuario" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testRolesUsuarioGetAll" class="${btn}">getAll</button>
+                  <button on-click="testRolesUsuarioGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="TiposDeDocumento" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testTiposDeDocumentoGetAll" class="${btn}">getAll</button>
-                <button on-click="testTiposDeDocumentoGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="TiposDeDocumento" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testTiposDeDocumentoGetAll" class="${btn}">getAll</button>
+                  <button on-click="testTiposDeDocumentoGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="TiposDeTransaccion" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testTiposDeTransaccionGetAll" class="${btn}">getAll</button>
-                <button on-click="testTiposDeTransaccionGetById" class="${btn}">getById(1)</button>
+              <div data-component="app-collapsible" data-title="TiposDeTransaccion" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testTiposDeTransaccionGetAll" class="${btn}">getAll</button>
+                  <button on-click="testTiposDeTransaccionGetById" class="${btn}">getById(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="Serializers" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testSerializers" class="${btn}">get</button>
+              <div data-component="app-collapsible" data-title="Serializers" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testSerializers" class="${btn}">get</button>
+                </div>
               </div>
-            </div>
 
-            <div class="pt-2">
-              <button on-click="runAllMasterTables" class="${btnPrimary} w-full">Run All MasterTables</button>
-            </div>
+              <!-- Separator -->
+              <hr class="border-slate-200 dark:border-slate-700 my-2" />
 
-            <!-- Separator -->
-            <hr class="border-slate-200 dark:border-slate-700 my-2" />
-
-            <!-- Usuarios group -->
-            <div data-component="app-collapsible" data-title="Usuarios CRUD" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testUsuariosGetAll" class="${btn}">getAll</button>
-                <button on-click="testUsuariosGetById" class="${btn}">getById(1)</button>
-                <button on-click="testUsuariosCreate" class="${btn}">create</button>
-                <button on-click="testUsuariosUpdate" class="${btn}">update(1)</button>
-                <button on-click="testUsuariosDelete" class="${btn}">remove(999)</button>
-                <button on-click="testUsuariosGetTable" class="${btn}">getTable("departamentos")</button>
+              <!-- Usuarios group -->
+              <div data-component="app-collapsible" data-title="Usuarios CRUD" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testUsuariosGetAll" class="${btn}">getAll</button>
+                  <button on-click="testUsuariosGetById" class="${btn}">getById(1)</button>
+                  <button on-click="testUsuariosCreate" class="${btn}">create</button>
+                  <button on-click="testUsuariosUpdate" class="${btn}">update(1)</button>
+                  <button on-click="testUsuariosDelete" class="${btn}">remove(999)</button>
+                  <button on-click="testUsuariosGetTable" class="${btn}">getTable("departamentos")</button>
+                </div>
               </div>
-            </div>
 
-            <div data-component="app-collapsible" data-title="Distribuidores" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testDistribuidoresGetAll" class="${btn}">getAll</button>
-                <button on-click="testDistribuidoresSearch" class="${btn}">search("Mega")</button>
-                <button on-click="testDistribuidoresGetById" class="${btn}">getById(1)</button>
-                <button on-click="testDistribuidoresGetRoles" class="${btn}">getRoles(1)</button>
+              <div data-component="app-collapsible" data-title="Distribuidores" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testDistribuidoresGetAll" class="${btn}">getAll</button>
+                  <button on-click="testDistribuidoresSearch" class="${btn}">search("Mega")</button>
+                  <button on-click="testDistribuidoresGetById" class="${btn}">getById(1)</button>
+                  <button on-click="testDistribuidoresGetRoles" class="${btn}">getRoles(1)</button>
+                </div>
               </div>
-            </div>
 
-            <div class="pt-2">
-              <button on-click="runAllUsuarios" class="${btnSuccess} w-full">Run All Usuarios</button>
-            </div>
+              <!-- Separator -->
+              <hr class="border-slate-200 dark:border-slate-700 my-2" />
 
-            <!-- Separator -->
-            <hr class="border-slate-200 dark:border-slate-700 my-2" />
-
-            <!-- ASHX Legacy -->
-            <div data-component="app-collapsible" data-title="ASHX Users (legacy)" data-expanded="false">
-              <div class="flex flex-wrap gap-1.5">
-                <button on-click="testAshxGetItems" class="${btn}">getItems</button>
-                <button on-click="testAshxGetItemsSearch" class="${btn}">getItems("test")</button>
-                <button on-click="testAshxGetItemById" class="${btn}">getItemById(1)</button>
-                <button on-click="testAshxDelete" class="${btn}">delete(999)</button>
-                <button on-click="testAshxDeleteItems" class="${btn}">deleteItems</button>
-                <button on-click="testAshxChangeNames" class="${btn}">changeNames</button>
-                <button on-click="testAshxNew" class="${btn}">new</button>
-                <button on-click="testAshxSave" class="${btn}">save</button>
+              <!-- ASHX Legacy -->
+              <div data-component="app-collapsible" data-title="ASHX Users (legacy)" data-expanded="false">
+                <div class="flex flex-wrap gap-1.5">
+                  <button on-click="testAshxGetItems" class="${btn}">getItems</button>
+                  <button on-click="testAshxGetItemsSearch" class="${btn}">getItems("test")</button>
+                  <button on-click="testAshxGetItemById" class="${btn}">getItemById(1)</button>
+                  <button on-click="testAshxDelete" class="${btn}">delete(999)</button>
+                  <button on-click="testAshxDeleteItems" class="${btn}">deleteItems</button>
+                  <button on-click="testAshxChangeNames" class="${btn}">changeNames</button>
+                  <button on-click="testAshxNew" class="${btn}">new</button>
+                  <button on-click="testAshxSave" class="${btn}">save</button>
+                </div>
               </div>
-            </div>
 
-            <div class="pt-2">
-              <button on-click="runAllAshx" class="${btn} !bg-amber-600 !text-white !border-amber-600 hover:!bg-amber-700 w-full">Run All ASHX</button>
-            </div>
-          </aside>
+            </aside>
 
-          <!-- Main content: Results -->
-          <main class="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Results</h2>
-              <button on-click="clearResults" class="${btn} text-slate-500">Clear output</button>
-            </div>
-            <div data-ref="output" class="space-y-2"></div>
-          </main>
+            <!-- Main content: Results -->
+            <main class="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Results</h2>
+                <button on-click="clearResults" class="${btn} text-slate-500">Clear output</button>
+              </div>
+              <div data-ref="output" class="space-y-2"></div>
+            </main>
 
+          </div>
         </div>
       `;
 
