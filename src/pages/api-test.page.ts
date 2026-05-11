@@ -2,8 +2,11 @@ import type { ComponentFactory } from '@/components/component.model';
 import type { Column } from '@/components/table/table.model';
 import { buildAndInterpolate } from '@/core/dom';
 import { hydrateComponents, hydrateEventListeners } from '@/core/hydrate';
+import { executeServerAction } from '@/core/server-actions';
 import { dialogService } from '@/core/services/dialog.service';
+import { notificationService } from '@/core/services/notification.service';
 import { BaseComponent, type Identifiable } from '@/core/types';
+import { accentNumericComparer } from '@/core/utils';
 import masterTablesService from '@/services/master-tables.service';
 import usuariosService from '@/services/usuarios.service';
 import type { Usuario } from '@/services/usuarios.service';
@@ -15,6 +18,7 @@ function showInTable<T extends Identifiable>(title: string, data: T[]) {
     .filter(key => key !== '__proto__')
     .map(key => ({
       key,
+      options: { canBeRemoved: key !== 'id' },
       title: key.charAt(0).toUpperCase() + key.slice(1),
       className: 'text-left min-w-24',
       sorter: (a: T, b: T) => {
@@ -24,9 +28,14 @@ function showInTable<T extends Identifiable>(title: string, data: T[]) {
         if (va == null) return -1;
         if (vb == null) return 1;
         if (typeof va === 'number' && typeof vb === 'number') return va - vb;
-        return String(va).localeCompare(String(vb));
+        return accentNumericComparer(String(va), String(vb));
       },
     }));
+
+  const onRowClick = function(id: string){ 
+    // atajo para mostrar notificacines
+    executeServerAction({type: 'success', payload: `Clicked row with id: ${id}`});
+  }
 
   const ref = dialogService.showDialog({
     title: `${title} (${data.length} registros)`,
@@ -35,7 +44,18 @@ function showInTable<T extends Identifiable>(title: string, data: T[]) {
         <div class="w-full h-96 overflow-auto">
           <div
             data-component="app-table"
-            data-key="dialog-table"
+            data-page-size="none"
+            data-hide-row-selection="true"
+            data-hide-toolbar="false"
+            data-hide-statusbar="false"
+            data-hide-buttons="false"
+            data-hide-crud-buttons="true"
+            data-hide-pagination="true"
+            data-hide-menu-button="false"
+            data-hide-config-button="true"
+            data-hide-menu-selection="false"
+            data-hide-menu-pagination="true"
+            data-hide-menu-columns="false"
           ></div>
         </div>
       </div>
@@ -45,14 +65,25 @@ function showInTable<T extends Identifiable>(title: string, data: T[]) {
     showFooter: true,
   });
 
+  // function handleUpdateUI(payload: TableUIUpdatePayload) {
+  //   // if (payload.statusContainer) {
+  //   //   payload.statusContainer.style.display = 'none';
+  //   // }
+  //   payload.buttons.crud.forEach(btn => btn.style.display = 'none');
+  //   payload.buttons.custom.forEach(btn => btn.style.display = 'none');
+  //   // payload.buttons.menu.forEach(btn => btn.className = 'hidden');
+  // }
+
   ref.afterOpen((dialog) => {
     const container = dialog.getContainer();
     if (container) {
       hydrateComponents(container, { }).then(() => {
         const instance = BaseComponent.getInstance('[app-table]', container);
         if (instance) {
+          // instance.onUpdateUi = handleUpdateUI;
           instance.setColumns(columns);
           instance.setData(data);
+          instance.onRowClick = onRowClick;
         }
       });      
     }
@@ -190,6 +221,18 @@ const ApiTestPage: ComponentFactory = () => {
       try { context.log('Serializers', await masterTablesService.serializers()); }
       catch (e) { context.logError('Serializers', e); }
     },
+    async testServerActions() {
+      try { 
+        const result = await masterTablesService.testServerActions();
+        context.log('ServerActions', result);
+        if(typeof result === 'string') {
+          notificationService.info(`Server message: ${result}`, 5000);
+          return
+        }
+        result.data.actions?.forEach(executeServerAction);
+      }
+      catch (e) { context.logError('ServerActions', e); }
+    },
 
     // -------- Usuarios --------
     async testUsuariosGetAll() {
@@ -282,7 +325,8 @@ const ApiTestPage: ComponentFactory = () => {
             data-component="app-logo" 
             class="w-full border-b p-4 sticky top-0 bg-slate-50 dark:bg-slate-900 z-10">
             Api Test
-          </div> 
+          </div>
+          <input class="w-full border-0 p-2" type="text" id="input-random" value="xxxxx"/>
           <div class="flex h-[calc(100vh)] overflow-hidden">
             <!-- Sidebar -->
             <aside class="w-80 min-w-80 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 overflow-y-auto p-3 space-y-2">           
@@ -343,10 +387,11 @@ const ApiTestPage: ComponentFactory = () => {
                   <button on-click="testTiposDeTransaccionGetById" class="${btn}">getById(1)</button>
                 </div>
               </div>
-
-              <div data-component="app-collapsible" data-title="Serializers" data-expanded="false">
+              
+              <div data-component="app-collapsible" data-title="Tests" data-expanded="false">
                 <div class="flex flex-wrap gap-1.5">
-                  <button on-click="testSerializers" class="${btn}">get</button>
+                  <button on-click="testSerializers" class="${btn}">TestSerializers</button>
+                  <button on-click="testServerActions" class="${btn}">TestServerActions</button>
                 </div>
               </div>
 
@@ -403,6 +448,7 @@ const ApiTestPage: ComponentFactory = () => {
             </main>
 
           </div>
+          <div data-component="app-notification-panel"></div>
         </div>
       `;
 

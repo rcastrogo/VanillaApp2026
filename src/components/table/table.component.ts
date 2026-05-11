@@ -1,5 +1,5 @@
 ﻿
-import type { ActionButton, Column, FilterCriteria, TableState, UniqueValue } from './table.model';
+import type { ActionButton, Column, FilterCriteria, TableState, TableUIUpdatePayload, UniqueValue } from './table.model';
 import { TABLE_ACTIONS } from './table.model';
 
 import { APP_CONFIG } from '@/app.config';
@@ -20,12 +20,14 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
   private sortDirty = true;
   private activeFilters = new Map<string, FilterCriteria>();
 
+  public onUpdateUi?: (value: TableUIUpdatePayload) => void;
   // Output callbacks (CRUD actions from toolbar)
   public onRefresh?: () => void;
   public onCreate?: () => void;
   public onDelete?: (ids: (string | number)[]) => void;
   public onEdit?: (id: string | number) => void;
   public onAction?: (action: string) => void;
+  public onRowClick?: (id: string | number) => void;
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -49,6 +51,17 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       sortDirection: null as 'asc' | 'desc' | null,
       visibleColumns: new Set<string>(),
       activeFiltersCount: 0,
+      hideRowSelection: this.props.hideRowSelection == 'true',
+      hideToolbar: this.props.hideToolBar == 'true',
+      hideStatusbar: this.props.hideStatusbar == 'true',
+      hideButtons: this.props.hideButtons == 'true',
+      hideCrudButtons: this.props.hideCrudButtons == 'true',
+      hidePagination: this.props.hidePagination == 'true',
+      hideMenuButton: this.props.hideMenuButton == 'true',
+      hideConfigButton: this.props.hideConfigButton == 'true',
+      hideMenuSelection: this.props.hideMenuSelection == 'true',
+      hideMenuColumns: this.props.hideMenuColumns == 'true',      
+      hideMenuPagination: this.props.hideMenuPagination == 'true',
     } as TableState<T>, false);
     this.initColumns();
   }
@@ -147,6 +160,35 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     this.onAction?.(action);
   }
 
+  renderColumnList(el: HTMLElement): void {
+    const columns = this.state.columns as Column<T>[];
+    if (!columns.length) {
+      el.innerHTML = '';
+      return;
+    }
+    const html = columns.map(col => {
+      const checked = col.isVisible ? 'checked' : '';
+      const disabled = col.options?.canBeRemoved === false ? 'disabled' : '';
+      return `
+        <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 px-2 py-1 transition select-none rounded">
+          <input
+            type="checkbox"
+            ${checked} ${disabled}
+            data-col-key="${col.key}"
+            on-change="handleToggleColumn:${col.key}"
+            class="w-3 h-3 accent-indigo-500 cursor-pointer shrink-0"
+          />
+          <span class="text-sm opacity-60">${col.title}</span>
+        </label>
+      `;
+    }).join('');
+    const fragment = buildAndInterpolate(`<div>${html}</div>`, this);
+    el.innerHTML = '';
+    while (fragment.firstChild) {
+      el.appendChild(fragment.firstChild);
+    }
+  }
+
   handleToggleColumn(_el: HTMLElement, _e: Event, colKey: string): void {
     const column = (this.state.columns as Column<T>[]).find(col => col.key === colKey);
     if (column?.options?.canBeRemoved === false) return;
@@ -199,6 +241,10 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
         currentPage: 1 
       });
     }
+  }
+
+  handleRowClick(_el: HTMLElement, _e: Event, id: string): void { 
+    this.onRowClick?.(id); 
   }
 
   firstPage(): void { this.state.currentPage = 1; }
@@ -297,9 +343,11 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     const allChecked = data.length > 0 && selected.size === data.length;
     const newThead = buildAndInterpolate(
       `<table><thead><tr>
+        ${this.state.hideRowSelection ? '<th class="px-3 py-2 border-b size-8"></th>' : `
         <th class="px-3 py-2 border-b w-10">
           <input type="checkbox" on-change="selectAll" class="cursor-pointer" ${allChecked ? 'checked' : ''} />
-        </th>
+        </th>`
+        }
         ${this.buildHeaderHtml()}
       </tr></thead></table>`,
       this,
@@ -339,6 +387,21 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     }
     const pageInput = this.element.querySelector('[data-page-input]') as HTMLInputElement | null;
     if (pageInput) pageInput.value = String(currentPage);
+    if(this.onUpdateUi){
+      const payload = { 
+        toolbarContainer : $('[data-table-toolbar]', this.element).one(),
+        statusContainer : $('[data-table-status]', this.element).one(),
+        buttonsContainer : $('[data-table-buttons]', this.element).one(),
+        buttons: {
+          crud: $('[data-crud]', this.element).all(),
+          custom: $('[data-custom]', this.element).all(),
+          pagination: $('[data-pagination]', this.element).all(),
+          menu: $('.js-menu', this.element).all(),
+        },
+        status: this.buildStatusHtml(),
+      }
+      this.onUpdateUi(payload);
+    }
   }
 
   clickInside = (e: Event): boolean => {
@@ -477,13 +540,16 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
         return `
           <tr 
             id="row-${row.id}"
+            on-click="handleRowClick:${row.id}" 
             data-row
             class="${isSelected 
               ? 'bg-blue-50! dark:bg-blue-900/20!' 
               : 'odd:bg-white even:bg-slate-50/50 hover:bg-slate-100 dark:odd:bg-transparent dark:even:bg-slate-800/30 dark:hover:bg-slate-800'}">
-            <td class="px-3 py-2 border-b w-10">
-              <input type="checkbox" on-change="toggleRow:${row.id}" class="cursor-pointer" ${isSelected ? 'checked' : ''} />
-            </td>
+            ${this.state.hideRowSelection ? '<td class="px-3 py-2 border-b border-r w-8"></td>' : `
+              <td class="px-3 py-2 border-b w-10">
+                <input type="checkbox" on-change="toggleRow:${row.id}" class="cursor-pointer" ${isSelected ? 'checked' : ''} />
+              </td>`
+            }
             ${cells}
           </tr>
         `;
@@ -497,120 +563,168 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       <div class="space-y-2" app-table>
 
         <!-- Toolbar -->
-        <div class="w-full overflow-x-auto">
+        <div 
+          data-table-toolbar
+          data-bind="hide:state.hideToolbar"
+          class="w-full overflow-x-auto">
           <div class="flex items-center gap-1 w-full min-w-max px-1 py-1 rounded border bg-slate-50 dark:bg-slate-800 dark:border-slate-700">
             <!-- Status -->
-            <span data-table-status class="hidden md:block flex-1 text-sm text-slate-600 dark:text-slate-400 px-2 whitespace-nowrap">
-              
-            </span>
-
+            @if(!state.hideStatusbar)
+              <span 
+                data-table-status 
+                data-bind="hide:state.hideStatusbar"
+                class="
+                  hidden md:block 
+                  flex-1 text-sm text-slate-600 dark:text-slate-400 px-2 whitespace-nowrap
+                  text-left
+                ">       
+              </span>
+            @endif
             <!-- Buttons -->
-            <div class="flex items-center gap-1 ml-auto">
-
-              <!-- CRUD action buttons -->
-
-              <button 
-                data-btn="refresh" on-click="refreshData" class="app-button btn-ghost p-2! shrink-0" title="Refrescar">
-                <i data-icon="refresh-ccw" class="size-4"></i>
-              </button>
-              <button data-btn="create" on-click="createRow" class="app-button btn-ghost p-2! shrink-0" title="Nuevo">
-                <i data-icon="plus" class="size-4"></i>
-              </button>
-              <button disabled
-                data-btn="delete" 
-                on-click="deleteRows" 
-                class="app-button btn-ghost p-2! shrink-0" title="Eliminar">
-                <i data-icon="trash-2" class="size-4"></i>
-              </button>
-              <button disabled
-                data-btn="edit" 
-                on-click="editRow" class="app-button btn-ghost p-2! shrink-0" title="Editar">
-                <i data-icon="edit" class="size-4"></i>
-              </button>
-
-              <!-- Custom action buttons -->
-
-              @if(state.actions.length > 0)
-                <div class="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-1 shrink-0"></div>
-              @endif
-              <div class="contents" data-each="action in state.actions">
-                @if(action.show === 'button' || action.show === 'both')
-                  <button disabled
-                    data-btn="{action.key}"
-                    on-click="handleAction:@action.key"
-                    class="app-button btn-ghost p-2! shrink-0"
-                    title="{action.label}"
-                  >
-                    @if(action.icon)
-                      <i data-icon="{action.icon}" class="size-4 shrink-0"></i>
-                    @endif
-                    @if(!action.icon)
-                      {action.label}
-                    @endif
-                  </button>
-                @endif
-              </div>
-
-              <!-- Pagination -->
-
-              <div class="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-1 shrink-0"></div>              
-              <button disabled data-btn="first" on-click="firstPage" class="app-button btn-ghost p-2! shrink-0">
-                <i data-icon="chevrons-left" class="size-4"></i>
-              </button>
-              <button disabled data-btn="prev" on-click="prevPage" class="app-button btn-ghost p-2! shrink-0">
-                <i data-icon="chevron-left" class="size-4"></i>
-              </button>
-              <input
-                data-page-input
-                value="1"
-                on-change="goToPage"
-                class="w-10 h-8 text-center text-sm border rounded dark:bg-slate-700 dark:border-slate-600"
-              />
-              <button disabled data-btn="next" on-click="nextPage" class="app-button btn-ghost p-2! shrink-0">
-                <i data-icon="chevron-right" class="size-4"></i>
-              </button>
-              <button disabled data-btn="last" on-click="lastPage" class="app-button btn-ghost p-2! shrink-0">
-                <i data-icon="chevrons-right" class="size-4"></i>
-              </button>
-
-              <!-- Menu trigger -->
-
-              <div class="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-1 shrink-0"></div>
+            @if(!state.hideButtons)
               <div 
-                data-component="app-popover-trigger"
-                data-placement="top-end"
-                (click-inside)="clickInside"
-                (before-open)="onOpenMenu"
-                class="mb-1">
-                <button data-popover-trigger class="app-button px-2! btn-ghost shrink-0" title="Más opciones">
-                  <i data-icon="menu" class="size-4"></i>
+                data-table-buttons
+                data-bind="hide:state.hideButtons"
+                class="flex items-center gap-1 ml-auto">
+
+                <!-- CRUD action buttons -->
+
+                <button 
+                  data-bind="hide:state.hideCrudButtons"
+                  data-crud
+                  data-btn="refresh" on-click="refreshData" class="app-button btn-ghost p-2! shrink-0" title="Refrescar">
+                  <i data-icon="refresh-ccw" class="size-4"></i>
                 </button>
-                <div data-popover-content class="max-w-xs">
+                <button
+                  data-bind="hide:state.hideCrudButtons"
+                  data-crud
+                  data-btn="create" on-click="createRow" class="app-button btn-ghost p-2! shrink-0" title="Nuevo">
+                  <i data-icon="plus" class="size-4"></i>
+                </button>
+                <button disabled
+                  data-bind="hide:state.hideCrudButtons"
+                  data-crud
+                  data-btn="delete" 
+                  on-click="deleteRows" 
+                  class="app-button btn-ghost p-2! shrink-0" title="Eliminar">
+                  <i data-icon="trash-2" class="size-4"></i>
+                </button>
+                <button disabled
+                  data-bind="hide:state.hideCrudButtons"
+                  data-crud
+                  data-btn="edit" 
+                  on-click="editRow" class="app-button btn-ghost p-2! shrink-0" title="Editar">
+                  <i data-icon="edit" class="size-4"></i>
+                </button>
+                <div data-bind="hide:state.hideCrudButtons" data-crud class="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-1 shrink-0"></div>
 
-                  <!-- Custom action buttons -->
-                  @if(state.actions.length > 0)
-                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">Acciones</p>
+                <!-- Custom action buttons -->
+
+                <div class="contents" data-each="action in state.actions">
+                  @if(action.show === 'button' || action.show === 'both')
+                    <button disabled
+                      data-custom
+                      data-btn="{action.key}"
+                      on-click="handleAction:@action.key"
+                      class="app-button btn-ghost p-2! shrink-0"
+                      title="{action.label}"
+                    >
+                      @if(action.icon)
+                        <i data-icon="{action.icon}" class="size-4 shrink-0"></i>
+                      @endif
+                      @if(!action.icon)
+                        {action.label}
+                      @endif
+                    </button>
                   @endif
-                  <div class="px-1 contents" data-each="action in state.actions">
-                    @if(action.show === 'menu' || action.show === 'both')
-                      <button disabled
-                        data-btn="{action.key}"
-                        on-click="handleAction:@action.key"
-                        class="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 
-                        disabled:opacity-40 transition text-left rounded"
-                      >
-                        @if(action.icon)
-                          <i data-icon="{action.icon}" class="size-4 shrink-0"></i>
-                        @endif
-                        <span>{action.label}</span>
-                      </button>
-                    @endif
-                  </div>
+                </div>
+                @if(state.actions.length > 0)
+                  <div data-custom class="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-1 shrink-0"></div>
+                @endif
+
+                <!-- Pagination -->
+                
+                <button disabled
+                  data-bind="hide:state.hidePagination"
+                  data-pagination
+                  data-btn="first" on-click="firstPage" class="app-button btn-ghost p-2! shrink-0">
+                  <i data-icon="chevrons-left" class="size-4"></i>
+                </button>
+                <button disabled
+                  data-bind="hide:state.hidePagination"
+                  data-pagination
+                  data-btn="prev" on-click="prevPage" class="app-button btn-ghost p-2! shrink-0">
+                  <i data-icon="chevron-left" class="size-4"></i>
+                </button>
+                <input
+                  data-bind="hide:state.hidePagination"
+                  data-pagination
+                  data-page-input
+                  value="1"
+                  on-change="goToPage"
+                  class="w-10 h-8 text-center text-sm border rounded dark:bg-slate-700 dark:border-slate-600"
+                />
+                <button disabled
+                  data-bind="hide:state.hidePagination"
+                  data-pagination
+                  data-btn="next" on-click="nextPage" class="app-button btn-ghost p-2! shrink-0">
+                  <i data-icon="chevron-right" class="size-4"></i>
+                </button>
+                <button disabled
+                  data-bind="hide:state.hidePagination"
+                  data-pagination
+                  data-btn="last" on-click="lastPage" class="app-button btn-ghost p-2! shrink-0">
+                  <i data-icon="chevrons-right" class="size-4"></i>
+                </button>
+              </div>
+            @endif
+            
+            <!-- Menu trigger -->
+            <div 
+              data-bind="hide:state.hideMenuButton"
+              class="js-menu w-px h-5 bg-slate-300 dark:bg-slate-600 mx-1 shrink-0"></div>            
+            <div 
+              data-component="app-popover-trigger"
+              data-placement="top-end"
+              (click-inside)="clickInside"
+              (before-open)="onOpenMenu"
+              class="mb-1 js-menu">
+              <button
+                data-bind="hide:state.hideMenuButton"
+                data-popover-trigger class="app-button px-2! btn-ghost shrink-0" title="Más opciones">
+                <i data-icon="menu" class="size-4"></i>
+              </button>
+              <div data-popover-content class="max-w-xs">
+
+                <!-- Custom action buttons -->
+                @if(state.actions.length > 0)
+                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">Acciones</p>
+                @endif
+                <div class="px-1 contents" data-each="action in state.actions">
+                  @if(action.show === 'menu' || action.show === 'both')
+                    <button disabled
+                      data-btn="{action.key}"
+                      on-click="handleAction:@action.key"
+                      class="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 
+                      disabled:opacity-40 transition text-left rounded"
+                    >
+                      @if(action.icon)
+                        <i data-icon="{action.icon}" class="size-4 shrink-0"></i>
+                      @endif
+                      <span>{action.label}</span>
+                    </button>
+                  @endif
+                </div>
 
 
-                  <!-- Standard selection actions -->
-                  <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">Selección</p>
-                  <div class="px-1">
+                <!-- Standard selection actions -->
+                @if(!state.hideMenuSelection)
+                  <p 
+                    class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">
+                    Selección
+                  </p>
+                  <div 
+                    class="px-1">
                     <button disabled
                       data-btn="select-all"
                       on-click="handleAction:select-all"
@@ -648,31 +762,24 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                       <span>Mostrar solo seleccionados</span>
                     </button>
                   </div>
+                  <div 
+                    data-bind="hide:state.hideMenuSelection"
+                    class="border-t my-1 dark:border-slate-700">
+                  </div>                  
+                @endif
 
-                  <div class="border-t my-1 dark:border-slate-700"></div>
-
-
-                  <!-- Column visibility -->
-                  
+                <!-- Column visibility -->
+                @if(!state.hideMenuColumns)
                   <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide px-3 pt-1 pb-0.5">Columnas</p>                  
                   <div 
-                    class="p-1 border rounded-lg h-30 overflow-auto" 
-                    data-each="col in state.columns">
-                      <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 px-2 py-1 transition select-none rounded">                 
-                      <input
-                        type="checkbox"
-                        data-bind="
-                          checked:state.columns.{index}.isVisible;
-                          disabled:state.columns.{index}.options.canBeRemoved | equal : false
-                        "
-                        on-change="handleToggleColumn:@col.key"                        
-                        class="w-3 h-3 accent-indigo-500 cursor-pointer shrink-0"
-                      />
-                      <span class="text-sm opacity-60 @endif">{col.title}</span>                      
-                      </label>                
+                    data-bind="fn:renderColumnList"
+                    class="p-1 border rounded-lg h-30 overflow-auto">
+                    <!-- Column list will be rendered here -->
                   </div>
+                @endif
 
-                  <!-- Page size -->
+                <!-- Page size -->
+                @if(!state.hideMenuPagination)
                   <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide pt-1 pb-0.5 dark:border-slate-700 border-b">Paginación</p>
                   <div 
                     data-each="size in [5, 10, 25, 50, 100]"
@@ -688,19 +795,19 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                       {size}
                     </button>
                   </div>
-                </div>
+                @endif
               </div>
-
             </div>
 
             <!-- Configuration button -->
 
-            <div 
+            <div
               data-component="app-popover-trigger"
               data-mode="hover"
               (click-inside)="clickInside"
-              class="mb-1">
-                <button 
+              class="mb-1 js-menu">
+                <button
+                  data-bind="hide:state.hideConfigButton"
                   data-popover-trigger 
                   class="app-button px-2! btn-ghost shrink-0">
                   <i data-icon="settings" class="size-4"></i>
@@ -843,6 +950,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
   }
 
   private loadPageSize(): number {
+    if(this.props.pageSize === 'none') return Number.POSITIVE_INFINITY;
     const saved = storage.readValue<number>(this.pageSizeStorageKey(), 10);
     return Number.isFinite(saved) ? saved : 10;
   }

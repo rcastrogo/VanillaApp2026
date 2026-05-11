@@ -1,17 +1,5 @@
+import type { ApiResponse } from "@/core/server-actions/model";
 import { RQ } from "@/core/services/http-client.service";
-
-export type ApiResult = 'Ok' | 'Error';
-
-export interface ServerAction {
-  type: string | null;
-  payload: unknown;
-}
-
-export interface ApiResponse<T> {
-  result: ApiResult;
-  response: T;
-  actions: ServerAction[] | null;
-}
 
 export interface Departamento {
   id: number;
@@ -67,7 +55,7 @@ export interface TipoDeTransaccion {
   naturaleza: string | null;
 }
 
-const HOST = import.meta.env.VITE_BACK_END || '';
+const HOST: string = import.meta.env.VITE_BACK_END || '';
 const BASE_ENDPOINT = HOST + '/api/MasterDataTables/';
 
 const MasterTablesService = () => {
@@ -93,6 +81,13 @@ const MasterTablesService = () => {
       .useBase(BASE_ENDPOINT)
       .useLog('Fetching serializers')
       .getFrom('serializers')
+      .invoke();
+  }
+
+  function invokeGet(endpoint: string) {
+    return RQ.create<ApiResponse<unknown>>()
+      .useBase(HOST)
+      .getFrom(endpoint)
       .invoke();
   }
 
@@ -130,6 +125,7 @@ const MasterTablesService = () => {
       getById: (id: number) => getById<TipoDeTransaccion>('TiposDeTransaccion', id),
     },
     serializers: getSerializers,
+    testServerActions: () => invokeGet('/api/Distribuidores/test-actions')
   };
 };
 

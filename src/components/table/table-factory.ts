@@ -1,13 +1,10 @@
 
-import type { ActionButton, Column } from './table.model';
 import { TableComponent } from './table.component';
+import type { ActionButton, Column } from './table.model';
+
 import { BaseComponent, type Identifiable } from '@/core/types';
 
-// ─── Column data types for auto-generated sorters ─────────────────────────────
-
 export type ColumnDataType = 'string' | 'number' | 'boolean' | 'date' | 'datetime';
-
-// ─── Column schema ────────────────────────────────────────────────────────────
 
 /**
  * Declarative metadata used by `defineColumns` to generate a `Column<T>`.

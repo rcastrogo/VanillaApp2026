@@ -2,9 +2,12 @@
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { defineColumns, mountTable } from '@/components/table/table-factory';
 import type { TableComponent } from '@/components/table/table.component';
+import type { Column } from '@/components/table/table.model';
 import { $, buildAndInterpolate } from '@/core/dom';
+import { hydrateComponents } from '@/core/hydrate';
 import { notificationService } from '@/core/services/notification.service';
 import { BaseComponent, type Identifiable } from '@/core/types';
+import { accentNumericComparer } from '@/core/utils';
 import masterTablesService, { type Categoria } from '@/services/master-tables.service';
 import usuariosService, { type Distribuidor, type Usuario } from '@/services/usuarios.service';
 
@@ -16,6 +19,7 @@ export default class TableImperativePage extends BaseComponent {
   private usuariosTable?: TableComponent<Usuario & Identifiable>;
   private distribuidoresTable?: TableComponent<Distribuidor & Identifiable>;
   private categoriasTable?: TableComponent<Categoria & Identifiable>;
+  private hydrateTable?: TableComponent<Distribuidor & Identifiable>;
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -46,6 +50,7 @@ export default class TableImperativePage extends BaseComponent {
       this.buildUsuariosTable(),
       this.buildDistribuidoresTable(),
       this.buildCategoriasTable(),
+      this.buildHydrateTable(),
     ]);
   }
 
@@ -196,6 +201,57 @@ export default class TableImperativePage extends BaseComponent {
     }
   }
 
+  // ─── Hydrate-based table (api-test.page style) ──────────────────────────────
+
+  private async buildHydrateTable(): Promise<void> {
+    const container = $<HTMLElement>('#hydrate-table-container', this.element ?? undefined).one();
+    if (!container) return;
+
+    await hydrateComponents(container, {});
+
+    const instance = BaseComponent.getInstance<TableComponent<Distribuidor & Identifiable>>('[app-table]', container);
+    if (!instance) return;
+
+    this.hydrateTable = instance;
+
+    const columns = this.buildDistribuidorColumns();
+    instance.setColumns(columns);
+    instance.onRefresh = () => { void this.loadHydrateData(); };
+    instance.onRowClick = (id: string | number) => {
+      notificationService.success(`Clicked row: ${id}`);
+    };
+
+    await this.loadHydrateData();
+  }
+
+  private async loadHydrateData(): Promise<void> {
+    const result = await usuariosService.distribuidores.getAll();
+    if (typeof result === 'string') {
+      notificationService.error(`Error cargando datos: ${result}`);
+      return;
+    }
+    this.hydrateTable?.setData(result.data as (Distribuidor & Identifiable)[]);
+  }
+
+  private buildDistribuidorColumns(): Column<Distribuidor & Identifiable>[] {
+    return (Object.keys({ id: 0, nif: '', nombre: '', email: '', ciudad: '', telefono: '', activo: 0 }) as string[])
+      .map(key => ({
+        key,
+        title: key.charAt(0).toUpperCase() + key.slice(1),
+        className: 'text-left min-w-24',
+        options: { canBeRemoved: key !== 'id' },
+        sorter: (a: Distribuidor & Identifiable, b: Distribuidor & Identifiable) => {
+          const va = (a as unknown as Record<string, unknown>)[key];
+          const vb = (b as unknown as Record<string, unknown>)[key];
+          if (va == null && vb == null) return 0;
+          if (va == null) return -1;
+          if (vb == null) return 1;
+          if (typeof va === 'number' && typeof vb === 'number') return va - vb;
+          return accentNumericComparer(String(va), String(vb));
+        },
+      }));
+  }
+
   // ─── Template ────────────────────────────────────────────────────────────────
 
   private buildTemplate(): string {
@@ -274,6 +330,44 @@ if (typeof result !== 'string') table.setData(result.data);
           <div id="categorias-table-container"></div>
         </section>
 
+        <!-- Hydrate-based table (api-test.page style) -->
+        <section class="mb-10">
+          <h2 class="text-2xl font-bold text-slate-700 dark:text-slate-200 mb-1">
+            🔌 Hydrate + getInstance <span class="text-sm font-normal text-slate-400">(estilo api-test.page)</span>
+          </h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            El componente tabla se declara en el HTML con atributos <code>data-*</code> para configurar la UI.
+            Luego se hidrata con <code>hydrateComponents()</code> y se obtiene la instancia con
+            <code>BaseComponent.getInstance()</code> para inyectar columnas y datos.
+          </p>
+          <div class="mb-4 p-4 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 text-sm text-amber-800 dark:text-amber-300">
+            <strong>Patrón:</strong>
+            <code class="block mt-1 text-xs bg-amber-100 dark:bg-amber-900/40 rounded p-2 whitespace-pre-wrap">// 1. Declarar en el template con atributos de UI
+&lt;div data-component="app-table"
+     data-hide-crud-buttons="true"
+     data-hide-pagination="true"
+     data-page-size="none"&gt;&lt;/div&gt;
+
+// 2. Hidratar e inyectar datos
+await hydrateComponents(container, {});
+const table = BaseComponent.getInstance('[app-table]', container);
+table.setColumns(columns);
+table.setData(data);
+table.onRowClick = (id) => notify(id);</code>
+          </div>
+          <div id="hydrate-table-container">
+            <div
+              data-component="app-table"
+              data-hide-crud-buttons="true"
+              data-hide-pagination="true"
+              data-hide-config-button="true"
+              data-hide-menu-pagination="true"
+              data-hide-row-selection="true"
+              data-page-size="none"
+            ></div>
+          </div>
+        </section>
+
         <!-- Feature summary -->
         <div class="mt-10 grid gap-6 md:grid-cols-2">
           <section class="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
@@ -298,6 +392,127 @@ if (typeof result !== 'string') table.setData(result.data);
               <li><code>createTableHost(key)</code> — crea host sintético para init()</li>
               <li><code>mountTable(config)</code> — monta tabla imperativa completa</li>
             </ul>
+          </section>
+        </div>
+
+        <!-- Declarative data-* attributes reference -->
+        <div class="mt-8 bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+          <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4">
+            🏷️ Atributos declarativos <code>data-*</code>
+          </h3>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            Estos atributos se aplican en el elemento <code>&lt;div data-component="app-table" ...&gt;</code>
+            para configurar la UI sin necesidad de código imperativo.
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse">
+              <thead class="bg-slate-100 dark:bg-slate-900">
+                <tr>
+                  <th class="px-3 py-2 text-left font-semibold border-b">Atributo</th>
+                  <th class="px-3 py-2 text-left font-semibold border-b">Valores</th>
+                  <th class="px-3 py-2 text-left font-semibold border-b">Descripción</th>
+                </tr>
+              </thead>
+              <tbody class="text-slate-600 dark:text-slate-400">
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-key</td>
+                  <td class="px-3 py-2 text-xs">string</td>
+                  <td class="px-3 py-2">Clave única para persistir page-size y columnas visibles en localStorage</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <td class="px-3 py-2 font-mono text-xs">data-page-size</td>
+                  <td class="px-3 py-2 text-xs">"none"</td>
+                  <td class="px-3 py-2">Desactiva la paginación mostrando todos los registros</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-row-selection</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta la columna de checkboxes para selección de filas</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-toolbar</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta toda la barra de herramientas superior</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-statusbar</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta el indicador de estado (total, seleccionados, página)</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-buttons</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta todos los botones de la toolbar (CRUD + custom + paginación)</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-crud-buttons</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta solo los botones CRUD (refresh, crear, editar, eliminar)</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-pagination</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta los controles de paginación en la toolbar</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-menu-button</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta el botón de menú contextual (≡)</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-config-button</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta el botón de configuración (⚙)</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-menu-selection</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta la sección "Selección" en el menú contextual</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-menu-columns</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta la sección "Columnas" en el menú contextual</td>
+                </tr>
+                <tr class="border-b dark:border-slate-700">
+                  <td class="px-3 py-2 font-mono text-xs">data-hide-menu-pagination</td>
+                  <td class="px-3 py-2 text-xs">"true"</td>
+                  <td class="px-3 py-2">Oculta la sección "Paginación" en el menú contextual</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Two approaches comparison -->
+        <div class="mt-8 grid gap-6 md:grid-cols-2">
+          <section class="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+            <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-3">
+              🏗️ Enfoque 1: <code>mountTable()</code>
+            </h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              Crea el componente completamente desde código. No requiere HTML previo.
+            </p>
+            <code class="block text-xs bg-slate-100 dark:bg-slate-900/60 rounded p-3 whitespace-pre-wrap text-slate-700 dark:text-slate-300">const table = mountTable({
+  target: containerEl,
+  key: 'my-table',
+  columns,
+  onRefresh: () => load(),
+});
+table.setData(rows);</code>
+          </section>
+          <section class="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+            <h3 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-3">
+              🔌 Enfoque 2: <code>hydrateComponents()</code>
+            </h3>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-3">
+              La tabla se declara en el HTML con <code>data-*</code>. Se hidrata y se obtiene la instancia.
+            </p>
+            <code class="block text-xs bg-slate-100 dark:bg-slate-900/60 rounded p-3 whitespace-pre-wrap text-slate-700 dark:text-slate-300">await hydrateComponents(container, {});
+const table = BaseComponent
+  .getInstance('[app-table]', container);
+table.setColumns(columns);
+table.setData(rows);</code>
           </section>
         </div>
 

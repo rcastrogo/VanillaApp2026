@@ -71,3 +71,16 @@ export interface TableComponentRef<T extends Identifiable> {
   setColumns(columns: Column<T>[]): void;
   setActions(actions: ActionButton[]): void;
 }
+
+export interface TableUIUpdatePayload {
+  toolbarContainer: HTMLElement | null;
+  statusContainer: HTMLElement | null;
+  buttonsContainer: HTMLElement | null;
+  buttons: {
+    crud: HTMLElement[],
+    custom: HTMLElement[],
+    pagination: HTMLElement[],
+    menu: HTMLElement[],
+  }
+  status: string;
+}
