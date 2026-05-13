@@ -181,6 +181,11 @@ export default class TableImperativePage extends BaseComponent {
     this.categoriasTable = mountTable<Categoria & Identifiable>({
       target: container,
       key: 'imperative-categorias',
+      options: { 
+        resizeColumns: 'true',
+        hideStatusbar: 'true',
+        hideMenuSelection: 'true',
+      },
       columns,
       onRefresh: () => { void this.loadCategoriasData(); },
     });
@@ -358,6 +363,7 @@ table.onRowClick = (id) => notify(id);</code>
           <div id="hydrate-table-container">
             <div
               data-component="app-table"
+              data-resize-columns="true"
               data-hide-crud-buttons="true"
               data-hide-pagination="true"
               data-hide-config-button="true"

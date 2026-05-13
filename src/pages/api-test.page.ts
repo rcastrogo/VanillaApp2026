@@ -20,7 +20,7 @@ function showInTable<T extends Identifiable>(title: string, data: T[]) {
       key,
       options: { canBeRemoved: key !== 'id' },
       title: key.charAt(0).toUpperCase() + key.slice(1),
-      className: 'text-left min-w-24',
+      className: 'text-left min-w-12',
       sorter: (a: T, b: T) => {
         const va = (a as Record<string, unknown>)[key];
         const vb = (b as Record<string, unknown>)[key];
@@ -45,6 +45,8 @@ function showInTable<T extends Identifiable>(title: string, data: T[]) {
           <div
             data-component="app-table"
             data-page-size="none"
+            data-key="${title.split('.')[0]}"
+            data-resize-columns="true"
             data-hide-row-selection="true"
             data-hide-toolbar="false"
             data-hide-statusbar="false"

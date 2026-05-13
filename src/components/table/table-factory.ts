@@ -3,6 +3,7 @@ import { TableComponent } from './table.component';
 import type { ActionButton, Column } from './table.model';
 
 import { BaseComponent, type Identifiable } from '@/core/types';
+import { accentNumericComparer } from '@/core/utils';
 
 export type ColumnDataType = 'string' | 'number' | 'boolean' | 'date' | 'datetime';
 
@@ -39,6 +40,7 @@ export interface MountTableConfig<T extends Identifiable> {
   onDelete?: (ids: (string | number)[]) => void;
   onEdit?: (id: string | number) => void;
   onAction?: (action: string) => void;
+  options?: Record<string, string>; // Additional data-* attributes for the synthetic host
 }
 
 // ─── Auto-sorter factory ──────────────────────────────────────────────────────
@@ -52,10 +54,8 @@ function buildSorter<T extends Identifiable>(
   switch (type) {
     case 'number':
       return (a, b) => Number(get(a) ?? 0) - Number(get(b) ?? 0);
-
     case 'boolean':
       return (a, b) => (get(a) ? 1 : 0) - (get(b) ? 1 : 0);
-
     case 'date':
     case 'datetime': {
       const toMs = (v: unknown) => {
@@ -64,11 +64,10 @@ function buildSorter<T extends Identifiable>(
       };
       return (a, b) => toMs(get(a)) - toMs(get(b));
     }
-
     case 'string':
     default:
-      return (a, b) =>
-        String(get(a) ?? '').localeCompare(String(get(b) ?? ''));
+      return (a, b) => 
+        accentNumericComparer(String(get(a) ?? ''), String(get(b) ?? ''));
   }
 }
 
@@ -118,15 +117,15 @@ export function defineColumns<T extends Identifiable>(
  * reads as `this.props`.
  *
  * @param key   Value for `data-key` (used as the table's localStorage key).
- * @param extra Additional `data-*` key/value pairs.
+ * @param options Additional `data-*` key/value pairs.
  */
 export function createTableHost(
   key: string,
-  extra: Record<string, string> = {},
+  options: Record<string, string> = {},
 ): HTMLElement {
   const host = document.createElement('div');
   host.dataset.key = key;
-  Object.entries(extra).forEach(([k, v]) => {
+  Object.entries(options).forEach(([k, v]) => {
     host.dataset[k] = v;
   });
   return host;
@@ -164,18 +163,18 @@ export function mountTable<T extends Identifiable>(
   config: MountTableConfig<T>,
 ): TableComponent<T> {
   // 1. Synthetic host — carries props that init() reads via dataset
-  const host = createTableHost(config.key);
+  const host = createTableHost(config.key, config.options);
 
   // 2. Instantiate and initialise
   const component = new TableComponent<T>({});
   component.init({ parent: host });
 
   // 3. Wire output callbacks
-  if (config.onRefresh) component.onRefresh = config.onRefresh;
-  if (config.onCreate) component.onCreate = config.onCreate;
-  if (config.onDelete) component.onDelete = config.onDelete;
-  if (config.onEdit)   component.onEdit   = config.onEdit;
-  if (config.onAction) component.onAction = config.onAction;
+  component.onRefresh = config.onRefresh;
+  component.onCreate = config.onCreate;
+  component.onDelete = config.onDelete;
+  component.onEdit = config.onEdit;
+  component.onAction = config.onAction;
 
   // 4. Apply columns, actions, and initial data (before first render
   //    so the DOM is built with the correct structure immediately)
@@ -184,7 +183,7 @@ export function mountTable<T extends Identifiable>(
   if (config.data?.length)    component.setData(config.data);
 
   // 5. Render → bind → mount
-  const element = component.render() as HTMLElement;
+  const element = component.render();
   BaseComponent.bind(component, element);
   config.target.appendChild(element);
   component.mounted();

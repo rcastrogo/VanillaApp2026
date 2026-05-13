@@ -1,14 +1,13 @@
 ﻿
-import type { ActionButton, Column, FilterCriteria, TableState, TableUIUpdatePayload, UniqueValue } from './table.model';
+import type { ActionButton, Column, FilterCriteria, TableState, TableUIUpdatePayload } from './table.model';
 import { TABLE_ACTIONS } from './table.model';
 
-import { APP_CONFIG } from '@/app.config';
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { $, buildAndInterpolate } from '@/core/dom';
 import { notificationService } from '@/core/services/notification.service';
 import { storage } from '@/core/storageUtil';
-import { BaseComponent, type Identifiable } from '@/core/types';
-import { accentNumericComparer, debounce, getUniqueValues } from '@/core/utils';
+import { BaseComponent, type Identifiable, type SortDirection } from '@/core/types';
+import { accentNumericComparer } from '@/core/utils';
 
 export class TableComponent<T extends Identifiable> extends BaseComponent {
 
@@ -31,10 +30,6 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   constructor(ctx: ComponentContext) {
     super(ctx);
-    APP_CONFIG.registerComponent(
-      'app-column-filter-button', 
-      ColumnFilterButtonComponent
-    ); 
   }
 
   init(ctx: ComponentInitValue) {
@@ -48,7 +43,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       currentPage: 1,
       pageSize: this.loadPageSize(),
       sortColumn: null as string | null,
-      sortDirection: null as 'asc' | 'desc' | null,
+      sortDirection: null,
       visibleColumns: new Set<string>(),
       activeFiltersCount: 0,
       hideRowSelection: this.props.hideRowSelection == 'true',
@@ -62,6 +57,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       hideMenuSelection: this.props.hideMenuSelection == 'true',
       hideMenuColumns: this.props.hideMenuColumns == 'true',      
       hideMenuPagination: this.props.hideMenuPagination == 'true',
+      resizeColumns: this.props.resizeColumns === 'true',
     } as TableState<T>, false);
     this.initColumns();
   }
@@ -72,6 +68,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       .filter(c => c.isVisible !== false || c.options?.canBeRemoved === false)
       .map(c => c.key);
     const savedVisibleColumns = storage.readValue<string[]>(this.visibleColumnsStorageKey(), defaultVisible);
+    const savedColumnsWidths = storage.readValue<{ key: string; width: number }[]>(this.columnsWidthsStorageKey(), []); 
     const visible = new Set(Array.isArray(savedVisibleColumns) ? savedVisibleColumns : defaultVisible);
     columns
       .filter(col => col.options?.canBeRemoved === false)
@@ -79,7 +76,13 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     this.invalidateSort();
     this.setState({ 
       visibleColumns: visible,
-      columns: columns.map(col => ({ ...col, isVisible: visible.has(col.key) })),
+      columns: columns.map(col => (
+        { 
+          ...col, 
+          isVisible: visible.has(col.key),
+          width: savedColumnsWidths.find(cw => cw.key === col.key)?.width || col.width
+        }
+      )),
     });
   }
 
@@ -98,7 +101,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       selected: new Set<string | number>(),
       currentPage: 1,
       sortColumn: null as string | null,
-      sortDirection: null as 'asc' | 'desc' | null,
+      sortDirection: null,
       activeFiltersCount: 0,
     }, false);
     this.activeFilters = new Map<string, FilterCriteria>();
@@ -223,13 +226,14 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
   }
 
   toggleSort(_el: HTMLElement, _e: Event, columnKey: string): void {
+    if(this.skipNextSort) return;
     const columns = this.state.columns as Column<T>[];
     const col = columns.find(c => c.key === columnKey);
     if (!col?.sorter) return;
     const current = this.state.sortColumn as string | null;
     this.invalidateSort();   
     if (current === columnKey) {
-      const dir = this.state.sortDirection as 'asc' | 'desc' | null;
+      const dir = this.state.sortDirection;
       this.setState({
         sortDirection: dir === 'asc' ? 'desc' : dir === 'desc' ? null : 'asc',
         currentPage: 1,
@@ -323,7 +327,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       this.updateBindings();
       return this.element;
     }
-    requestAnimationFrame(() => this.setState({}));
+    // requestAnimationFrame(() => this.setState({}));
     return buildAndInterpolate(this.buildTemplate(), this);
   }
 
@@ -343,8 +347,8 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     const allChecked = data.length > 0 && selected.size === data.length;
     const newThead = buildAndInterpolate(
       `<table><thead><tr>
-        ${this.state.hideRowSelection ? '<th class="px-3 py-2 border-b size-8"></th>' : `
-        <th class="px-3 py-2 border-b w-10">
+        ${this.state.hideRowSelection ? '<th class="px-3 py-2 border-b size-8 max-w-8 min-w-8"></th>' : `
+        <th class="px-3 py-2 border-b w-10 max-w-10 min-w-10">
           <input type="checkbox" on-change="selectAll" class="cursor-pointer" ${allChecked ? 'checked' : ''} />
         </th>`
         }
@@ -481,12 +485,11 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   private buildHeaderHtml(): string {
     const columns = this.state.columns as Column<T>[];
-    const visibleColumnIds = this.state.visibleColumns as Set<string>;
     const sortColumn = this.state.sortColumn as string | null;
-    const sortDirection = this.state.sortDirection as 'asc' | 'desc' | null;
-    const visibleColumns = columns.filter(c => visibleColumnIds.has(c.key));
-    return visibleColumns
-      .map((col) => {
+    const sortDirection = this.state.sortDirection as SortDirection;
+
+    return this.visibleColumns
+      .map((col, i) => {
         const index = columns.findIndex(c => c.key === col.key);
         const shouldShowFilterButton = col.options?.shouldShowFilterButton !== false;
         const sortMarker =
@@ -496,9 +499,11 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
         const sortableClass = col.sorter
           ? 'cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700'
           : '';
+        const style = col.width ? `width: ${col.width}px;` : '';
         return `
           <th on-click="toggleSort:${col.key}"
-            class="px-2 py-0 text-left text-sm font-semibold border-l border-b ${sortableClass} ${col.className || ''}">
+            style="${style}"
+            class="relative px-2 py-0 text-left text-sm font-semibold border-l border-b ${sortableClass} ${col.className || ''}">
             <div class="flex items-center">
               <span class="flex-1 text-left">${col.title}</span>${sortMarker}
               ${shouldShowFilterButton ? `
@@ -510,6 +515,16 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                   (filter)="activeFilters[${col.key}]"
                 ></span>
               ` : ''}
+              ${(this.state.resizeColumns === false && i === this.visibleColumns.length - 1) ? '' : `
+                <div 
+                  class="absolute top-0 right-0 w-1 cursor-col-resize
+                  hover:bg-blue-500/20 hover:border-r-2
+                  hover:border-blue-600/20 transition-colors z-10"
+                  data-resizer="true"
+                  style="height: 10000px;"
+                ></div>
+              `
+              }
             </div>
           </th>
         `;
@@ -517,10 +532,94 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       .join('');
   }
 
-  private buildBodyHtml(): string {
+  private isResizing = false;
+  private currentTh: HTMLElement | null = null;
+  private currentResizer: HTMLElement | null = null;
+  private startX = 0;
+  private startWidth = 0;
+  private skipNextSort = false;
+  private ticking = false;
+  private invertResize = false;
+
+  handleMousedown(_el: HTMLTableElement, e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (target.dataset.resizer) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      target.classList.add('bg-blue-500/20', 'border-r-2', 'border-blue-600/20');
+      
+      this.isResizing = true;
+      this.currentResizer = target;
+      let th = target.closest('th') as HTMLElement | null;
+      const nextTh = th?.nextElementSibling as HTMLElement | null;
+      this.invertResize = !!(nextTh && !nextTh.nextElementSibling);
+      if (this.invertResize) th = nextTh;
+      this.currentTh = th;
+      this.startX = e.pageX;
+      this.startWidth = this.currentTh?.offsetWidth || 0;
+      
+      document.body.classList.add('select-none', 'cursor-col-resize');
+      document.addEventListener('mousemove', this.handleMouseMove);
+      document.addEventListener('mouseup', this.handleMouseUp);
+    }
+  }
+
+  private handleMouseMove = (e: MouseEvent) => {
+    if (!this.isResizing || !this.currentTh || this.ticking) return;
+    this.ticking = true;
+    requestAnimationFrame(() => {
+      const diffX = e.pageX - this.startX;
+      const newWidth = this.startWidth + (this.invertResize ? -diffX : diffX);
+      if (newWidth > 50 && this.currentTh) {
+        this.currentTh.style.width = `${newWidth}px`;
+        // this.currentTh.style.minWidth = `${newWidth}px`;
+      }
+      this.ticking = false;
+    });
+  };
+
+  private handleMouseUp = () => {
+    if (!this.isResizing) return;
+    this.currentResizer?.classList.remove('bg-blue-500/20', 'border-r-2', 'border-blue-600/20');
+    this.isResizing = false;
+    this.invertResize = false;
+    this.currentTh = null; 
+    this.currentResizer = null;
+    document.body.classList.remove('select-none', 'cursor-col-resize');
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    document.removeEventListener('mouseup', this.handleMouseUp);
+    this.skipNextSort = true;
+    setTimeout(() => { this.skipNextSort = false; }, 0);
+    this.computeColumnsWidths();
+  };
+
+  private computeColumnsWidths(): void {
+    if (!this.element) return;
+    const cols = $<HTMLTableCellElement>('thead th.relative', this.element).all();
+    const visible = this.visibleColumns;
+    const widths = cols.map((col, i) => ({
+      key: visible[i].key,
+      width: col.offsetWidth,
+    }));
+    this.saveColumnsWidths(widths);
+    // Update state so rebuilds (sort, filter) use current widths
+    const widthMap = new Map(widths.map(w => [w.key, w.width]));
+    this.setState({
+      columns: (this.state.columns as Column<T>[]).map(col =>
+        widthMap.has(col.key) ? { ...col, width: widthMap.get(col.key) } : col,
+      ),
+    }, false);
+  }
+
+  get visibleColumns() : Column<T>[] {
+    if (!this.state.columns || !this.state.visibleColumns) return [];
     const columns = this.state.columns as Column<T>[];
     const visibleColumnIds = this.state.visibleColumns as Set<string>;
-    const visibleColumns = columns.filter(c => visibleColumnIds.has(c.key));
+    return columns.filter(c => visibleColumnIds.has(c.key));
+  }
+
+  private buildBodyHtml(): string {
     const rows = this.getPageRows();
     const selected = this.state.selected as Set<string | number>;
     if (!rows.length) {
@@ -529,7 +628,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     return rows
       .map(row => {
         const isSelected = selected.has(row.id);
-        const cells = visibleColumns
+        const cells = this.visibleColumns
           .map(col => {
             const cell = col.cellRender
               ? col.cellRender(row, col)
@@ -546,7 +645,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
               ? 'bg-blue-50! dark:bg-blue-900/20!' 
               : 'odd:bg-white even:bg-slate-50/50 hover:bg-slate-100 dark:odd:bg-transparent dark:even:bg-slate-800/30 dark:hover:bg-slate-800'}">
             ${this.state.hideRowSelection ? '<td class="px-3 py-2 border-b border-r w-8"></td>' : `
-              <td class="px-3 py-2 border-b w-10">
+              <td class="px-3 py-2 border-b w-10 max-w-10 min-w-10">
                 <input type="checkbox" on-change="toggleRow:${row.id}" class="cursor-pointer" ${isSelected ? 'checked' : ''} />
               </td>`
             }
@@ -678,7 +777,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                 </button>
               </div>
             @endif
-            
+
             <!-- Menu trigger -->
             <div 
               data-bind="hide:state.hideMenuButton"
@@ -831,8 +930,10 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
         </div>
 
         <!-- Table -->
-        <div class="overflow-x-auto border rounded-lg dark:border-slate-700">
-          <table class="w-full border-collapse text-sm">
+        <div class="overflow-x-auto overflow-y-clip border rounded-lg dark:border-slate-700">
+          <table 
+            on-mousedown="handleMousedown"
+            class="w-full border-collapse text-sm">
             <thead class="bg-slate-100 dark:bg-slate-900">
               <tr>
                 <th class="px-3 py-2 border-b border-r w-10">
@@ -892,7 +993,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     const columns = this.state.columns as Column<T>[];
     const rows = [...this.getFilteredData()];
     const sortColumn = this.state.sortColumn as string | null;
-    const sortDirection = this.state.sortDirection as 'asc' | 'desc' | null;
+    const sortDirection = this.state.sortDirection;
 
     if (!sortColumn || !sortDirection) {
       this.sortedData = rows;
@@ -919,7 +1020,8 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
         if (va == null && vb == null) result = 0;
         else if (va == null) result = -1;
         else if (vb == null) result = 1;
-        else if (typeof va === 'string' && typeof vb === 'string') result = va.localeCompare(vb);
+        else if (typeof va === 'string' && typeof vb === 'string') 
+          result = accentNumericComparer(va, vb);
         else result = va! < vb! ? -1 : va! > vb! ? 1 : 0;
       }
       return sortDirection === 'asc' ? result : -result;
@@ -951,7 +1053,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   private loadPageSize(): number {
     if(this.props.pageSize === 'none') return Number.POSITIVE_INFINITY;
-    const saved = storage.readValue<number>(this.pageSizeStorageKey(), 10);
+    const saved = storage.readValue<number>(this.pageSizeStorageKey(), 10);;
     return Number.isFinite(saved) ? saved : 10;
   }
 
@@ -964,226 +1066,16 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     storage.writeValue(this.visibleColumnsStorageKey(), cols);
   }
 
+  private saveColumnsWidths(widths: {key: string, width: number}[]): void {
+    storage.writeValue(this.columnsWidthsStorageKey(), widths);
+  }
+
   private pageSizeStorageKey = () => `app-table-${this.tableKey}-page-size`;
   private visibleColumnsStorageKey = () => `app-table-${this.tableKey}-visible-columns`;
+  private columnsWidthsStorageKey = () => `app-table-${this.tableKey}-columns-whidths`;
 
   private invalidateSort(): void {
     this.sortDirty = true;
-  }
-}
-
-class ColumnFilterButtonComponent extends BaseComponent {
-
-  private rendered = false;
-  private uniqueValues: UniqueValue[] = [];
-  private selectedValues = new Set<string | number>();
-  private searchText = '';
-  private column: Column<Identifiable> | null = null;
-  private data: Identifiable[] = [];
-  private filter: FilterCriteria | null = null;
-  private debouncedNotifyFilterChange: (searchText: string) => void;
-  private filterChanged?: (key: string, searchText: string, values: Set<string | number>) => void;
-
-  constructor(ctx: ComponentContext) {
-    super(ctx);
-    this.debouncedNotifyFilterChange = debounce((searchText: string) => {
-      this.searchText = searchText;
-      this.notifyFilterChange();
-    }, 300);
-  }
-
-  init(ctx?: ComponentInitValue): void {
-    super.init(ctx);
-    if(this.filter) {
-      this.selectedValues = new Set(this.filter.selectedValues || []);
-      this.searchText = this.filter.searchText || '';
-    } 
-    this.setState({
-      hasActiveFilter: this.isFilterActive,
-    });    
-  }
-
-  public destroy(): void { /* empty */ }
-
-  clickInside = (e: Event): boolean => {
-    const t = e.target as HTMLElement;
-    if(t.closest('[data-btn]')) return true;
-    return false;
-  };
-
-  onOpenMenu = (): void => {
-    this.uniqueValues = this.shouldShowValueList ? this.getUniqueValues() : [];
-    this.updateBindings();
-  }
-
-  get shouldShowValueList(): boolean {
-    return this.column?.options?.shouldShowValueList !== false;
-  }
-
-  renderUniqueValueList(el: HTMLElement){
-    if (!this.shouldShowValueList) {
-      el.innerHTML = '';
-      return;
-    }
-    if(this.uniqueValues.length === 0) {
-      el.innerHTML = `<div class="px-2 py-1 text-xs text-slate-600 dark:text-slate-300">No hay valores únicos</div>`;
-      return;
-    }
-    if(this.rendered) return
-    this.rendered = true;
-    const template = `
-      <div data-each="val in uniqueValues">
-        <div          
-          on-click="handleUniqueValueClick:@val.name"
-          class="
-            @if(val.isSelected) bg-indigo-100 dark:bg-indigo-900/50 @endif
-            px-2 py-1 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-50
-            dark:hover:bg-slate-700/50 
-            rounded cursor-pointer truncate">
-          {val.name}
-        </div>
-      </div>   
-    `;
-    const list = buildAndInterpolate(template, this);
-    el.innerHTML = '';
-    while (list.firstChild) {
-      el.appendChild(list.firstChild);
-    } 
-  }
-
-  handleMenuClick = (_el: HTMLElement, e: Event): void => {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  handleSearchInput(el: HTMLInputElement): void {
-    this.debouncedNotifyFilterChange(el.value);
-  }
-
-  handleUniqueValueClick(el: HTMLElement, _e: Event, value: string): void {
-    if (this.selectedValues.has(value)) {
-      this.selectedValues.delete(value);
-      el.classList.remove('bg-indigo-100', 'dark:bg-indigo-900/50');
-    } else {
-      this.selectedValues.add(value);
-      el.classList.add('bg-indigo-100', 'dark:bg-indigo-900/50');
-    }
-    this.notifyFilterChange();
-  }
-
-  private notifyFilterChange(): void {
-    if (!this.column) return;
-    this.filterChanged?.(
-      this.column.key, 
-      this.searchText, 
-      this.selectedValues
-    );
-    this.state.hasActiveFilter = this.isFilterActive;
-  }
-
-  get isFilterActive(): boolean {
-    return this.selectedValues?.size > 0 || this.searchText?.length > 0;
-  }
-
-  private getUniqueValues() {
-    if (!this.column || !this.data.length) return [];
-    const uniqueValues = getUniqueValues(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.data as any,
-      this.column.accessor && typeof this.column.accessor === 'string' 
-        ? this.column.accessor 
-        : this.column.key
-    );
-    if(uniqueValues.length && typeof uniqueValues[0] === 'string') {
-      uniqueValues.sort(accentNumericComparer);
-    } else {
-      uniqueValues.sort((a, b) => {
-        if (a == null && b == null) return 0;
-        if (a == null) return -1;
-        if (b == null) return 1;
-        if (typeof a === 'string' && typeof b === 'string') 
-          return accentNumericComparer(a, b);
-        return a < b ? -1 : a > b ? 1 : 0;
-      });
-    }
-    return uniqueValues.map(val => ({
-      name: String(val),
-      value: val,
-      isSelected: this.selectedValues.has(String(val)),
-    }));
-  }
-
-  render(changedProp?: string): HTMLElement | null {  
-    if (changedProp && this.element) {
-      this.updateBindings();
-      return this.element;
-    }
-    const template = `
-      <div 
-        data-component="app-popover-trigger"
-        data-placement="top-end"
-        (click-inside)="clickInside"
-        (before-open)="onOpenMenu"
-        class="inline-block">
-          <button
-            data-popover-trigger
-            type="button"
-            on-click="handleMenuClick"
-            class="app-buton relative flex h-5 w-6 items-center justify-center 
-            rounded-sm transition-colors hover:bg-slate-300 dark:hover:bg-slate-800">
-            <i data-icon="menu" class="size-4"></i>
-            <span
-              data-bind="show:state.hasActiveFilter"
-              class="absolute left-4.5 top-0.5 block h-1.5 w-1.5 rounded-sm bg-yellow-400">
-            </span>
-          </button>
-          <div data-popover-content class="max-w-sm">
-            <p class="
-                text-xs font-semibold text-slate-400 
-                uppercase tracking-wide pt-1 pb-2 text-center 
-                border-b dark:border-slate-700
-              ">
-              Filtrar: {column.title}
-            </p>
-            
-            <!-- Search Input -->
-
-            <div class="">
-              <input
-                type="text"
-                data-bind="hide:column.options.shouldShowTextBox | equal : false"
-                placeholder="Buscar..."
-                value="{searchText}"
-                on-input="handleSearchInput"
-                class="w-full px-2 py-1.5 text-sm border rounded bg-white dark:bg-slate-700 dark:border-slate-600 
-                      text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500
-                      focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-            </div>
-
-            <!-- Unique Values List -->
-
-            @if(shouldShowValueList)
-              <div class="mt-2">
-                <p class="text-xs text-slate-500 dark:text-slate-400 py-1 text-center">
-                  Valores únicos (<span data-bind="text:uniqueValues.length">{uniqueValues.length}</span>):
-                </p>
-                <div 
-                  class="space-y-0 rounded-sm overflow-hidden border dark:border-slate-700">
-                  <div
-                    data-bind="fn:renderUniqueValueList"
-                    class="max-h-40 overflow-auto space-y-1">
-                    <!-- Unique values will be rendered here -->
-                  </div>               
-                </div>
-              </div>
-            @endif
-
-          </div>
-      </div>
-    `;
-    
-    return buildAndInterpolate(template, this);
   }
 }
 

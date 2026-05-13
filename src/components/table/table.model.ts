@@ -24,6 +24,7 @@ export interface Column<T extends Identifiable> {
     shouldShowValueList?: boolean;
     canBeRemoved?: boolean;
   };
+  width?: number; // in pixels
 }
 
 export interface ActionButton {

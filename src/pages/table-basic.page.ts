@@ -313,6 +313,7 @@ export default class TableBasicPage extends BaseComponent {
               id="the-simpsons-table"
               data-component="app-table"
               data-key="simpsons-table"
+              data-resize-columns="true"
               (on-refresh)="onRefreshTheSimpson"
               (on-create)="onCreate"
               (on-delete)="onDelete"
