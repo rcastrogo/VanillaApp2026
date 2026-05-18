@@ -19,6 +19,17 @@ export function build<T extends HTMLElement>(
     const { className, ...rest } = options;
     Object.assign(el, rest);
     if (className) el.className = className;
+    if(ctx && 'slottedNodes' in ctx) {
+      const slots = ctx.slottedNodes as Record<string, Node[]>;
+      for (const [slotName, slotNodes] of Object.entries(slots)) {
+        const slot = el.querySelector(`slot[name="${slotName}"]`);
+        if (slot) {
+          const parent = slot.parentElement!;
+          for (const n of slotNodes) parent.insertBefore(n, slot);
+          slot.remove();
+        }
+      }
+    }
   }
   // 1. Primero las directivas: transforman el HTML crudo en múltiples nodos
   if (ctx) hydrateDirectives(el, ctx); 

@@ -82,7 +82,10 @@ export default class TableImperativePage extends BaseComponent {
       target: container,
       key: 'imperative-usuarios',
       columns,
-      onRefresh: () => { void this.loadUsuariosData(); },
+      onRefresh: () => { 
+        void this.loadUsuariosData();
+        this.usuariosTable?.showSkeletonRows();
+      },
     });
 
     return this.loadUsuariosData();
@@ -144,7 +147,10 @@ export default class TableImperativePage extends BaseComponent {
       target: container,
       key: 'imperative-distribuidores',
       columns,
-      onRefresh: () => { void this.loadDistribuidoresData(); },
+      onRefresh: () => { 
+        void this.loadDistribuidoresData();
+        this.distribuidoresTable?.showSkeletonRows();
+      },
     });
 
     return this.loadDistribuidoresData();
@@ -187,7 +193,9 @@ export default class TableImperativePage extends BaseComponent {
         hideMenuSelection: 'true',
       },
       columns,
-      onRefresh: () => { void this.loadCategoriasData(); },
+      onRefresh: () => { 
+        void this.loadCategoriasData(); 
+        this.categoriasTable?.showSkeletonRows();},
     });
 
     return this.loadCategoriasData();
@@ -221,7 +229,10 @@ export default class TableImperativePage extends BaseComponent {
 
     const columns = this.buildDistribuidorColumns();
     instance.setColumns(columns);
-    instance.onRefresh = () => { void this.loadHydrateData(); };
+    instance.onRefresh = () => { 
+      void this.loadHydrateData(); 
+      instance.showSkeletonRows();
+    };
     instance.onRowClick = (id: string | number) => {
       notificationService.success(`Clicked row: ${id}`);
     };

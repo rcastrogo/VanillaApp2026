@@ -152,19 +152,19 @@ class SectionComponent extends BaseComponent {
   // TOTAL GENERAL
   // ----------------------------
   private renderTotal(ctx: TotalRenderContext<DatoJamon>) {
-    const total = ctx.grandTotal as Partial<DatoJamon> | undefined;
+    const total = ctx.grandTotal as Record<string, Record<string, number>> | undefined;
 
     return `
       <div class="grid grid-cols-7 px-4 py-3 bg-gray-900 text-white font-semibold rounded-b-lg mt-2 shadow">
         <div class="col-span-4">TOTAL GENERAL</div>
         <div class="text-right tabular-nums">
-          ${total?.unidades ?? 0}
+          ${total?.unidades.sum ?? 0}
         </div>
         <div class="text-right tabular-nums">
-          ${total}
+          ${total?.kgs.sum ?? 0}
         </div>
         <div class="text-right tabular-nums text-green-400">
-          ${total} €
+          ${total?.importe.sum?.toFixed(2) ?? 0} €
         </div>
       </div>
     `;

@@ -37,6 +37,7 @@ export function configureRouter(){
     .add('table-imperative', () => import('./pages/table-imperative.page'))
     .add('menu-showcase', () => import('./pages/menu-showcase.page'))
     .add('component-patterns-guide', () => import('./pages/component-patterns-guide.page'))
+    .add('tree-viewer', () => import('./pages/tree-viewer.page'))
     .add('api-test', () => import('./pages/api-test.page'), null)
     .add('strava', () => import('./strava/strava-login.page'), null)
     .add('strava/auth', () => import('./strava/strava-auth.page'), null)

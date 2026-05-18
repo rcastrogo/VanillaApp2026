@@ -95,6 +95,14 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     this.setState({ actions }, false);
   }
 
+  showSkeletonRows(): void {
+    if (!this.element) return;
+    const template = '<div class="animate-pulse h-5 bg-gray-700/50 rounded-xs"></div>';
+     $('tbody td', this.element)
+      .all()
+      .forEach(td => td.innerHTML = template);
+  }
+
   setData(rows: T[]): void {
     this.setState({
       data: rows ?? [],
@@ -515,7 +523,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
                   (filter)="activeFilters[${col.key}]"
                 ></span>
               ` : ''}
-              ${(this.state.resizeColumns === false && i === this.visibleColumns.length - 1) ? '' : `
+              ${(this.state.resizeColumns === false || i === this.visibleColumns.length - 1) ? '' : `
                 <div 
                   class="absolute top-0 right-0 w-1 cursor-col-resize
                   hover:bg-blue-500/20 hover:border-r-2
