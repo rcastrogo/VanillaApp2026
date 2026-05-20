@@ -121,25 +121,40 @@ export default class ColumnFilterButtonComponent extends BaseComponent {
 
   private getUniqueValues() {
     if (!this.column || !this.data.length) return [];
-    const uniqueValues = getUniqueValues(
+    let uniqueValues: (string | number | null | undefined)[] = [];
+    // =======================================================================================
+    // If a resolver with entries method is provided, use it to get unique values. This allows 
+    // for cases where the displayed values are derived from a resolver
+    // (e.g., foreign key lookups) rather than directly from the data.
+    // =======================================================================================
+    if(this.column.resolver && 
+      'entries' in this.column.resolver && 
+      typeof this.column.resolver.entries === 'function') {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      this.data as any,
-      this.column.accessor && typeof this.column.accessor === 'string' 
-        ? this.column.accessor 
-        : this.column.key
-    );
-    if(uniqueValues.length && typeof uniqueValues[0] === 'string') {
-      uniqueValues.sort(accentNumericComparer);
-    } else {
-      uniqueValues.sort((a, b) => {
-        if (a == null && b == null) return 0;
-        if (a == null) return -1;
-        if (b == null) return 1;
-        if (typeof a === 'string' && typeof b === 'string') 
-          return accentNumericComparer(a, b);
-        return a < b ? -1 : a > b ? 1 : 0;
-      });
+      const entries: any[] = this.column.resolver.entries();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      uniqueValues = [...new Set(entries.map((item: any[]) => item[1]))];
+    } 
+    // =======================================================================================
+    // Otherwise, extract unique values directly from the data using the accessor or key.
+    // =======================================================================================
+    else {
+      uniqueValues = getUniqueValues(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        this.data as any,
+        this.column.accessor && typeof this.column.accessor === 'string' 
+          ? this.column.accessor 
+          : this.column.key
+      );
     }
+    uniqueValues.sort((a, b) => {
+      if (a == null && b == null) return 0;
+      if (a == null) return -1;
+      if (b == null) return 1;
+      if (typeof a === 'string' && typeof b === 'string') return accentNumericComparer(a, b);
+      if (typeof a === 'number' && typeof b === 'number') return a - b;
+      return accentNumericComparer(String(a), String(b));
+    });
     return uniqueValues.map(val => ({
       name: String(val),
       value: val,

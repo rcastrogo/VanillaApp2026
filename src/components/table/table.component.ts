@@ -21,12 +21,12 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   public onUpdateUi?: (value: TableUIUpdatePayload) => void;
   // Output callbacks (CRUD actions from toolbar)
-  public onRefresh?: () => void;
-  public onCreate?: () => void;
-  public onDelete?: (ids: (string | number)[]) => void;
-  public onEdit?: (id: string | number) => void;
-  public onAction?: (action: string) => void;
-  public onRowClick?: (id: string | number) => void;
+  public onRefresh?: (sender: TableComponent<T>) => void;
+  public onCreate?: (sender: TableComponent<T>, callback: (newItem: T) => void) => void;
+  public onDelete?: (sender: TableComponent<T>, ids: (string | number)[], callback: () => void) => void;
+  public onEdit?: (sender: TableComponent<T>, item: T, callback: (updatedItem: T) => void) => void;
+  public onAction?: (sender: TableComponent<T>, action: string) => void;
+  public onRowClick?: (sender: TableComponent<T>, id: string | number) => void;
 
   constructor(ctx: ComponentContext) {
     super(ctx);
@@ -119,18 +119,32 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   // ─── Toolbar action handlers ──────────────────────────────────
 
-  refreshData(): void { this.onRefresh?.(); }
+  refreshData(): void { this.onRefresh?.(this); }
 
-  createRow(): void { this.onCreate?.(); }
+  createRow(): void {
+    this.onCreate?.(this, (newItem: T) => {
+      const data = this.state.data as T[];
+      this.setData([...data, newItem]);
+    });
+  }
 
   deleteRows(): void {
     const ids = Array.from(this.state.selected as Set<string | number>);
-    this.onDelete?.(ids);
+    this.onDelete?.(this, ids, () => {
+      const data = this.state.data as T[];
+      this.setData(data.filter(r => !ids.includes(r.id)));
+    });
   }
 
   editRow(): void {
     const ids = Array.from(this.state.selected as Set<string | number>);
-    if (ids.length === 1) this.onEdit?.(ids[0]);
+    if (ids.length !== 1) return;
+    const data = this.state.data as T[];
+    const item = data.find(r => r.id === ids[0]);
+    if (!item) return;
+    this.onEdit?.(this, item, (updatedItem: T) => {
+      this.setData(data.map(r => r.id === updatedItem.id ? updatedItem : r));
+    });
   }
 
   handleMenuAction(action: string): void {
@@ -168,7 +182,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
       }
       return;
     }
-    this.onAction?.(action);
+    this.onAction?.(this, action);
   }
 
   renderColumnList(el: HTMLElement): void {
@@ -256,7 +270,7 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
   }
 
   handleRowClick(_el: HTMLElement, _e: Event, id: string): void { 
-    this.onRowClick?.(id); 
+    this.onRowClick?.(this, id); 
   }
 
   firstPage(): void { this.state.currentPage = 1; }
@@ -1010,13 +1024,11 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     }
 
     const column = columns.find(c => c.key === sortColumn);
-    if (!column?.sorter) {
+    if (!column?.sorter && !column?.resolver) {
       this.sortedData = rows;
       this.sortDirty = false;
       return this.sortedData;
     }
-
-    console.log('Sorting data by', column.title, sortDirection);  
 
     this.sortedData = rows.sort((a, b) => {
       let result = 0;
@@ -1056,12 +1068,15 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
     else if (column.accessor && typeof column.accessor === 'string') {
       return (item as Record<string, unknown>)[column.accessor as string] as string | number | boolean | null;
     }
+    else if(column.resolver) {
+      return column.resolver.resolve(item, column);
+    }
     return (item as Record<string, unknown>)[column.key] as string | number | boolean | null;
   }
 
   private loadPageSize(): number {
     if(this.props.pageSize === 'none') return Number.POSITIVE_INFINITY;
-    const saved = storage.readValue<number>(this.pageSizeStorageKey(), 10);;
+    const saved = storage.readValue<number>(this.pageSizeStorageKey(), 10);
     return Number.isFinite(saved) ? saved : 10;
   }
 

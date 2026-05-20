@@ -1,7 +1,8 @@
 
-import type { ActionButton, Column, TableComponentRef } from '../components/table/table.model';
+import type { ActionButton, Column } from '../components/table/table.model';
 
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
+import type TableComponent from '@/components/table/table.component';
 import { buildAndInterpolate } from '@/core/dom';
 import { notificationService } from '@/core/services/notification.service';
 import { BaseComponent, type Identifiable } from '@/core/types';
@@ -214,9 +215,9 @@ export default class TableBasicPage extends BaseComponent {
     ];
   }
 
-  private getTable(selector: string): TableComponentRef<Identifiable> | null {
+  private getTable(selector: string): TableComponent<Identifiable> | null {
     if (!this.element) return null;
-    return BaseComponent.getInstance<TableComponentRef<Identifiable>>(selector, this.element);
+    return BaseComponent.getInstance<TableComponent<Identifiable>>(selector, this.element);
   }
 
   pageNumber = 1;
@@ -243,29 +244,29 @@ export default class TableBasicPage extends BaseComponent {
     table?.setData(this.characterData);
   }
 
-  onRefresh = () => {
+  onRefresh = (_sender: TableComponent<Country>) => {
     void this.loadCountriesTable();
     notificationService.info('Countries refreshed from API');
   }
 
-  onRefreshTheSimpson = () => {
+  onRefreshTheSimpson = (_sender: TableComponent<Country>) => {
     this.loadSimpsonsTable();
     notificationService.info('Page: Refresh action triggered');   
   }
 
-  onCreate = () => {
+  onCreate = (_sender: TableComponent<Country>) => {
     notificationService.info('Page: Create action triggered');
   }
 
-  onDelete = (ids: (string | number)[]) => {
+  onDelete = (_sender: TableComponent<Country>, ids: (string | number)[]) => {
     notificationService.info('Page: Delete action triggered for IDs: ' + ids.join(', '));
   }
 
-  onEdit = (id: string | number) => {
+  onEdit = (_sender: TableComponent<Country>, id: string | number) => {
     notificationService.info('Page: Edit action triggered for ID: ' +  id);
   }
 
-  onAction = (action: string) => {
+  onAction = (_sender: TableComponent<Country>, action: string) => {
     notificationService.info('Page: Custom action triggered:' + action);
   }
 

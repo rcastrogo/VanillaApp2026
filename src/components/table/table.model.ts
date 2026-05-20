@@ -1,4 +1,7 @@
+import type { ColumnValueResolver } from "./table-resolver";
+
 import type { Identifiable, SortDirection } from "@/core/types";
+
 
 
 export const TABLE_ACTIONS = {
@@ -25,6 +28,7 @@ export interface Column<T extends Identifiable> {
     canBeRemoved?: boolean;
   };
   width?: number; // in pixels
+  resolver?: ColumnValueResolver<T>;
 }
 
 export interface ActionButton {
@@ -34,13 +38,6 @@ export interface ActionButton {
   show?: 'menu' | 'button' | 'both';
   onClick?: () => void;
   enabledWhen?: (selected: Set<string | number>) => boolean;
-}
-
-export interface ActionHandlers<T> {
-  onCreate?: (callback: (item: T) => void) => void;
-  onDelete?: (ids: (string | number)[], callback: () => void) => void;
-  onEdit?: (item: T, callback: (updated: T) => void) => void;
-  onCustomAction?: (action: string, payload?: unknown) => void;
 }
 
 export interface TableState<T extends Identifiable> {

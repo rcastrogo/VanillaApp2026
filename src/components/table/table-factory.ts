@@ -1,4 +1,5 @@
 
+import type { ColumnValueResolver } from './table-resolver';
 import { TableComponent } from './table.component';
 import type { ActionButton, Column } from './table.model';
 
@@ -23,6 +24,7 @@ export interface ColumnSchema<T extends Identifiable> {
   accessor?: (item: T) => string | number | boolean | null;
   cellRender?: (item: T, column: Column<T>) => string;
   options?: Column<T>['options'];
+  resolver?: ColumnValueResolver<T>
 }
 
 // ─── Mount configuration ──────────────────────────────────────────────────────
@@ -35,11 +37,11 @@ export interface MountTableConfig<T extends Identifiable> {
   columns: Column<T>[];
   data?: T[];
   actions?: ActionButton[];
-  onRefresh?: () => void;
-  onCreate?: () => void;
-  onDelete?: (ids: (string | number)[]) => void;
-  onEdit?: (id: string | number) => void;
-  onAction?: (action: string) => void;
+  onRefresh?: (sender: TableComponent<T>) => void;
+  onCreate?: (sender: TableComponent<T>, callback: (newItem: T) => void) => void;
+  onDelete?: (sender: TableComponent<T>, ids: (string | number)[], callback: () => void) => void;
+  onEdit?: (sender: TableComponent<T>, item: T, callback: (updatedItem: T) => void) => void;
+  onAction?: (sender: TableComponent<T>, action: string) => void;
   options?: Record<string, string>; // Additional data-* attributes for the synthetic host
 }
 
@@ -71,6 +73,20 @@ function buildSorter<T extends Identifiable>(
   }
 }
 
+// ─── Resolver-based sorter ────────────────────────────────────────────────────
+
+function buildResolverSorter<T extends Identifiable>(
+  key: string,
+  resolver: ColumnValueResolver<T>,
+): (a: T, b: T) => number {
+  const col = { key, title: '' } as Column<T>;
+  return (a, b) => {
+    const va = resolver.resolve(a, col);
+    const vb = resolver.resolve(b, col);
+    return accentNumericComparer(String(va ?? ''), String(vb ?? ''));
+  };
+}
+
 // ─── Column factory ───────────────────────────────────────────────────────────
 
 /**
@@ -91,7 +107,9 @@ export function defineColumns<T extends Identifiable>(
 ): Column<T>[] {
   return schemas.map(schema => {
     const sorter: Column<T>['sorter'] =
-      schema.sorter ?? (schema.type ? buildSorter<T>(schema.key, schema.type) : undefined);
+      schema.sorter
+      ?? (schema.type ? buildSorter<T>(schema.key, schema.type) : undefined)
+      ?? (schema.resolver ? buildResolverSorter<T>(schema.key, schema.resolver) : undefined);
 
     const col: Column<T> = {
       key: schema.key,
@@ -102,6 +120,7 @@ export function defineColumns<T extends Identifiable>(
       ...(schema.accessor !== undefined && { accessor: schema.accessor }),
       ...(schema.cellRender !== undefined && { cellRender: schema.cellRender }),
       ...(schema.options !== undefined && { options: schema.options }),
+      ...(schema.resolver !== undefined && { resolver: schema.resolver }),
     };
 
     return col;

@@ -1,6 +1,7 @@
 
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { defineColumns, mountTable } from '@/components/table/table-factory';
+import { ColumnValueResolver } from '@/components/table/table-resolver';
 import type { TableComponent } from '@/components/table/table.component';
 import type { Column } from '@/components/table/table.model';
 import { $, buildAndInterpolate } from '@/core/dom';
@@ -100,9 +101,41 @@ export default class TableImperativePage extends BaseComponent {
     this.usuariosTable?.setData(result.data as (Usuario & Identifiable)[]);
   }
 
-  private buildDistribuidoresTable(): Promise<void> {
+  // paisResolver = new ColumnValueResolver<Distribuidor>([], 'id', 'descripcion');
+  // categoriaResolver = new ColumnValueResolver<Distribuidor>([], 'id', 'descripcion');
+  // tipoDocResolver = new ColumnValueResolver<Distribuidor>([], 'id', 'descripcion');
+  // tipoTransaccionResolver = new ColumnValueResolver<Distribuidor>([], 'id', 'descripcion');
+  // monedaResolver = new ColumnValueResolver<Distribuidor>([], 'id', 'descripcion');
+
+  private async buildDistribuidoresTable(): Promise<void> {
     const container = $<HTMLElement>('#distribuidores-table-container', this.element ?? undefined).one();
     if (!container) return Promise.resolve();
+
+    // ================================================================================
+    // Load master tables in parallel to populate resolvers before rendering the table
+    // ================================================================================
+    const [
+      paises,
+      categorias,
+      tiposDeDocumento,
+      tiposDeTransaccion,
+      monedas,
+    ] = await Promise.all([
+      masterTablesService.paises.getAll(),
+      masterTablesService.categorias.getAll(),
+      masterTablesService.tiposDeDocumento.getAll(),
+      masterTablesService.tiposDeTransaccion.getAll(),
+      masterTablesService.monedas.getAll(),
+    ]);
+
+    if (typeof paises === 'string' || 
+        typeof categorias === 'string' || 
+        typeof tiposDeDocumento === 'string' || 
+        typeof tiposDeTransaccion === 'string' || 
+        typeof monedas === 'string') {
+      notificationService.error(`Error cargando las tablas de códigos`);
+      return;
+    }
 
     const columns = defineColumns<Distribuidor & Identifiable>([
       {
@@ -125,7 +158,7 @@ export default class TableImperativePage extends BaseComponent {
         title: 'Activo',
         type: 'number',
         className: 'text-center',
-        cellRender: (row) => {
+        cellRender: (row, _col) => {
           const isActive = Boolean(row.activo);
           const cls = isActive
             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
@@ -133,6 +166,31 @@ export default class TableImperativePage extends BaseComponent {
           return `<span class="inline-flex rounded-full px-2 py-1 text-xs font-semibold ${cls}">${isActive ? 'Sí' : 'No'}</span>`;
         },
         options: { shouldShowValueList: true, shouldShowTextBox: false },
+      },
+      {
+        key: 'paisId',
+        title: 'País',
+        resolver: new ColumnValueResolver<Distribuidor>(paises.data.response, 'id', 'descripcion')
+      },
+      {
+        key: 'categoriaProductoId',
+        title: 'Categoría',
+        resolver: new ColumnValueResolver<Distribuidor>(categorias.data.response, 'id', 'descripcion')
+      },
+      {
+        key: 'tipoDocumentoId',
+        title: 'Tipo Documento',
+        resolver: new ColumnValueResolver<Distribuidor>(tiposDeDocumento.data.response, 'id', 'descripcion')
+      },
+      {
+        key: 'tipoTransaccionId',
+        title: 'Tipo Transacción',
+        resolver: new ColumnValueResolver<Distribuidor>(tiposDeTransaccion.data.response, 'id', 'descripcion')
+      },
+      {
+        key: 'monedaId',
+        title: 'Moneda',
+        resolver: new ColumnValueResolver<Distribuidor>(monedas.data.response, 'id', 'descripcion')
       },
       {
         key: 'fechaAlta',
@@ -157,12 +215,12 @@ export default class TableImperativePage extends BaseComponent {
   }
 
   private async loadDistribuidoresData(): Promise<void> {
-    const result = await usuariosService.distribuidores.getAll();
-    if (typeof result === 'string') {
-      notificationService.error(`Error cargando distribuidores: ${result}`);
+    const distribuidores = await usuariosService.distribuidores.getAll();
+    if (typeof distribuidores === 'string') {
+      notificationService.error(`Error cargando los datos de los distribuidores`);
       return;
     }
-    this.distribuidoresTable?.setData(result.data as (Distribuidor & Identifiable)[]);
+    this.distribuidoresTable?.setData(distribuidores.data as (Distribuidor & Identifiable)[]);
   }
 
   private buildCategoriasTable(): Promise<void> {
@@ -233,7 +291,7 @@ export default class TableImperativePage extends BaseComponent {
       void this.loadHydrateData(); 
       instance.showSkeletonRows();
     };
-    instance.onRowClick = (id: string | number) => {
+    instance.onRowClick = (_sender: TableComponent<Distribuidor & Identifiable> ,id: string | number) => {
       notificationService.success(`Clicked row: ${id}`);
     };
 
