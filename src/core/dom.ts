@@ -25,7 +25,12 @@ export function build<T extends HTMLElement>(
         const slot = el.querySelector(`slot[name="${slotName}"]`);
         if (slot) {
           const parent = slot.parentElement!;
-          for (const n of slotNodes) parent.insertBefore(n, slot);
+          // for (const n of slotNodes) parent.insertBefore(n, slot);
+          for (const n of slotNodes) {
+            if (n instanceof Node) {
+              parent.insertBefore(n, slot);
+            }
+          }
           slot.remove();
         }
       }

@@ -147,8 +147,8 @@ function debounce<T extends (...args: any[]) => void>(fn: T, delay: number) {
 }
 
 function groupByNested<T extends Record<string, any>>(
-    array: T[],
-    ...keys: (keyof T)[]
+  array: T[],
+  ...keys: (keyof T)[]
 ): Record<string, any> {
   if (keys.length === 0) throw new Error('Debes proporcionar al menos una clave para agrupar.');
   const result: Record<string, any> = {};
@@ -225,8 +225,189 @@ function clone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function hasOwnProperty(target: any, prop: string){
+function hasOwnProperty(target: any, prop: string) {
   return Object.prototype.hasOwnProperty.call(target, prop)
+}
+
+/**
+ * Filters an array of objects based on a condition specified as either a function or an object.
+ * If the condition is a function, it is used directly as the filter predicate.
+ * If the condition is an object, each key-value pair is treated as a property and expected value to match.
+ * The function supports nested properties using dot notation and can handle computed properties (functions) on the items.
+ * @template T - The type of objects in the array
+ * @param {T[]} array - The array of objects to filter
+ * @param {(item: T) => boolean | Record<string, unknown>} sentence - The filtering condition, either a function or an object with key-value pairs to match
+ * @returns {T[]} A new array containing only the objects that match the specified condition
+ *
+ * @example
+ * // 1. Filtro con función predicado
+ * const adults = where(users, (user) => user.age >= 18);
+ *
+ * // 2. Filtro por valor exacto
+ * const admins = where(users, { role: "admin" });
+ *
+ * // 3. Filtro por múltiples propiedades
+ * const activeAdmins = where(users, { role: "admin", active: true });
+ *
+ * // 4. Filtro con RegExp
+ * const gmailUsers = where(users, { email: /@gmail\.com$/ });
+ *
+ * // 5. Filtro con función por campo (predicado por propiedad)
+ * const richUsers = where(users, {
+ *   salary: (val) => (val as number) > 50_000,
+ * });
+ *
+ * // 6. Filtro con propiedad computada (método en el objeto)
+ * const expiredSessions = where(sessions, {
+ *   isExpired: true, // llama a session.isExpired() si es función
+ * });
+ *
+ * // 7. Combinación: RegExp + valor exacto + predicado
+ * const results = where(products, {
+ *   name: /^laptop/i,
+ *   inStock: true,
+ *   price: (val) => (val as number) < 1_000,
+ * });
+ *
+ * // 8. Sin filtros → devuelve el array original
+ * const all = where(users, {});
+ *
+ * // 9. Array vacío → devuelve vacío sin errores
+ * const none = where([], { role: "admin" });
+ */
+function where<T extends Record<string, unknown>>(
+  array: T[],
+  sentence: ((item: T) => boolean) | Record<string, unknown>
+): T[] {
+
+  if (typeof sentence === "function")
+    return array.filter(sentence);
+
+  if (sentence !== null && typeof sentence === "object") {
+    const entries = Object.entries(sentence);
+    if (entries.length === 0) return array;
+
+    return array.filter((item) =>
+      entries.every(([key, expected]) => {
+        let actual = item[key];
+
+        if (typeof actual === "function") {
+          try {
+            actual = (actual as () => unknown).call(item);
+          } catch (e) {
+            console.error(
+              `Error al ejecutar la propiedad computada '${key}' en el item:`,
+              item,
+              e
+            );
+            return false;
+          }
+        }
+
+        if (typeof expected === "function")
+          return (expected as (val: unknown, item: T) => boolean)(actual, item);
+
+        if (expected instanceof RegExp)
+          return typeof actual === "string" && expected.test(actual);
+
+        return Object.is(actual, expected);
+      })
+    );
+  }
+
+  return array;
+}
+
+/**
+ * Converts an array of items into a Set of values derived from those items.
+ * If a valueSelector is provided, it determines how to extract the value from each item; otherwise, the items themselves are used as values.
+ *
+ * @template T - The type of items in the input array
+ * @template TValue - The type of values to be stored in the resulting Set
+ * @param {readonly T[]} array - The array of items to convert into a Set
+ * @param {keyof T | ((item: T) => TValue)} [valueSelector] - An optional key or function to select the value from each item. If a key is provided, 
+ * it will be used to access the property on each item; if a function is provided, it will be called with the item to compute the value.
+ * @return {Set<TValue | T>} A Set containing the unique values derived from the input array, either directly from the items or through the valueSelector.
+ *
+ * @example
+ * // Using a value selector function
+ * const users = [
+ *  { id: 1, name: 'Alice' },
+ *  { id: 2, name: 'Bob' },
+ *  { id: 3, name: 'Alice' }
+ * ];
+ * const uniqueNames = toSet(users, user => user.name);
+ * // uniqueNames is a Set containing 'Alice' and 'Bob'
+ *
+ * // Using a key as value selector
+ * const uniqueIds = toSet(users, 'id');
+ * // uniqueIds is a Set containing 1, 2, and 3
+ * // Without a value selector (items themselves are used)
+ * const uniqueUsers = toSet(users);
+ * // uniqueUsers is a Set containing the three user objects (with duplicates if they are not reference-equal)
+ */ 
+function toSet<T, TValue>(
+  array: readonly T[],
+  valueSelector?: keyof T | ((item: T) => TValue)
+): Set<TValue | T> {
+  return new Set(
+    array.map((item) =>
+      valueSelector === undefined ? item
+      : typeof valueSelector === "function" ? valueSelector(item)
+      : item[valueSelector as keyof T]
+    )
+  ) as Set<TValue | T>;
+}
+
+/**
+ * Converts an array of items into a Map, where each key-value pair is derived from the items using specified selectors.
+ * The keySelector determines how to extract the key from each item, while the valueSelector determines how to extract the value.
+ * If the valueSelector is not provided, the items themselves are used as values in the Map.
+ *
+ * @template T - The type of items in the input array
+ * @template TKey - The type of keys in the resulting Map
+ * @template TValue - The type of values in the resulting Map
+ * @param {readonly T[]} array - The array of items to convert into a Map
+ * @param {keyof T | ((item: T) => TKey)} keySelector - A key or function to select the key from each item. If a key is provided, it will be used to access the property on each item; if a function is provided, it will be called with the item to compute the key.
+ * @param {keyof T | ((item: T) => TValue)} [valueSelector] - An optional key or function to select the value from each item. If a key is provided, it will be used to access the property on each item; if a function is provided, it will be called with the item to compute the value. If not provided, the items themselves are used as values.
+ * @return {Map<TKey, TValue | T>} A Map containing key-value pairs derived from the input array based on the provided selectors.
+ * @example
+ * // Using function selectors for both keys and values
+ * const users = [
+ *  { id: 1, name: 'Alice' },
+ *  { id: 2, name: 'Bob' }
+ * ];
+ * const userMap = toMap(users, user => user.id, user => user.name);
+ * // userMap is a Map where 1 maps to 'Alice' and 2 maps to 'Bob'
+ * // Using a key as the key selector and a function for the value selector
+ * const userMap2 = toMap(users, 'id', user => user.name);
+ * // userMap2 is the same as userMap
+ * // Using a function for the key selector and a key for the value selector
+ * const userMap3 = toMap(users, user => user.id, 'name');
+ * // userMap3 is the same as userMap
+ * // Using keys for both selectors
+ * const userMap4 = toMap(users, 'id', 'name');
+ * // userMap4 is the same as userMap
+ * // Using only a key selector (values are the items themselves)
+ * const userMap5 = toMap(users, 'id');
+ * // userMap5 is a Map where 1 maps to { id: 1, name: 'Alice' } and 2 maps to { id: 2, name: 'Bob' }
+ */ 
+function toMap<T, TKey, TValue>(
+  array: readonly T[],
+  keySelector: keyof T | ((item: T) => TKey),
+  valueSelector?: keyof T | ((item: T) => TValue)
+): Map<TKey, TValue | T> {
+  return new Map(
+    array.map((item) => {
+      const key = typeof keySelector === "function"
+        ? keySelector(item)
+        : (item[keySelector] as TKey);
+      const value = valueSelector === undefined ? item
+        : typeof valueSelector === "function" ? valueSelector(item)
+        : item[valueSelector as keyof T];
+      return [key, value] as [TKey, TValue | T];
+    })
+  );
 }
 
 export {
@@ -243,4 +424,7 @@ export {
   buildSorter,
   clone,
   hasOwnProperty,
+  where,
+  toSet,
+  toMap
 };

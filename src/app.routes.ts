@@ -38,6 +38,8 @@ export function configureRouter(){
     .add('menu-showcase', () => import('./pages/menu-showcase.page'))
     .add('component-patterns-guide', () => import('./pages/component-patterns-guide.page'))
     .add('tree-viewer', () => import('./pages/tree-viewer.page'))
+    .add('where-tester', () => import('./pages/where-tester.page'))
+    .add('splitter', () => import('./components/pol/pol-splitter-test.page'))
     .add('api-test', () => import('./pages/api-test.page'), null)
     .add('strava', () => import('./strava/strava-login.page'), null)
     .add('strava/auth', () => import('./strava/strava-auth.page'), null)
