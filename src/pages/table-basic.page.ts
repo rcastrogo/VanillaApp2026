@@ -262,8 +262,8 @@ export default class TableBasicPage extends BaseComponent {
     notificationService.info('Page: Delete action triggered for IDs: ' + ids.join(', '));
   }
 
-  onEdit = (_sender: TableComponent<Country>, id: string | number) => {
-    notificationService.info('Page: Edit action triggered for ID: ' +  id);
+  onEdit = (_sender: TableComponent<Country>, target: Country) => {
+    notificationService.info('Page: Edit action triggered for ID: ' +  target.id);
   }
 
   onAction = (_sender: TableComponent<Country>, action: string) => {
