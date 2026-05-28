@@ -57,10 +57,38 @@ export interface TipoDeTransaccion {
 
 const HOST: string = import.meta.env.VITE_BACK_END || '';
 const BASE_ENDPOINT = HOST + '/api/MasterDataTables/';
+const END_POINT = 'assets/data.json';
 
 const MasterTablesService = () => {
 
+  let mode: 'mock' | 'api' = 'api';
+
+  function setMode(newMode: 'mock' | 'api') {
+    mode = newMode;
+  }
+
+  const MOCK_KEY_MAP: Record<string, string> = {
+    'categorias': 'categoriasProducto',
+    'estadospedidos': 'estadosPedido',
+    'rolesusuario': 'rolesUsuario',
+    'tiposdedocumento': 'tiposDocumento',
+    'tiposdetransaccion': 'tiposTransaccion',
+  };
+
+  function getData(entity: string){
+    const key = entity.toLowerCase();
+    const mappedKey = MOCK_KEY_MAP[key] || key;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return RQ.create<any>()
+      .getFrom(END_POINT)
+      .useLog('Fetching data')
+      .useProperty(mappedKey)
+      .useTransform((data: unknown) => ({ result: 'Ok', response: data, actions: null }))
+      .invoke();
+  }
+
   function getAll<T>(entity: string) {
+    if(mode === 'mock') return getData(entity);
     return RQ.create<ApiResponse<T[]>>()
       .useBase(BASE_ENDPOINT)
       .useLog(`Fetching all ${entity}`)
@@ -92,6 +120,7 @@ const MasterTablesService = () => {
   }
 
   return {
+    setMode,
     departamentos: {
       getAll: () => getAll<Departamento>('Departamentos'),
       getById: (id: number) => getById<Departamento>('Departamentos', id),

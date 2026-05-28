@@ -29,9 +29,26 @@ const HOST = import.meta.env.VITE_BACK_END || '';
 const BASE_ENDPOINT = HOST + '/api/';
 const ASHX_ENDPOINT = HOST + '/ashx/users';
 
+const END_POINT = 'assets/data.json';
+
 const UsuariosService = () => {
 
+  let mode: 'mock' | 'api' = 'api';
+
+  function setMode(newMode: 'mock' | 'api') {
+    mode = newMode;
+  }
+
+  function getData(target = 'usuarios'){
+    return RQ.create<unknown>()
+      .getFrom(END_POINT)
+      .useLog('Fetching data')
+      .useProperty(target.toLowerCase())
+      .invoke();
+  }
+
   function getAll() {
+    if(mode === 'mock') return getData('usuarios');
     return RQ.create<Usuario[]>()
       .useBase(BASE_ENDPOINT)
       .useLog('Fetching all usuarios')
@@ -82,6 +99,7 @@ const UsuariosService = () => {
   }
 
   function getDistribuidores() {
+    if(mode === 'mock') return getData('distribuidores');
     return RQ.create<Distribuidor[]>()
       .useBase(BASE_ENDPOINT)
       .useLog('Fetching all distribuidores')
@@ -175,6 +193,7 @@ const UsuariosService = () => {
   }
 
   return {
+    setMode,
     getAll,
     getById,
     create,

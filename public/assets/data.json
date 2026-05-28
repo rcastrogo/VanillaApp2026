@@ -1,0 +1,1254 @@
+﻿{
+  "departamentos": [
+    {
+      "id": 1,
+      "codigo": "FIN",
+      "descripcion": "Finanzas"
+    },
+    {
+      "id": 2,
+      "codigo": "MKT",
+      "descripcion": "Marketing"
+    },
+    {
+      "id": 3,
+      "codigo": "RH",
+      "descripcion": "Recursos Humanos"
+    },
+    {
+      "id": 4,
+      "codigo": "IT",
+      "descripcion": "Tecnología de la Información"
+    },
+    {
+      "id": 5,
+      "codigo": "VENT",
+      "descripcion": "Ventas"
+    },
+    {
+      "id": 6,
+      "codigo": "OP",
+      "descripcion": "Operaciones"
+    },
+    {
+      "id": 7,
+      "codigo": "ADM",
+      "descripcion": "Administración"
+    },
+    {
+      "id": 8,
+      "codigo": "LOG",
+      "descripcion": "Logística"
+    },
+    {
+      "id": 9,
+      "codigo": "CAL",
+      "descripcion": "Control de Calidad"
+    },
+    {
+      "id": 10,
+      "codigo": "PRD",
+      "descripcion": "Producción"
+    },
+    {
+      "id": 11,
+      "codigo": "INV",
+      "descripcion": "Investigación y Desarrollo"
+    },
+    {
+      "id": 12,
+      "codigo": "SERV",
+      "descripcion": "Servicios al Cliente"
+    },
+    {
+      "id": 13,
+      "codigo": "JUR",
+      "descripcion": "Jurídico"
+    },
+    {
+      "id": 14,
+      "codigo": "CONT",
+      "descripcion": "Contabilidad"
+    },
+    {
+      "id": 15,
+      "codigo": "MNT",
+      "descripcion": "Mantenimiento"
+    }
+  ],
+  "paises": [
+    {
+      "id": 1,
+      "codigo": "ARG",
+      "descripcion": "Argentina",
+      "prefijoTelefonico": "+54"
+    },
+    {
+      "id": 2,
+      "codigo": "BRA",
+      "descripcion": "Brasil",
+      "prefijoTelefonico": "+55"
+    },
+    {
+      "id": 3,
+      "codigo": "CHL",
+      "descripcion": "Chile",
+      "prefijoTelefonico": "+56"
+    },
+    {
+      "id": 4,
+      "codigo": "COL",
+      "descripcion": "Colombia",
+      "prefijoTelefonico": "+57"
+    },
+    {
+      "id": 5,
+      "codigo": "ESP",
+      "descripcion": "España",
+      "prefijoTelefonico": "+34"
+    },
+    {
+      "id": 6,
+      "codigo": "MEX",
+      "descripcion": "México",
+      "prefijoTelefonico": "+52"
+    },
+    {
+      "id": 7,
+      "codigo": "PER",
+      "descripcion": "Perú",
+      "prefijoTelefonico": "+51"
+    },
+    {
+      "id": 8,
+      "codigo": "USA",
+      "descripcion": "Estados Unidos",
+      "prefijoTelefonico": "+1"
+    },
+    {
+      "id": 9,
+      "codigo": "CAN",
+      "descripcion": "Canadá",
+      "prefijoTelefonico": "+1"
+    },
+    {
+      "id": 10,
+      "codigo": "GBR",
+      "descripcion": "Reino Unido",
+      "prefijoTelefonico": "+44"
+    },
+    {
+      "id": 11,
+      "codigo": "FRA",
+      "descripcion": "Francia",
+      "prefijoTelefonico": "+33"
+    },
+    {
+      "id": 12,
+      "codigo": "DEU",
+      "descripcion": "Alemania",
+      "prefijoTelefonico": "+49"
+    },
+    {
+      "id": 13,
+      "codigo": "ITA",
+      "descripcion": "Italia",
+      "prefijoTelefonico": "+39"
+    },
+    {
+      "id": 14,
+      "codigo": "JPN",
+      "descripcion": "Japón",
+      "prefijoTelefonico": "+81"
+    },
+    {
+      "id": 15,
+      "codigo": "AUS",
+      "descripcion": "Australia",
+      "prefijoTelefonico": "+61"
+    },
+    {
+      "id": 16,
+      "codigo": "RUS",
+      "descripcion": "Rusia",
+      "prefijoTelefonico": "+7"
+    }
+  ],
+  "tiposDocumento": [
+    {
+      "id": 1,
+      "codigo": "DNI",
+      "descripcion": "Documento Nacional de Identidad",
+      "activo": true
+    },
+    {
+      "id": 2,
+      "codigo": "PAS",
+      "descripcion": "Pasaporte",
+      "activo": true
+    },
+    {
+      "id": 3,
+      "codigo": "CE",
+      "descripcion": "Cédula de Extranjería",
+      "activo": true
+    },
+    {
+      "id": 4,
+      "codigo": "RUC",
+      "descripcion": "Registro Único de Contribuyentes",
+      "activo": true
+    },
+    {
+      "id": 5,
+      "codigo": "LIB",
+      "descripcion": "Libreta Militar",
+      "activo": false
+    },
+    {
+      "id": 6,
+      "codigo": "LIC",
+      "descripcion": "Licencia de Conducir",
+      "activo": true
+    },
+    {
+      "id": 7,
+      "codigo": "TAR",
+      "descripcion": "Tarjeta de Identidad",
+      "activo": true
+    },
+    {
+      "id": 8,
+      "codigo": "TID",
+      "descripcion": "Tarjeta de Identificación",
+      "activo": true
+    },
+    {
+      "id": 9,
+      "codigo": "NIF",
+      "descripcion": "Número de Identificación Fiscal",
+      "activo": true
+    },
+    {
+      "id": 10,
+      "codigo": "TSS",
+      "descripcion": "Tarjeta de Seguridad Social",
+      "activo": true
+    },
+    {
+      "id": 11,
+      "codigo": "CIE",
+      "descripcion": "Carné de Identidad de Extranjero",
+      "activo": true
+    },
+    {
+      "id": 12,
+      "codigo": "NIE",
+      "descripcion": "Número de Identidad de Extranjero",
+      "activo": true
+    },
+    {
+      "id": 13,
+      "codigo": "CIT",
+      "descripcion": "Cédula de Identidad de Trabajo",
+      "activo": true
+    },
+    {
+      "id": 14,
+      "codigo": "DIP",
+      "descripcion": "Diploma",
+      "activo": false
+    },
+    {
+      "id": 15,
+      "codigo": "CRE",
+      "descripcion": "Credencial",
+      "activo": true
+    },
+    {
+      "id": 16,
+      "codigo": "IDM",
+      "descripcion": "ID Militar",
+      "activo": true
+    }
+  ],
+  "categoriasProducto": [
+    {
+      "id": 1,
+      "codigo": "ELEC",
+      "descripcion": "Electrónicos",
+      "orden": 1
+    },
+    {
+      "id": 2,
+      "codigo": "ALIM",
+      "descripcion": "Alimentos y Bebidas",
+      "orden": 2
+    },
+    {
+      "id": 3,
+      "codigo": "MODA",
+      "descripcion": "Moda y Accesorios",
+      "orden": 3
+    },
+    {
+      "id": 4,
+      "codigo": "HOG",
+      "descripcion": "Hogar y Jardín",
+      "orden": 4
+    },
+    {
+      "id": 5,
+      "codigo": "DEPO",
+      "descripcion": "Deportes",
+      "orden": 5
+    },
+    {
+      "id": 6,
+      "codigo": "LIB",
+      "descripcion": "Libros y Papelería",
+      "orden": 6
+    },
+    {
+      "id": 7,
+      "codigo": "JUE",
+      "descripcion": "Juguetes",
+      "orden": 7
+    },
+    {
+      "id": 8,
+      "codigo": "SALUD",
+      "descripcion": "Salud y Belleza",
+      "orden": 8
+    },
+    {
+      "id": 9,
+      "codigo": "AUTO",
+      "descripcion": "Automotriz",
+      "orden": 9
+    },
+    {
+      "id": 10,
+      "codigo": "MASC",
+      "descripcion": "Mascotas",
+      "orden": 10
+    },
+    {
+      "id": 11,
+      "codigo": "HERR",
+      "descripcion": "Herramientas",
+      "orden": 11
+    },
+    {
+      "id": 12,
+      "codigo": "MUSI",
+      "descripcion": "Instrumentos Musicales",
+      "orden": 12
+    },
+    {
+      "id": 13,
+      "codigo": "BEB",
+      "descripcion": "Bebés",
+      "orden": 13
+    },
+    {
+      "id": 14,
+      "codigo": "COMP",
+      "descripcion": "Computación",
+      "orden": 14
+    },
+    {
+      "id": 15,
+      "codigo": "OFIC",
+      "descripcion": "Oficina",
+      "orden": 15
+    }
+  ],
+  "rolesUsuario": [
+    {
+      "id": 1,
+      "codigo": "ADMIN",
+      "descripcion": "Administrador",
+      "nivelPermiso": 100
+    },
+    {
+      "id": 2,
+      "codigo": "SUPER",
+      "descripcion": "Supervisor",
+      "nivelPermiso": 80
+    },
+    {
+      "id": 3,
+      "codigo": "VENT",
+      "descripcion": "Vendedor",
+      "nivelPermiso": 50
+    },
+    {
+      "id": 4,
+      "codigo": "INV",
+      "descripcion": "Invitado",
+      "nivelPermiso": 10
+    },
+    {
+      "id": 5,
+      "codigo": "RH",
+      "descripcion": "Recursos Humanos",
+      "nivelPermiso": 70
+    },
+    {
+      "id": 6,
+      "codigo": "GER",
+      "descripcion": "Gerente",
+      "nivelPermiso": 90
+    },
+    {
+      "id": 7,
+      "codigo": "ANAL",
+      "descripcion": "Analista",
+      "nivelPermiso": 40
+    },
+    {
+      "id": 8,
+      "codigo": "TEC",
+      "descripcion": "Técnico",
+      "nivelPermiso": 30
+    },
+    {
+      "id": 9,
+      "codigo": "CLIENTE",
+      "descripcion": "Cliente",
+      "nivelPermiso": 20
+    },
+    {
+      "id": 10,
+      "codigo": "PROV",
+      "descripcion": "Proveedor",
+      "nivelPermiso": 20
+    },
+    {
+      "id": 11,
+      "codigo": "CONT",
+      "descripcion": "Contador",
+      "nivelPermiso": 60
+    },
+    {
+      "id": 12,
+      "codigo": "DIR",
+      "descripcion": "Director",
+      "nivelPermiso": 100
+    },
+    {
+      "id": 13,
+      "codigo": "ASIS",
+      "descripcion": "Asistente",
+      "nivelPermiso": 15
+    },
+    {
+      "id": 14,
+      "codigo": "CONS",
+      "descripcion": "Consultor",
+      "nivelPermiso": 65
+    },
+    {
+      "id": 15,
+      "codigo": "COOR",
+      "descripcion": "Coordinador",
+      "nivelPermiso": 55
+    }
+  ],
+  "estadosPedido": [
+    {
+      "id": 1,
+      "codigo": "PEND",
+      "descripcion": "Pendiente de Pago"
+    },
+    {
+      "id": 2,
+      "codigo": "PAGADO",
+      "descripcion": "Pagado"
+    },
+    {
+      "id": 3,
+      "codigo": "PROC",
+      "descripcion": "Procesando"
+    },
+    {
+      "id": 4,
+      "codigo": "ENV",
+      "descripcion": "Enviado"
+    },
+    {
+      "id": 5,
+      "codigo": "ENT",
+      "descripcion": "Entregado"
+    },
+    {
+      "id": 6,
+      "codigo": "CANC",
+      "descripcion": "Cancelado"
+    },
+    {
+      "id": 7,
+      "codigo": "DEV",
+      "descripcion": "Devuelto"
+    },
+    {
+      "id": 8,
+      "codigo": "RECH",
+      "descripcion": "Rechazado"
+    },
+    {
+      "id": 9,
+      "codigo": "COMP",
+      "descripcion": "Completado"
+    },
+    {
+      "id": 10,
+      "codigo": "PREP",
+      "descripcion": "Preparando para Envío"
+    },
+    {
+      "id": 11,
+      "codigo": "TRAN",
+      "descripcion": "En Tránsito"
+    },
+    {
+      "id": 12,
+      "codigo": "DISP",
+      "descripcion": "Disponible para Recoger"
+    },
+    {
+      "id": 13,
+      "codigo": "FACT",
+      "descripcion": "Facturado"
+    },
+    {
+      "id": 14,
+      "codigo": "REEM",
+      "descripcion": "Reembolsado"
+    },
+    {
+      "id": 15,
+      "codigo": "RECL",
+      "descripcion": "Reclamación Abierta"
+    }
+  ],
+  "tiposTransaccion": [
+    {
+      "id": 1,
+      "codigo": "VTA",
+      "descripcion": "Venta de Productos",
+      "naturaleza": "ING"
+    },
+    {
+      "id": 2,
+      "codigo": "COM",
+      "descripcion": "Compra de Materia Prima",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 3,
+      "codigo": "NOM",
+      "descripcion": "Pago de Nómina",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 4,
+      "codigo": "ALQ",
+      "descripcion": "Pago de Alquiler",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 5,
+      "codigo": "SERV",
+      "descripcion": "Pago de Servicios",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 6,
+      "codigo": "INV",
+      "descripcion": "Inversión",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 7,
+      "codigo": "GAST",
+      "descripcion": "Gastos Operativos",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 8,
+      "codigo": "DEV",
+      "descripcion": "Devolución de Venta",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 9,
+      "codigo": "PREST",
+      "descripcion": "Préstamo Recibido",
+      "naturaleza": "ING"
+    },
+    {
+      "id": 10,
+      "codigo": "APORT",
+      "descripcion": "Aporte de Socios",
+      "naturaleza": "ING"
+    },
+    {
+      "id": 11,
+      "codigo": "REMB",
+      "descripcion": "Reembolso de Gastos",
+      "naturaleza": "ING"
+    },
+    {
+      "id": 12,
+      "codigo": "SUBV",
+      "descripcion": "Subvención",
+      "naturaleza": "ING"
+    },
+    {
+      "id": 13,
+      "codigo": "COB",
+      "descripcion": "Cobro de Facturas",
+      "naturaleza": "ING"
+    },
+    {
+      "id": 14,
+      "codigo": "MULT",
+      "descripcion": "Multa",
+      "naturaleza": "EGR"
+    },
+    {
+      "id": 15,
+      "codigo": "INTER",
+      "descripcion": "Ingresos por Intereses",
+      "naturaleza": "ING"
+    }
+  ],
+  "monedas": [
+    {
+      "id": 1,
+      "codigo": "USD",
+      "descripcion": "Dólar Estadounidense",
+      "simbolo": "$"
+    },
+    {
+      "id": 2,
+      "codigo": "EUR",
+      "descripcion": "Euro",
+      "simbolo": "€"
+    },
+    {
+      "id": 3,
+      "codigo": "GBP",
+      "descripcion": "Libra Esterlina",
+      "simbolo": "£"
+    },
+    {
+      "id": 4,
+      "codigo": "JPY",
+      "descripcion": "Yen Japonés",
+      "simbolo": "¥"
+    },
+    {
+      "id": 5,
+      "codigo": "CAD",
+      "descripcion": "Dólar Canadiense",
+      "simbolo": "$"
+    },
+    {
+      "id": 6,
+      "codigo": "AUD",
+      "descripcion": "Dólar Australiano",
+      "simbolo": "$"
+    },
+    {
+      "id": 7,
+      "codigo": "CHF",
+      "descripcion": "Franco Suizo",
+      "simbolo": "CHF"
+    },
+    {
+      "id": 8,
+      "codigo": "MXN",
+      "descripcion": "Peso Mexicano",
+      "simbolo": "$"
+    },
+    {
+      "id": 9,
+      "codigo": "BRL",
+      "descripcion": "Real Brasileño",
+      "simbolo": "R$"
+    },
+    {
+      "id": 10,
+      "codigo": "ARS",
+      "descripcion": "Peso Argentino",
+      "simbolo": "$"
+    },
+    {
+      "id": 11,
+      "codigo": "CLP",
+      "descripcion": "Peso Chileno",
+      "simbolo": "$"
+    },
+    {
+      "id": 12,
+      "codigo": "COP",
+      "descripcion": "Peso Colombiano",
+      "simbolo": "$"
+    },
+    {
+      "id": 13,
+      "codigo": "PEN",
+      "descripcion": "Sol Peruano",
+      "simbolo": "S/"
+    },
+    {
+      "id": 14,
+      "codigo": "CNY",
+      "descripcion": "Yuan Chino",
+      "simbolo": "¥"
+    },
+    {
+      "id": 15,
+      "codigo": "SEK",
+      "descripcion": "Corona Sueca",
+      "simbolo": "kr"
+    }
+  ],
+  "distribuidores": [
+    {
+      "id": 1,
+      "nif": "B87654321",
+      "nombre": "DistriElect S.A.",
+      "email": "contacto@distrielect.com",
+      "direccion": "Calle Mayor 123",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "912345678",
+      "categoriaProductoId": 1,
+      "tipoDocumentoId": 1,
+      "tipoTransaccionId": 1,
+      "monedaId": 1,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 2,
+      "nif": "A12345678",
+      "nombre": "MegaProveedores",
+      "email": "info@megaproveedores.es",
+      "direccion": "Av. del Sol 45",
+      "ciudad": "Barcelona",
+      "paisId": 5,
+      "telefono": "931234567",
+      "categoriaProductoId": 2,
+      "tipoDocumentoId": 2,
+      "tipoTransaccionId": 2,
+      "monedaId": 2,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 3,
+      "nif": "C23456789",
+      "nombre": "Logistic Global",
+      "email": "support@logiglobal.com",
+      "direccion": "Paseo de la Castellana 10",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "919876543",
+      "categoriaProductoId": 3,
+      "tipoDocumentoId": 3,
+      "tipoTransaccionId": 3,
+      "monedaId": 3,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 4,
+      "nif": "D34567890",
+      "nombre": "Alimentacion Exclusiva",
+      "email": "ventas@alimex.com",
+      "direccion": "Rua Augusta 20",
+      "ciudad": "Lisboa",
+      "paisId": 13,
+      "telefono": "210123456",
+      "categoriaProductoId": 2,
+      "tipoDocumentoId": 4,
+      "tipoTransaccionId": 4,
+      "monedaId": 4,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 5,
+      "nif": "E45678901",
+      "nombre": "Tecno Solutions",
+      "email": "info@tecnosol.com",
+      "direccion": "5th Avenue, 101",
+      "ciudad": "New York",
+      "paisId": 8,
+      "telefono": "2125550100",
+      "categoriaProductoId": 1,
+      "tipoDocumentoId": 5,
+      "tipoTransaccionId": 5,
+      "monedaId": 1,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 6,
+      "nif": "F56789012",
+      "nombre": "Moda Europea S.L.",
+      "email": "pedidos@modaeuropa.es",
+      "direccion": "Corso Vittorio Emanuele 50",
+      "ciudad": "Mil\u00E1n",
+      "paisId": 12,
+      "telefono": "021234567",
+      "categoriaProductoId": 3,
+      "tipoDocumentoId": 6,
+      "tipoTransaccionId": 1,
+      "monedaId": 2,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 7,
+      "nif": "G67890123",
+      "nombre": "Juguetes divertidos",
+      "email": "contact@juguetes.net",
+      "direccion": "Schillerstrasse 8",
+      "ciudad": "Berlin",
+      "paisId": 6,
+      "telefono": "03098765432",
+      "categoriaProductoId": 4,
+      "tipoDocumentoId": 7,
+      "tipoTransaccionId": 2,
+      "monedaId": 3,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 8,
+      "nif": "H78901234",
+      "nombre": "Herramientas Pro",
+      "email": "support@herramientaspro.com",
+      "direccion": "Avenida Paulista 300",
+      "ciudad": "S\u00E3o Paulo",
+      "paisId": 2,
+      "telefono": "11987654321",
+      "categoriaProductoId": 5,
+      "tipoDocumentoId": 8,
+      "tipoTransaccionId": 3,
+      "monedaId": 4,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 9,
+      "nif": "I89012345",
+      "nombre": "Libros y m\u00E1s",
+      "email": "info@librosymas.es",
+      "direccion": "Paseo de Gracia 100",
+      "ciudad": "Barcelona",
+      "paisId": 5,
+      "telefono": "932345678",
+      "categoriaProductoId": 6,
+      "tipoDocumentoId": 9,
+      "tipoTransaccionId": 4,
+      "monedaId": 1,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 10,
+      "nif": "J90123456",
+      "nombre": "Deportes Extremos",
+      "email": "contacto@deportes.es",
+      "direccion": "Calle Alcal\u00E1 200",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "914567890",
+      "categoriaProductoId": 7,
+      "tipoDocumentoId": 10,
+      "tipoTransaccionId": 5,
+      "monedaId": 2,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 11,
+      "nif": "K01234567",
+      "nombre": "Salud Natural S.A.",
+      "email": "compras@saludnatural.com",
+      "direccion": "Viale del Lavoro 25",
+      "ciudad": "Roma",
+      "paisId": 12,
+      "telefono": "065432109",
+      "categoriaProductoId": 8,
+      "tipoDocumentoId": 1,
+      "tipoTransaccionId": 1,
+      "monedaId": 3,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 12,
+      "nif": "L12345678",
+      "nombre": "Auto Partes",
+      "email": "distri@autopartes.net",
+      "direccion": "Main Street 50",
+      "ciudad": "London",
+      "paisId": 10,
+      "telefono": "2071234567",
+      "categoriaProductoId": 9,
+      "tipoDocumentoId": 2,
+      "tipoTransaccionId": 2,
+      "monedaId": 4,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 13,
+      "nif": "M23456789",
+      "nombre": "Mascotas Felices",
+      "email": "pedidos@mascotas.es",
+      "direccion": "Calle Serrano 50",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "911122334",
+      "categoriaProductoId": 10,
+      "tipoDocumentoId": 3,
+      "tipoTransaccionId": 3,
+      "monedaId": 1,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 14,
+      "nif": "N34567890",
+      "nombre": "Instrumentos Music",
+      "email": "info@instrumentos.es",
+      "direccion": "Rambla de Catalu\u00F1a 15",
+      "ciudad": "Barcelona",
+      "paisId": 5,
+      "telefono": "935566778",
+      "categoriaProductoId": 11,
+      "tipoDocumentoId": 4,
+      "tipoTransaccionId": 4,
+      "monedaId": 2,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 15,
+      "nif": "O45678901",
+      "nombre": "Beb\u00E9s con estilo",
+      "email": "ventas@bebes.com",
+      "direccion": "Rue de Rivoli 30",
+      "ciudad": "Paris",
+      "paisId": 7,
+      "telefono": "0123456789",
+      "categoriaProductoId": 12,
+      "tipoDocumentoId": 5,
+      "tipoTransaccionId": 5,
+      "monedaId": 3,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 16,
+      "nif": "P56789012",
+      "nombre": "Computaci\u00F3n Avanzada",
+      "email": "soporte@compuavan.es",
+      "direccion": "Calle Vel\u00E1zquez 70",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "917788990",
+      "categoriaProductoId": 1,
+      "tipoDocumentoId": 6,
+      "tipoTransaccionId": 1,
+      "monedaId": 4,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 17,
+      "nif": "Q67890123",
+      "nombre": "Oficina Suministros",
+      "email": "contacto@oficina.es",
+      "direccion": "Rua de S. Paulo 10",
+      "ciudad": "Lisboa",
+      "paisId": 13,
+      "telefono": "219988776",
+      "categoriaProductoId": 15,
+      "tipoDocumentoId": 7,
+      "tipoTransaccionId": 2,
+      "monedaId": 1,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 18,
+      "nif": "R78901234",
+      "nombre": "Tecno Hogar S.L.",
+      "email": "info@tecnohogar.es",
+      "direccion": "Calle de Goya 25",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "918877665",
+      "categoriaProductoId": 4,
+      "tipoDocumentoId": 8,
+      "tipoTransaccionId": 3,
+      "monedaId": 2,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 19,
+      "nif": "S89012345",
+      "nombre": "Libros de texto",
+      "email": "ventas@librosdetexto.es",
+      "direccion": "Av. de Am\u00E9rica 5",
+      "ciudad": "Madrid",
+      "paisId": 5,
+      "telefono": "913344556",
+      "categoriaProductoId": 6,
+      "tipoDocumentoId": 9,
+      "tipoTransaccionId": 4,
+      "monedaId": 3,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    },
+    {
+      "id": 20,
+      "nif": "T90123456",
+      "nombre": "Deportes acu\u00E1ticos",
+      "email": "info@deportesacua.com",
+      "direccion": "Paseo Mar\u00EDtimo 1",
+      "ciudad": "M\u00E1laga",
+      "paisId": 5,
+      "telefono": "952112233",
+      "categoriaProductoId": 7,
+      "tipoDocumentoId": 10,
+      "tipoTransaccionId": 5,
+      "monedaId": 4,
+      "activo": 1,
+      "fechaAlta": "08/08/2025 07:42:16.320"
+    }
+  ],
+  "usuarios": [
+    {
+      "id": 1,
+      "nif": "12345678A",
+      "nombre": "ASHX Updated",
+      "descripcion": "Saved via ASHX",
+      "fechaDeAlta": "03/02/2020 08:31:04.297"
+    },
+    {
+      "id": 2,
+      "nif": "04170000J",
+      "nombre": "José Gómez a a a a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "03/02/2020 08:31:04.320"
+    },
+    {
+      "id": 4,
+      "nif": "04100000B",
+      "nombre": "Felipe Martín a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "03/02/2020 08:31:04.320"
+    },
+    {
+      "id": 5,
+      "nif": "0888000M",
+      "nombre": "Pepepotamo a a a",
+      "descripcion": "Descripcion",
+      "fechaDeAlta": "10/02/2020 13:12:46.540"
+    },
+    {
+      "id": 6,
+      "nif": "ewrqew",
+      "nombre": "ewrqwe 6666 a a a a",
+      "descripcion": "weqrqw",
+      "fechaDeAlta": "10/02/2020 13:22:26.007"
+    },
+    {
+      "id": 7,
+      "nif": "werqwer",
+      "nombre": "wqerqwer 99999 a a",
+      "descripcion": "Administrador",
+      "fechaDeAlta": "10/02/2020 13:22:32.163"
+    },
+    {
+      "id": 13,
+      "nif": "04100000B",
+      "nombre": "José Peña 6888",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:42:51.350"
+    },
+    {
+      "id": 14,
+      "nif": "04100000B",
+      "nombre": "Usuario 1001 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:43:19.497"
+    },
+    {
+      "id": 15,
+      "nif": "04100000B",
+      "nombre": "Usuario 1002 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:43:23.013"
+    },
+    {
+      "id": 16,
+      "nif": "04100000B",
+      "nombre": "Usuario 1003 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:43:23.787"
+    },
+    {
+      "id": 17,
+      "nif": "04100000B",
+      "nombre": "Usuario 1004 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:43:24.757"
+    },
+    {
+      "id": 18,
+      "nif": "04100000B",
+      "nombre": "Usuario 1005 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:43:25.410"
+    },
+    {
+      "id": 20,
+      "nif": "04100000B",
+      "nombre": "Usuario 1000",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:46:05.047"
+    },
+    {
+      "id": 21,
+      "nif": "04100000B",
+      "nombre": "Usuario 1001",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:46:10.133"
+    },
+    {
+      "id": 22,
+      "nif": "04100000B",
+      "nombre": "Usuario 1002",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:46:21.853"
+    },
+    {
+      "id": 23,
+      "nif": "04100000B",
+      "nombre": "Usuario 1003",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:46:36.787"
+    },
+    {
+      "id": 24,
+      "nif": "04100000B",
+      "nombre": "Usuario 1004",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "11/07/2025 21:46:39.040"
+    },
+    {
+      "id": 28,
+      "nif": "04100000B",
+      "nombre": "Usuario 1000 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "14/07/2025 09:06:12.977"
+    },
+    {
+      "id": 29,
+      "nif": "04100000B",
+      "nombre": "Usuario 1001 a",
+      "descripcion": "Usuario genérico",
+      "fechaDeAlta": "14/07/2025 09:06:50.390"
+    },
+    {
+      "id": 100,
+      "nif": "000000J",
+      "nombre": "rafa a",
+      "descripcion": "dd",
+      "fechaDeAlta": "15/07/2025 22:05:49.080"
+    },
+    {
+      "id": 101,
+      "nif": "04100050B",
+      "nombre": "Superman a",
+      "descripcion": "d5544",
+      "fechaDeAlta": "16/07/2025 10:24:28.140"
+    },
+    {
+      "id": 109,
+      "nif": "000000J",
+      "nombre": "Fernando Alonso a",
+      "descripcion": "444",
+      "fechaDeAlta": "18/07/2025 08:45:32.370"
+    },
+    {
+      "id": 110,
+      "nif": "0066000X",
+      "nombre": "Administrador de sistemas",
+      "descripcion": "Administrador de sistemas del MAPA",
+      "fechaDeAlta": "28/07/2025 12:32:20.883"
+    },
+    {
+      "id": 112,
+      "nif": "B000045",
+      "nombre": "Empresa",
+      "descripcion": "La descripción de la empresa",
+      "fechaDeAlta": "05/08/2025 22:12:20.230"
+    },
+    {
+      "id": 113,
+      "nif": "000000J",
+      "nombre": "Pepe",
+      "descripcion": "Descripcion",
+      "fechaDeAlta": "06/05/2026 15:21:50.530"
+    },
+    {
+      "id": 114,
+      "nif": "99999999Z",
+      "nombre": "ASHX New User",
+      "descripcion": "Created via ASHX",
+      "fechaDeAlta": "06/05/2026 20:01:22.603"
+    },
+    {
+      "id": 115,
+      "nif": "99999999Z",
+      "nombre": "ASHX New User",
+      "descripcion": "Created via ASHX",
+      "fechaDeAlta": "06/05/2026 20:03:03.307"
+    },
+    {
+      "id": 116,
+      "nif": "99999999Z",
+      "nombre": "ASHX New User",
+      "descripcion": "Created via ASHX",
+      "fechaDeAlta": "06/05/2026 20:03:50.993"
+    },
+    {
+      "id": 117,
+      "nif": "99999999Z",
+      "nombre": "ASHX New User",
+      "descripcion": "Created via ASHX",
+      "fechaDeAlta": "06/05/2026 20:18:08.347"
+    },
+    {
+      "id": 118,
+      "nif": "99999999Z",
+      "nombre": "ASHX New User",
+      "descripcion": "Created via ASHX",
+      "fechaDeAlta": "06/05/2026 20:20:15.450"
+    }
+  ]
+}

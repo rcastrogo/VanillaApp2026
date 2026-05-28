@@ -5,6 +5,7 @@ import { hydrateComponents, hydrateEventListeners } from '@/core/hydrate';
 import { executeServerAction } from '@/core/server-actions';
 import { dialogService } from '@/core/services/dialog.service';
 import { notificationService } from '@/core/services/notification.service';
+import { storage } from '@/core/storageUtil';
 import { BaseComponent, type Identifiable } from '@/core/types';
 import { accentNumericComparer } from '@/core/utils';
 import masterTablesService from '@/services/master-tables.service';
@@ -98,7 +99,7 @@ const ApiTestPage: ComponentFactory = () => {
     results: '' as string,
     lastData: null as unknown,
     lastSection: '' as string,
-
+    mode: storage.readValue('apiMode') as 'mock' | 'api' || 'mock',
     log(section: string, data: unknown) {
       const timestamp = new Date().toLocaleTimeString();
       const json = JSON.stringify(data, null, 2);
@@ -152,6 +153,18 @@ const ApiTestPage: ComponentFactory = () => {
     clearResults() {
       context.results = '';
       context.updateOutput();
+    },
+
+    setMock() {
+      masterTablesService.setMode('mock');
+      usuariosService.setMode('mock');
+      storage.writeValue('apiMode', 'mock');
+    },
+
+    setApi() {
+      masterTablesService.setMode('api');
+      usuariosService.setMode('api');
+      storage.writeValue('apiMode', 'api');
     },
 
     // -------- MasterTables --------
@@ -319,6 +332,13 @@ const ApiTestPage: ComponentFactory = () => {
     element: null as HTMLElement | null,
 
     render() {
+      if(this.mode === 'mock') {
+        masterTablesService.setMode('mock');
+        usuariosService.setMode('mock');
+      } else {
+        masterTablesService.setMode('api');
+        usuariosService.setMode('api');
+      }
       const btn = 'px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer';
 
       const template = `
@@ -442,9 +462,20 @@ const ApiTestPage: ComponentFactory = () => {
 
             <!-- Main content: Results -->
             <main class="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-950">
-              <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100">Results</h2>
+              <div class="flex  mb-4">
+                <h2 class="flex-1 text-lg font-bold text-slate-800 dark:text-slate-100">Results</h2>
                 <button on-click="clearResults" class="${btn} text-slate-500">Clear output</button>
+                <button on-click="setMock" 
+                  class="${btn} text-slate-500 
+                    ${this.mode === 'mock' ? 'bg-gray-400! text-white' : ''}
+                    ">
+                    Mock mode
+                </button>
+                <button on-click="setApi" 
+                  class="${btn} text-slate-500 
+                  ${this.mode === 'api' ? 'bg-gray-400! text-white' : ''}">
+                  Api mode
+                </button>
               </div>
               <div data-ref="output" class="space-y-2"></div>
             </main>

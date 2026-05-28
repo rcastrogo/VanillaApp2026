@@ -1,5 +1,9 @@
 # 🚀 VanillaReactive v2026
 
+
+VITE_BACK_END_LOCAL=https://localhost:7222
+VITE_BACK_END=https://webapivanillajs2026-axhxdzg8h5fub7hj.canadacentral-01.azurewebsites.net
+
 Un **Micro-Framework declarativo** y ultraligero construido con Vanilla JavaScript y TypeScript. Diseñado para ofrecer reactividad de alto rendimiento, comunicación desacoplada mediante PubSub y un sistema de bindings directamente en el HTML sin necesidad de librerías externas.
 
 ## ✨ Características Principales
