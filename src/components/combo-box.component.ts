@@ -7,6 +7,7 @@ import { FloatingPortal } from "@/core/floating-portal";
 
 export class ComboBoxComponent extends BaseComponent {
 
+  public value?: string;
   public selected?: (el: HTMLElement, ev: Event, item: ComboItem) => void;
   public customRender?: (item: ComboItem) => HTMLElement;
 
@@ -66,6 +67,10 @@ export class ComboBoxComponent extends BaseComponent {
   init(ctx: ComponentInitValue): void {
     super.init(ctx);
     this.items = this.resolveDataSource();
+    if(this.value){
+      this.setProp('value', this.value);
+      return;
+    }
     this.setState({
       isOpen: false,
       selectedLabel: '',
@@ -222,7 +227,7 @@ export class ComboBoxComponent extends BaseComponent {
     if (!this.element) return;
     const listTemplate = `
       <div
-        class="max-h-30 overflow-auto">
+        class="max-h-30 overflow-auto ${this.props.listClass ?? ''}">
           <ul data-each="item in items" class="text-left">
             <li>
               <button type="button"

@@ -29,7 +29,7 @@ const HOST = import.meta.env.VITE_BACK_END || '';
 const BASE_ENDPOINT = HOST + '/api/';
 const ASHX_ENDPOINT = HOST + '/ashx/users';
 
-const END_POINT = 'assets/data.json';
+const END_POINT = '/assets/data.json';
 
 const UsuariosService = () => {
 

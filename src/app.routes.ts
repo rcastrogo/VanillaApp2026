@@ -44,6 +44,7 @@ export function configureRouter(){
     .add('strava', () => import('./strava/strava-login.page'), null)
     .add('strava/auth', () => import('./strava/strava-auth.page'), null)
     .add('strava/activities', () => import('./strava/strava-activities.page'))
+    .addNamed('Routing dinámico', 'tables/(.*)/(.*)', () => import('./pages/master-table-detail.page'), null)
     .notFound(() => import('./pages/not-found.page'));
 
   router.addRoute({

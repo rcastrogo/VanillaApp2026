@@ -57,7 +57,7 @@ export interface TipoDeTransaccion {
 
 const HOST: string = import.meta.env.VITE_BACK_END || '';
 const BASE_ENDPOINT = HOST + '/api/MasterDataTables/';
-const END_POINT = 'assets/data.json';
+const END_POINT = '/assets/data.json';
 
 const MasterTablesService = () => {
 

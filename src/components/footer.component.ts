@@ -4,17 +4,31 @@ import { BaseComponent } from "../core/types";
 
 import { APP_CONFIG } from "@/app.config";
 
+const tables = [
+  { id: 'departamentos', label: 'Departamentos' },
+  { id: 'categorias', label: 'Categorías' },
+  { id: 'estadospedidos', label: 'Estados de Pedido' },
+  { id: 'monedas', label: 'Monedas' },
+  { id: 'paises', label: 'Países' },
+  { id: 'rolesusuario', label: 'Roles de Usuario' },
+  { id: 'tiposdedocumento', label: 'Tipos de Documento' },
+  { id: 'tiposdetransaccion', label: 'Tipos de Transacción' },
+];
+
 export class FooterComponent extends BaseComponent {
   
   constructor(ctx: ComponentContext) {
     super(ctx);
   }
+
   appIcons = Object.entries(APP_CONFIG.icons).map(([key]) => {
     return { 
       html : `<i data-icon="${key}" class="size-5"></i>`, 
       name: key 
     };
   });
+
+  tables = tables;
 
   render() {
     const template = `
@@ -48,7 +62,21 @@ export class FooterComponent extends BaseComponent {
               <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-6">Recursos</h4>
               <ul class="space-y-2">
                 <li><a href="docs.html" target="_blank" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">Documentación</a></li>
-                <li><a href="docs.html" target="_blank" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">Guía de Estilo</a></li>
+                <li><a href="docs.html" target="_blank" class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors">Guía de Estilo</a></li>                     
+              </ul>
+              <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 my-6">
+                Routing dinámico
+              </h4>
+              <ul class="space-y-2" data-each="table in tables">
+                <li>
+                  <a 
+                    href="/tables/{table.id}/1" 
+                    route-to="tables/{table.id}/1" 
+                    class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors"
+                    >
+                    {table.label}
+                  </a>
+                </li> 
               </ul>
             </div>
 
