@@ -143,6 +143,7 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
           .forEach(bindingDef => {
             const [typeAndProp = '', ...pathTokens] = bindingDef.split(':').map(s => s.trim());
             const path = pathTokens.join(':');
+            const params = resolveArgs(pathTokens, ctx);
             const [type, prop] = typeAndProp.includes('.')
               ? typeAndProp.split('.')
               : [typeAndProp, null];
@@ -150,7 +151,8 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
               element: el,
               type,
               prop,
-              path
+              path,
+              params,
             };
             ctx.bindings.push(binding);
             resolveBindingValue(binding, ctx);
@@ -269,11 +271,11 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
 
 
 export function getResolver(binding: ComponentBinding): BindingResolver {
-  const { type, prop } = binding;
+  const { type, prop, params } = binding;
   const resolvers: Record<string, BindingResolver> = {
     fn: (el, value) => {
       if (typeof value === 'function') {
-        value(el);
+        value(el, params?.slice(1));
       } else {
         console.warn(`La función '${binding.path}' no se encontró en el contexto.`);
       }
@@ -322,13 +324,18 @@ function findLocalCtx(element: HTMLElement): ComponentContext | null {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function resolveBindingValue(binding: ComponentBinding, ctx: Record<string, unknown>): any {
   const resolver = getResolver(binding);
-  const value = getValue(binding.path, ctx);
+  let path = binding.path;
+  if(binding.type === 'fn' && binding.params && binding.params.length > 0){
+    // Si es una función con parámetros, el path real es el primer parámetro
+    path = binding.params[0] as string;
+  }
+  const value = getValue(path, ctx);
   if (value !== undefined) {
     resolver(binding.element, value);
     return;
   }
   const localCtx = findLocalCtx(binding.element);
-  const localValue = getValue(binding.path, localCtx);
-  // console.log(`Resolviendo binding:`, { path: binding.path, value, localCtx });
+  const localValue = getValue(path, localCtx);
+  // console.log(`Resolviendo binding:`, { path: path, value, localCtx });
   resolver(binding.element, localValue);
 }

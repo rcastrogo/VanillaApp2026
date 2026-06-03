@@ -1,5 +1,5 @@
 
-import type { ActionButton, Column } from '../components/table/table.model';
+import { DEFAULT_GROUP_CLASS, numericRangeGrouping, textInitialGrouping, valueGrouping, type ActionButton, type Column } from '../components/table/table.model';
 
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import type TableComponent from '@/components/table/table.component';
@@ -111,6 +111,7 @@ export default class TableBasicPage extends BaseComponent {
         title: 'Region',
         className: 'text-left min-w-28',
         sorter: (a, b) => a.region.localeCompare(b.region),
+        grouping: valueGrouping()
       },
       {
         key: 'subregion',
@@ -118,6 +119,7 @@ export default class TableBasicPage extends BaseComponent {
         className: 'text-left min-w-32',
         accessor: (row) => row.subregion || '-',
         sorter: (a, b) => (a.subregion || '').localeCompare(b.subregion || ''),
+        grouping: valueGrouping('Países')
       },
       {
         key: 'language',
@@ -125,6 +127,16 @@ export default class TableBasicPage extends BaseComponent {
         className: 'text-left min-w-32',
         accessor: (row) => row.language || 'unknown',
         sorter: (a, b) => (a.language || '').localeCompare(b.language || ''),
+        grouping: {
+          // getGroupKey: (value, _column, _rows, _data) => value ? String(value) : '',
+          getGroupCaption: (value, _column, _rows, _data, groupRows) => {
+            const val = String(value);
+            return {
+              text: `${val} (${groupRows.length} Countries)`,
+              className: DEFAULT_GROUP_CLASS
+            }
+          }
+        }
       },
       {
         key: 'population',
@@ -155,6 +167,7 @@ export default class TableBasicPage extends BaseComponent {
         title: 'Character',
         className: 'min-w-40',
         sorter: (a, b) => a.name.localeCompare(b.name),
+        grouping: textInitialGrouping()
       },
       {
         key: 'occupation',
@@ -182,6 +195,7 @@ export default class TableBasicPage extends BaseComponent {
           shouldShowValueList: false,
           canBeRemoved: true,
         },
+        grouping: numericRangeGrouping()
       },
       {
         key: 'gender',
@@ -192,6 +206,7 @@ export default class TableBasicPage extends BaseComponent {
           shouldShowTextBox: false,
           canBeRemoved: true,
         },
+        grouping: valueGrouping()
       },      
       {
         key: 'portrait_path',

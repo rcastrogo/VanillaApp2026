@@ -37,15 +37,11 @@ export default class MasterTableDetailPage extends BaseComponent {
     this.loadData();
   }
 
-  private modeClass(mode: string) {
-    return (div: HTMLElement) => {
-      div.classList.toggle('bg-gray-400', this.state.mode === mode);
-      div.classList.toggle('text-white', this.state.mode === mode);
-    };
+  modeClass(div: HTMLElement, params?: unknown[]){
+    const mode = params ? String(params[0]) : '';
+    div.classList.toggle('bg-gray-400', this.state.mode === mode);
+    div.classList.toggle('text-white', this.state.mode === mode);
   }
-
-  classMock = this.modeClass('mock');
-  classApi = this.modeClass('api');
 
   render(changedProp?: string): HTMLElement {
     if (changedProp && this.element) {
@@ -65,14 +61,14 @@ export default class MasterTableDetailPage extends BaseComponent {
 
             <button 
               on-click="setMock"
-              data-bind="fn:classMock"
+              data-bind="fn:modeClass:mock:@state.mode:$mode"
               class="app-button text-slate-500">
               Mock mode
             </button>
 
             <button 
               on-click="setApi"
-              data-bind="fn:classApi"
+              data-bind="fn:modeClass:api:@state.mode:$mode"
               class="app-button text-slate-500">
               Api mode
             </button>

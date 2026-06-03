@@ -3,10 +3,11 @@ import type { ComponentContext, ComponentInitValue } from '@/components/componen
 import { defineColumns, mountTable } from '@/components/table/table-factory';
 import { ColumnValueResolver } from '@/components/table/table-resolver';
 import type { TableComponent } from '@/components/table/table.component';
-import type { Column } from '@/components/table/table.model';
+import { dateRangeGrouping, numericRangeGrouping, textInitialGrouping, valueGrouping, type Column } from '@/components/table/table.model';
 import { $, buildAndInterpolate } from '@/core/dom';
 import { hydrateComponents } from '@/core/hydrate';
 import { notificationService } from '@/core/services/notification.service';
+import { storage } from '@/core/storageUtil';
 import { BaseComponent, type Identifiable } from '@/core/types';
 import { accentNumericComparer } from '@/core/utils';
 import masterTablesService, { type Categoria } from '@/services/master-tables.service';
@@ -28,6 +29,9 @@ export default class TableImperativePage extends BaseComponent {
 
   init(ctx: ComponentInitValue): void {
     super.init(ctx);
+    this.setState({ 
+      mode: storage.readValue('apiMode') as 'mock' | 'api' || 'api'
+    });
   }
 
   // ─── Lifecycle ──────────────────────────────────────────────────────────────
@@ -42,6 +46,41 @@ export default class TableImperativePage extends BaseComponent {
 
   mounted(): void {
     void this.buildTables();
+  }
+
+  setMock() {
+    storage.writeValue('apiMode', 'mock');
+    this.setState({ mode: 'mock' });
+    this.reloadAll();
+  }
+
+  setApi() {
+    storage.writeValue('apiMode', 'api');
+    this.setState({ mode: 'api' });
+    this.reloadAll();
+  }
+
+  reloadAll() {
+  
+    this.distribuidoresTable?.showSkeletonRows();
+    this.usuariosTable?.showSkeletonRows();
+    this.categoriasTable?.showSkeletonRows();
+    this.hydrateTable?.showSkeletonRows();
+
+    if(this.distribuidoresTable){  
+      this.loadDistribuidoresData();
+    } else {
+      this.buildDistribuidoresTable();
+    }
+    this.loadUsuariosData();
+    this.loadCategoriasData();
+    this.loadHydrateData();
+  }
+
+  modeClass(div: HTMLElement, params?: unknown[]){
+    const mode = params ? String(params[0]) : '';
+    div.classList.toggle('bg-gray-400', this.state.mode === mode);
+    div.classList.toggle('text-white', this.state.mode === mode);
   }
 
   // ─── Table construction ──────────────────────────────────────────────────────
@@ -79,6 +118,8 @@ export default class TableImperativePage extends BaseComponent {
       },
     ]);
 
+    columns[4].grouping = dateRangeGrouping();
+
     this.usuariosTable = mountTable<Usuario & Identifiable>({
       target: container,
       key: 'imperative-usuarios',
@@ -93,6 +134,7 @@ export default class TableImperativePage extends BaseComponent {
   }
 
   private async loadUsuariosData(): Promise<void> {
+    usuariosService.setMode(this.state.mode);
     const result = await usuariosService.getAll();
     if (typeof result === 'string') {
       notificationService.error(`Error cargando usuarios: ${result}`);
@@ -114,6 +156,7 @@ export default class TableImperativePage extends BaseComponent {
     // ================================================================================
     // Load master tables in parallel to populate resolvers before rendering the table
     // ================================================================================
+    masterTablesService.setMode(this.state.mode);
     const [
       paises,
       categorias,
@@ -143,7 +186,7 @@ export default class TableImperativePage extends BaseComponent {
         title: 'ID',
         type: 'number',
         className: 'w-16 text-center',
-        options: { shouldShowFilterButton: false, canBeRemoved: false },
+        options: { shouldShowFilterButton: false, canBeRemoved: false }, 
       },
       { key: 'nif',      title: 'NIF',      type: 'string', className: 'min-w-32' },
       { key: 'nombre',   title: 'Nombre',   type: 'string', className: 'min-w-48' },
@@ -200,6 +243,12 @@ export default class TableImperativePage extends BaseComponent {
         accessor: (row) => row.fechaAlta ?? '-',
       },
     ]);
+    
+    columns[7].grouping = valueGrouping();
+    columns[8].grouping = valueGrouping();
+    columns[9].grouping = valueGrouping();
+    columns[10].grouping = valueGrouping();
+    columns[11].grouping = valueGrouping();
 
     this.distribuidoresTable = mountTable<Distribuidor & Identifiable>({
       target: container,
@@ -215,6 +264,7 @@ export default class TableImperativePage extends BaseComponent {
   }
 
   private async loadDistribuidoresData(): Promise<void> {
+    usuariosService.setMode(this.state.mode);
     const distribuidores = await usuariosService.distribuidores.getAll();
     if (typeof distribuidores === 'string') {
       notificationService.error(`Error cargando los datos de los distribuidores`);
@@ -242,6 +292,9 @@ export default class TableImperativePage extends BaseComponent {
       { key: 'orden',       title: 'Orden',        type: 'number', className: 'w-20 text-center' },
     ]);
 
+    columns[0].grouping = numericRangeGrouping();
+    columns[1].grouping = textInitialGrouping();
+
     this.categoriasTable = mountTable<Categoria & Identifiable>({
       target: container,
       key: 'imperative-categorias',
@@ -260,6 +313,7 @@ export default class TableImperativePage extends BaseComponent {
   }
 
   private async loadCategoriasData(): Promise<void> {
+    masterTablesService.setMode(this.state.mode);
     const result = await masterTablesService.categorias.getAll();
     if (typeof result === 'string') {
       notificationService.error(`Error cargando categorías: ${result}`);
@@ -367,6 +421,23 @@ const result = await usuariosService.getAll();
 if (typeof result !== 'string') table.setData(result.data);
           </code>
         </div>
+
+        <section class="mb-10">
+          <button 
+            on-click="setMock"
+            data-bind="fn:modeClass:mock:@state.mode:$mode"
+            class="app-button text-slate-500">
+            Mock mode
+          </button>
+
+          <button 
+            on-click="setApi"
+            data-bind="fn:modeClass:api:@state.mode:$mode"
+            class="app-button text-slate-500">
+            Api mode
+          </button>
+        </section>
+
 
         <!-- Usuarios table -->
         <section class="mb-10">

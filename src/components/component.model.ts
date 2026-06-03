@@ -31,6 +31,7 @@ export interface ComponentBinding {
   type: string;
   prop: string | null;
   path: string;
+  params?: unknown[];
 }
 
 export interface AutocompleteItem {

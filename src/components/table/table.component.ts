@@ -1,6 +1,6 @@
 ﻿
 import type { ActionButton, Column, FilterCriteria, TableState, TableUIUpdatePayload } from './table.model';
-import { TABLE_ACTIONS } from './table.model';
+import { DEFAULT_GROUP_CLASS, TABLE_ACTIONS } from './table.model';
 
 import type { ComponentContext, ComponentInitValue } from '@/components/component.model';
 import { $, buildAndInterpolate } from '@/core/dom';
@@ -271,6 +271,21 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   handleRowClick(_el: HTMLElement, _e: Event, id: string): void { 
     this.onRowClick?.(this, id); 
+  }
+
+  handleGroupClick(el: HTMLElement, _e: Event, groupKey: string): void {
+    const icons = $('svg', el).all();
+    icons.forEach(icon => icon.classList.remove('hidden'));
+    if (el.classList.contains('group-collapsed')) {
+      el.classList.remove('group-collapsed');
+      icons[0]?.classList.add('hidden');
+      $(`[data-group="${groupKey}"]`, this.element).all().forEach(row => row.classList.remove('hidden'));
+      
+    } else {
+      el.classList.add('group-collapsed');
+      icons[1]?.classList.add('hidden');
+      $(`[data-group="${groupKey}"]`, this.element).all().forEach(row => row.classList.add('hidden'));
+    }
   }
 
   firstPage(): void { this.state.currentPage = 1; }
@@ -643,12 +658,74 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
 
   private buildBodyHtml(): string {
     const rows = this.getPageRows();
+    const data = this.getSortedData();
     const selected = this.state.selected as Set<string | number>;
     if (!rows.length) {
       return `<tr><td colspan="999" class="px-3 py-8 text-center text-slate-500">Sin registros</td></tr>`;
     }
+
+    // Determine grouping column (active sort column with grouping config)
+    const sortColumn = this.state.sortColumn as string | null;
+    const sortDirection = this.state.sortDirection as SortDirection;
+    const columns = this.state.columns as Column<T>[];
+    const groupColumn = sortColumn && sortDirection
+      ? columns.find(c => c.key === sortColumn && c.grouping)
+      : null;
+    const colSpan = this.visibleColumns.length + 1;
+
+    // Pre-compute group rows map (one pass over data)
+    const groupRowsMap = new Map<string, T[]>();
+    if (groupColumn?.grouping) {
+      for (const item of data) {
+        const val = this.resolveCellValue(groupColumn, item);
+        const key = groupColumn.grouping.getGroupKey?.(val, groupColumn, rows, data) || String(val);
+        const arr = groupRowsMap.get(key);
+        if (arr) arr.push(item);
+        else groupRowsMap.set(key, [item]);
+      }
+    }
+
+    let lastGroupKey: string | null = null;
+    let rowIndex = 0;
+       
     return rows
       .map(row => {
+        let groupRow = '';
+
+        if (groupColumn?.grouping) {
+          const value = this.resolveCellValue(groupColumn, row);
+          const key = groupColumn.grouping.getGroupKey?.(value, groupColumn, rows, data) || 
+                      String(value);
+          if (key !== lastGroupKey) {
+            rowIndex = -1;
+            lastGroupKey = key;
+            let text = key;
+            let className = DEFAULT_GROUP_CLASS;
+            if(groupColumn.grouping.getGroupCaption){
+              const caption = groupColumn.grouping.getGroupCaption(value, groupColumn, rows, data, groupRowsMap.get(key) || []);
+              if(typeof caption === 'string'){
+                text = caption;
+              } else if (caption && typeof caption === 'object' && 'text' in caption) {
+                text = caption.text;
+                className = caption.className || '';
+              }
+            }            
+            groupRow = `
+              <tr>
+                <td colspan="${colSpan}" class="${className}">
+                  <div class="flex items-center gap-2">
+                    <button class="app-button btn-ghost p-1! shrink-0" on-click="handleGroupClick:${key}">
+                       <i data-icon="plus" class="size-3 hidden"></i>
+                       <i data-icon="minus" class="size-3"></i>
+                    </button>                 
+                    <div class="flex-1">
+                      ${text}
+                    </div>                 
+                </td>
+              </tr>`;
+          }
+        }
+
         const isSelected = selected.has(row.id);
         const cells = this.visibleColumns
           .map(col => {
@@ -658,14 +735,17 @@ export class TableComponent<T extends Identifiable> extends BaseComponent {
             return `<td class="px-3 py-2 text-sm border-b ${col.className || ''}">${cell}</td>`;
           })
           .join('');
-        return `
+        const even = (rowIndex++) % 2 === 0;
+        const rowClass =  even ? 'bg-slate-50/50 dark:bg-slate-800/30' 
+                               : 'bg-white dark:bg-transparent'
+        return `${groupRow}
           <tr 
             id="row-${row.id}"
             on-click="handleRowClick:${row.id}" 
             data-row
-            class="${isSelected 
-              ? 'bg-blue-50! dark:bg-blue-900/20!' 
-              : 'odd:bg-white even:bg-slate-50/50 hover:bg-slate-100 dark:odd:bg-transparent dark:even:bg-slate-800/30 dark:hover:bg-slate-800'}">
+            data-group="${lastGroupKey || ''}"
+            class="${isSelected ? 'bg-blue-50! dark:bg-blue-900/20!' : rowClass}
+                hover:bg-slate-100 dark:hover:bg-slate-800">
             ${this.state.hideRowSelection ? '<td class="px-3 py-2 border-b border-r w-8"></td>' : `
               <td class="px-3 py-2 border-b w-10 max-w-10 min-w-10">
                 <input type="checkbox" on-change="toggleRow:${row.id}" class="cursor-pointer" ${isSelected ? 'checked' : ''} />
