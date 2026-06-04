@@ -410,6 +410,32 @@ function toMap<T, TKey, TValue>(
   );
 }
 
+function toDate(str: string | null): Date | null {
+  if(typeof str === 'string' && str.length > 0) {
+    const [datePart, timePart] = str.trim().split(' ');
+    if (!datePart) return null;
+    // Fecha en formato DD/MM/YYYY
+    const [day, month, year] = datePart.split('/').map(Number);
+    if (!day || !month || !year) return null;
+    // Hora en formato HH:MM o HH:MM:SS(.ms)
+    let hours = 0, minutes = 0, seconds = 0, ms = 0;
+    if (timePart) {
+      const [h, m, s] = timePart.split(':');
+      hours = ~~h;
+      minutes = ~~m;
+      if (s) {
+        const tokens = s.split('.');
+        seconds = ~~tokens[0];
+        ms = ~~tokens[1];
+      }
+    }
+    // Validamos la consistencia numérica antes de instanciar el objeto Date
+    const date = new Date(year, month - 1, day, hours, minutes, seconds, ms);
+    return Number.isNaN(date.getTime()) ? null : date;
+  } 
+  return null;
+}
+
 export {
   getSafeFormData,
   createMap,
@@ -426,5 +452,6 @@ export {
   hasOwnProperty,
   where,
   toSet,
-  toMap
+  toMap,
+  toDate
 };

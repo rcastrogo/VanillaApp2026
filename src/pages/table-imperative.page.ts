@@ -9,7 +9,7 @@ import { hydrateComponents } from '@/core/hydrate';
 import { notificationService } from '@/core/services/notification.service';
 import { storage } from '@/core/storageUtil';
 import { BaseComponent, type Identifiable } from '@/core/types';
-import { accentNumericComparer } from '@/core/utils';
+import { accentNumericComparer, toDate } from '@/core/utils';
 import masterTablesService, { type Categoria } from '@/services/master-tables.service';
 import usuariosService, { type Distribuidor, type Usuario } from '@/services/usuarios.service';
 
@@ -115,10 +115,22 @@ export default class TableImperativePage extends BaseComponent {
         type: 'date',
         className: 'min-w-36',
         accessor: (row) => row.fechaDeAlta ?? '-',
+        grouping: dateRangeGrouping(),
+      },
+      {
+        key: 'year',
+        title: 'Año',
+        accessor: (row) => {
+          return toDate(row.fechaDeAlta)?.getFullYear() || '';
+        },
+        sorter: (a, b) => {
+          const va = toDate(a.fechaDeAlta)?.getTime() ?? 0;
+          const vb = toDate(b.fechaDeAlta)?.getTime() ?? 0;
+          return va - vb;
+        },
+        grouping: valueGrouping(),
       },
     ]);
-
-    columns[4].grouping = dateRangeGrouping();
 
     this.usuariosTable = mountTable<Usuario & Identifiable>({
       target: container,
@@ -213,27 +225,32 @@ export default class TableImperativePage extends BaseComponent {
       {
         key: 'paisId',
         title: 'País',
-        resolver: new ColumnValueResolver<Distribuidor>(paises.data.response, 'id', 'descripcion')
+        resolver: new ColumnValueResolver<Distribuidor>(paises.data.response, 'id', 'descripcion'),
+        grouping: valueGrouping(),
       },
       {
         key: 'categoriaProductoId',
         title: 'Categoría',
-        resolver: new ColumnValueResolver<Distribuidor>(categorias.data.response, 'id', 'descripcion')
+        resolver: new ColumnValueResolver<Distribuidor>(categorias.data.response, 'id', 'descripcion'),
+        grouping: valueGrouping(),
       },
       {
         key: 'tipoDocumentoId',
         title: 'Tipo Documento',
-        resolver: new ColumnValueResolver<Distribuidor>(tiposDeDocumento.data.response, 'id', 'descripcion')
+        resolver: new ColumnValueResolver<Distribuidor>(tiposDeDocumento.data.response, 'id', 'descripcion'),
+        grouping: valueGrouping(),
       },
       {
         key: 'tipoTransaccionId',
         title: 'Tipo Transacción',
-        resolver: new ColumnValueResolver<Distribuidor>(tiposDeTransaccion.data.response, 'id', 'descripcion')
+        resolver: new ColumnValueResolver<Distribuidor>(tiposDeTransaccion.data.response, 'id', 'descripcion'),
+        grouping: valueGrouping(),
       },
       {
         key: 'monedaId',
         title: 'Moneda',
-        resolver: new ColumnValueResolver<Distribuidor>(monedas.data.response, 'id', 'descripcion')
+        resolver: new ColumnValueResolver<Distribuidor>(monedas.data.response, 'id', 'descripcion'),
+        grouping: valueGrouping(),
       },
       {
         key: 'fechaAlta',
@@ -243,12 +260,6 @@ export default class TableImperativePage extends BaseComponent {
         accessor: (row) => row.fechaAlta ?? '-',
       },
     ]);
-    
-    columns[7].grouping = valueGrouping();
-    columns[8].grouping = valueGrouping();
-    columns[9].grouping = valueGrouping();
-    columns[10].grouping = valueGrouping();
-    columns[11].grouping = valueGrouping();
 
     this.distribuidoresTable = mountTable<Distribuidor & Identifiable>({
       target: container,
@@ -284,16 +295,15 @@ export default class TableImperativePage extends BaseComponent {
         type: 'number',
         className: 'w-16 text-center',
         options: { shouldShowFilterButton: false, canBeRemoved: false },
+        grouping: numericRangeGrouping(),
       },
       { key: 'codigo',      title: 'Código',       type: 'string', className: 'min-w-24',
-        accessor: (row) => row.codigo ?? '-' },
+        accessor: (row) => row.codigo ?? '-',
+        grouping: textInitialGrouping() },
       { key: 'descripcion', title: 'Descripción',  type: 'string', className: 'min-w-64',
         accessor: (row) => row.descripcion ?? '-' },
       { key: 'orden',       title: 'Orden',        type: 'number', className: 'w-20 text-center' },
     ]);
-
-    columns[0].grouping = numericRangeGrouping();
-    columns[1].grouping = textInitialGrouping();
 
     this.categoriasTable = mountTable<Categoria & Identifiable>({
       target: container,

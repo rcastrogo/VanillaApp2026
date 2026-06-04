@@ -1,6 +1,8 @@
+
 import type { ColumnValueResolver } from "./table-resolver";
 
 import type { Identifiable, SortDirection } from "@/core/types";
+import { toDate } from "@/core/utils";
 
 
 
@@ -71,16 +73,6 @@ export function valueGrouping(suffix = 'Elemento/s'): ColumnGrouping {
   };
 }
 
-function parseDate(str: string): Date | null {
-  const match = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2})(?:\.(\d+))?)?)?$/);
-  if (match) {
-    const [, day, month, year, hours, minutes, seconds, ms] = match;
-    return new Date(+year, +month - 1, +day, +(hours ?? 0), +(minutes ?? 0), +(seconds ?? 0), +(ms ?? 0));
-  }
-  const date = new Date(str);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
 export function dateRangeGrouping(ranges: { maxDaysAgo: number; label: string }[] = [
   { maxDaysAgo: 7, label: 'Última semana' },
   { maxDaysAgo: 30, label: 'Último mes' },
@@ -93,7 +85,7 @@ export function dateRangeGrouping(ranges: { maxDaysAgo: number; label: string }[
     const str = String(value ?? '').trim();
     if (!str || str === '-') return 'Sin fecha';
     
-    const date = parseDate(str);
+    const date = toDate(str);
     if (!date) return 'Fecha inválida';
 
     const diffDays = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
@@ -105,9 +97,7 @@ export function dateRangeGrouping(ranges: { maxDaysAgo: number; label: string }[
   };
 
   return {
-    getGroupKey(value, column, _rows, _data) {
-      return `${column.title}: ${getLabel(value)}`;
-    },
+    getGroupKey: (value, _column, _rows, _data) => getLabel(value),
     getGroupCaption: (value, column, _rows, _data, groupRows) => {
       const suffix = groupRows.length === 1 ? 'Elemento' : 'Elementos';
       return {

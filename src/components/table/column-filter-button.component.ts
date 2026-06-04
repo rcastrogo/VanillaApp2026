@@ -138,11 +138,14 @@ export default class ColumnFilterButtonComponent extends BaseComponent {
     // =======================================================================================
     // Otherwise, extract unique values directly from the data using the accessor or key.
     // =======================================================================================
-    else {
+    else if (typeof this.column.accessor === 'function') {
+      const fn = this.column.accessor;
+      uniqueValues = [...new Set(this.data.map((row) => fn(row)))] as (string | number )[];
+    } else {
       uniqueValues = getUniqueValues(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this.data as any,
-        this.column.accessor && typeof this.column.accessor === 'string' 
+        typeof this.column.accessor === 'string' 
           ? this.column.accessor 
           : this.column.key
       );

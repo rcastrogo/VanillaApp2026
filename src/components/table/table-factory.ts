@@ -1,10 +1,10 @@
 
 import type { ColumnValueResolver } from './table-resolver';
 import { TableComponent } from './table.component';
-import type { ActionButton, Column } from './table.model';
+import type { ActionButton, Column, ColumnGrouping } from './table.model';
 
 import { BaseComponent, type Identifiable } from '@/core/types';
-import { accentNumericComparer } from '@/core/utils';
+import { accentNumericComparer, toDate } from '@/core/utils';
 
 export type ColumnDataType = 'string' | 'number' | 'boolean' | 'date' | 'datetime';
 
@@ -13,7 +13,7 @@ export type ColumnDataType = 'string' | 'number' | 'boolean' | 'date' | 'datetim
  * When `type` is provided a sorter is auto-generated; pass `sorter` to override.
  */
 export interface ColumnSchema<T extends Identifiable> {
-  key: keyof T & string;
+  key: (keyof T & string) | (string & {});
   title: string;
   /** Data type used to derive an automatic sorter. */
   type?: ColumnDataType;
@@ -25,6 +25,7 @@ export interface ColumnSchema<T extends Identifiable> {
   cellRender?: (item: T, column: Column<T>) => string;
   options?: Column<T>['options'];
   resolver?: ColumnValueResolver<T>
+  grouping?: ColumnGrouping;
 }
 
 // ─── Mount configuration ──────────────────────────────────────────────────────
@@ -61,8 +62,8 @@ function buildSorter<T extends Identifiable>(
     case 'date':
     case 'datetime': {
       const toMs = (v: unknown) => {
-        const t = new Date(v as string).getTime();
-        return isNaN(t) ? 0 : t;
+        const t = toDate(v as string)?.getTime();
+        return t ?? 0;
       };
       return (a, b) => toMs(get(a)) - toMs(get(b));
     }
@@ -121,6 +122,7 @@ export function defineColumns<T extends Identifiable>(
       ...(schema.cellRender !== undefined && { cellRender: schema.cellRender }),
       ...(schema.options !== undefined && { options: schema.options }),
       ...(schema.resolver !== undefined && { resolver: schema.resolver }),
+      ...(schema.grouping !== undefined && { grouping: schema.grouping }),
     };
 
     return col;
