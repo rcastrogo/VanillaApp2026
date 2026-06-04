@@ -29,11 +29,11 @@ const homePage: ComponentFactory = () => {
       { id: 'P3', label: 'Premium Tres' },
     ],
     loadDefaultCodes() {
-      const combo = BaseComponent.getInstance('[app-combo-box]') as { setDataSource(items: unknown[]): void } | undefined;
+      const combo = BaseComponent.getInstance('[app-combo-box].cmb-box') as { setDataSource(items: unknown[]): void } | undefined;
       combo?.setDataSource(this.codigos);
     },
     loadPremiumCodes() {
-      const combo = BaseComponent.getInstance('[app-combo-box]') as { setDataSource(items: unknown[]): void } | undefined;
+      const combo = BaseComponent.getInstance('[app-combo-box].cmb-box') as { setDataSource(items: unknown[]): void } | undefined;
       combo?.setDataSource(this.codigosPremium);
     },
     handleTabChange(tab: TabEventDetail) {
@@ -56,8 +56,7 @@ const homePage: ComponentFactory = () => {
       const tab = BaseComponent.getInstance('[app-tab]');
       const id = `tab-${Math.random().toString(16).slice(2)}`;
       const close = () => {
-        const tabRef = BaseComponent.getInstance('[app-tab]');
-        tabRef?.removeTab(id);
+        tab.removeTab(id);
       }
       const template = `
         Contenido del ${id} 
@@ -172,7 +171,7 @@ const homePage: ComponentFactory = () => {
                 <button on-click="loadPremiumCodes" class="app-button btn-secondary">Cargar premium</button>
               </div>
               <div class="flex flex-wrap gap-2 mb-4">
-                <div class="max-w-sm"
+                <div class="max-w-sm cmb-box"
                      data-component="app-combo-box"
                      data-items="codigos"
                      data-placeholder="Elige un código…"
