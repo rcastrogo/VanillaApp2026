@@ -16,7 +16,8 @@ export interface Country {
   data: any;
 }
 
-const BASE_ENDPOINT = 'https://restcountries.com/v3.1/';
+const BASE_ENDPOINT = 'https://api.restcountries.com/countries/v5';
+const TOKEN = 'rc_live_433947321d12438884c3639458d5f94a';
 
 export class CountriesService {
 
@@ -25,7 +26,9 @@ export class CountriesService {
       .useBase(BASE_ENDPOINT)
       .useLog('Fetching all countries')
       .useTransform(countries => countries.map((c, i) => this.mapCountry(c, i)))
-      .getFrom('all?fields=name,capital,region,subregion,languages,population,flags,cca2')  
+      .getFrom('?limit=100')
+      .useToken(TOKEN)
+      .useProperty('data.objects')
       .invoke();
   }
 
@@ -34,22 +37,25 @@ export class CountriesService {
       .useBase(BASE_ENDPOINT)
       .useLog(`Searching country: ${term}`)
       .useTransform(countries => countries.map((c, i) => this.mapCountry(c, i)))      
-      .getFrom(`name/${term}`)
+      .getFrom(`/name?q=${encodeURIComponent(term)}&limit=100`)
+      .useToken(TOKEN)
+      .useProperty('data.objects')
       .invoke();
   }
 
   private mapCountry(c: any, index: number): Country {
     return {
       id: index + 1,
-      cca2: c.cca2 || '',
-      name: c.name?.common || '',
-      capital: c.capital?.[0] || '',
+      cca2: c.codes?.alpha_2 || '', 
+      name: c.names?.common || '',
+      capital: c.capitals?.[0]?.name || '',
       region: c.region,
-      flag: c.flags?.png || '',
+      flag: c.flag?.url_png || '',
       population: c.population,
       subregion: c.subregion,
-      language: c.languages ? String(Object.values(c.languages)[0]) : 'unknown',
+      language: c.languages?.length > 0 ? c.languages[0].name : 'unknown',
       data: c,
     };
   }
+
 }

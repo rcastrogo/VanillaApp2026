@@ -1,0 +1,112 @@
+// Tu caché local en el cliente para no pedir el mismo icono 2 veces al servidor en la misma sesión
+const iconCache = {};
+
+// Convertimos tu función en ASÍNCRONA
+async function createIcon(name, customClass = 'w-6 h-6') {
+    // 1. Si ya lo pedimos antes, lo clonamos de la caché instantáneamente
+    if (iconCache[name]) {
+        const svgClonado = iconCache[name].cloneNode(true);
+        ajustarClasesYAtributos(svgClonado, customClass);
+        return svgClonado;
+    }
+
+    // 2. Si no está en caché, lo pedimos bajo demanda al servidor Razor
+    try {
+        const response = await fetch(`/distribuidores?handler=Icon&name=${name}`);
+        if (!response.ok) throw new Error(`Icono ${name} no encontrado`);
+
+        const svgTexto = await response.text();
+
+        // 3. Convertimos el string SVG en un elemento DOM real usando el parser nativo del navegador
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgTexto, 'image/svg+xml');
+        const svgElement = doc.querySelector('svg');
+
+        if (svgElement) {
+            // Guardamos el original limpio en la caché
+            iconCache[name] = svgElement.cloneNode(true);
+            
+            // Ajustamos el clon actual con las clases dinámicas que pide el componente
+            ajustarClasesYAtributos(svgElement, customClass);
+            return svgElement;
+        }
+    } catch (error) {
+        console.error(error);
+        return undefined;
+    }
+}
+
+// Función auxiliar para aplicar tus clases de Tailwind u otras configuraciones
+function ajustarClasesYAtributos(svg, customClass) {
+    svg.setAttribute('class', customClass);
+    svg.setAttribute('stroke-width', '2');
+}
+
+
+
+async function hidratarComponentes() {
+    const elementosConIcono = document.querySelectorAll('[data-icon]');
+
+    for (const el of elementosConIcono) {
+        const nombreIcono = el.dataset.icon;
+        const clasesPersonalizadas = el.dataset.class || 'w-6 h-6';
+
+        // Llamamos a la función asíncrona bajo demanda
+        const svgNode = await createIcon(nombreIcono, clasesPersonalizadas);
+        
+        if (svgNode) {
+            // Reemplazamos quirúrgicamente el placeholder por el SVG real del servidor
+            el.replaceWith(svgNode);
+        }
+    }
+}
+
+// Al cargar la página, lanzas tu hidratación
+document.addEventListener("DOMContentLoaded", hidratarComponentes);
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Caching.Memory;
+using System.IO;
+
+namespace WebApi.Pages
+{
+    public class DistribuidoresModel : PageModel
+    {
+        private readonly IWebHostEnvironment _env;
+        private readonly IMemoryCache _cache; // Inyectamos la caché de .NET
+
+        public DistribuidoresModel(IWebHostEnvironment env, IMemoryCache cache)
+        {
+            _env = env;
+            _cache = cache;
+        }
+
+        public IActionResult OnGetIcon(string name)
+        {
+            if (string.IsNullOrEmpty(name) || name.Contains("..")) return BadRequest();
+
+            name = name.ToLower();
+            string cacheKey = $"icon_{name}";
+
+            // 1. Intentamos obtener el SVG de la memoria RAM de Azure
+            if (!_cache.TryGetValue(cacheKey, out string svgContenido))
+            {
+                // 2. Si no está en RAM, lo leemos del disco de Azure (solo ocurre la primera vez)
+                var rutaIcono = Path.Combine(_env.WebRootPath, "js", "icons", $"{name}.svg");
+
+                if (!System.IO.File.Exists(rutaIcono)) return NotFound();
+
+                svgContenido = System.IO.File.ReadAllText(rutaIcono);
+
+                // 3. Lo guardamos en la RAM para siempre (o con expiración)
+                _cache.Set(cacheKey, svgContenido, new MemoryCacheEntryOptions
+                {
+                    Priority = CacheItemPriority.NeverRemove // Al ser archivos estáticos, que no se borren de la RAM
+                });
+            }
+
+            return Content(svgContenido, "image/svg+xml");
+        }
+    }
+}

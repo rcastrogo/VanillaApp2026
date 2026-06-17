@@ -1,3 +1,4 @@
+import { getValueByPath } from "../utils";
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
@@ -84,7 +85,12 @@ export async function wrappedFetch<T>(
     // Normalize the API response shape. Some endpoints wrap results inside a "target" field,
     // e.g., { target: {...} }. Use that if available; otherwise, use the raw JSON object.
     let data = json;
-    if(target && data[target]) data = data[target];
+    if(target) {
+      const value = getValueByPath(data, target);
+      if (value !== undefined) {
+        data = value;
+      }
+    }
 
     // Optionally process or transform the normalized data using a custom callback.
     // If no processor is provided, cast the result to the expected generic type T.
