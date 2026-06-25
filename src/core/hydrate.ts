@@ -9,6 +9,8 @@ import { loader } from "./services/loader.service";
 import { pubSub } from "./services/pubsub.service";
 import { router } from "./services/router.service";
 
+export const UNSET = Symbol('UNSET');
+
 const pendingHydrations = new WeakMap<object, Promise<void>>();
 
 export function trackHydration(ctx: object, promise: Promise<void>) {
@@ -147,16 +149,26 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
             const [type, prop] = typeAndProp.includes('.')
               ? typeAndProp.split('.')
               : [typeAndProp, null];
-            const binding = {
+            const binding: ComponentBinding = {
               element: el,
               type,
               prop,
               path,
               params,
+              lastValue: UNSET,
             };
+            // Dependencias explícitas para funciones: si el binding es de tipo 'fn', 
+            // buscamos un atributo 'data-deps' que contenga las expresiones de las dependencias 
+            // separadas por comas.
+            if (type === 'fn') {
+              const depsAttr = el.getAttribute('data-deps');
+              if (depsAttr)
+                binding.depExpressions = depsAttr.split(',').map(d => d.trim()).filter(Boolean);
+            }
             ctx.bindings.push(binding);
             resolveBindingValue(binding, ctx);
           });
+        el.removeAttribute('data-deps');
         el.removeAttribute(attrName);
       }
     });
@@ -270,7 +282,42 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
 }
 
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type InternalResolver = (el: HTMLElement, value: any, prop?: string, params?: any[], path?: string) => void;
+const RESOLVERS_MAP: Record<string, InternalResolver> = {
+  fn: (el, value, _, params, path) => {
+    if (typeof value === 'function') {
+      value(el, params?.slice(1));
+    } else {
+      console.warn(`La función '${path}' no se encontró en el contexto.`);
+    }
+  },
+  text: (el, value) => el.innerText = value ?? '',
+  html: (el, value) => el.innerHTML = value ?? '',
+  value: (el, value) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ref = (el as any).__instance;
+    if (ref) ref.setProp?.('value', value);
+    else (el as HTMLInputElement).value = value ?? '';
+  },
+  checked: (el, value) => (el as HTMLInputElement).checked = !!value,
+  attr: (el, value, prop) => value === null || value === undefined ? el.removeAttribute(prop!) : el.setAttribute(prop!, String(value)),
+  class: (el, value) => el.className = value ?? '',
+  toggle: (el, value, prop) => el.classList.toggle(prop!, !!value),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  style: (el, value, prop) => (el.style as any)[prop!] = value,
+  show: (el, value) => el.style.display = value ? '' : 'none',
+  hide: (el, value) => el.style.display = value ? 'none' : '',
+  disabled: (el, value) => (el as HTMLButtonElement | HTMLInputElement).disabled = !!value
+};
+
 export function getResolver(binding: ComponentBinding): BindingResolver {
+  const { type, prop, params, path } = binding;
+  const resolver = RESOLVERS_MAP[type] || RESOLVERS_MAP.text;
+  return (el, value) => resolver(el, value, prop || '', params, path);
+}
+
+export function getResolverBack(binding: ComponentBinding): BindingResolver {
   const { type, prop, params } = binding;
   const resolvers: Record<string, BindingResolver> = {
     fn: (el, value) => {
@@ -300,7 +347,8 @@ export function getResolver(binding: ComponentBinding): BindingResolver {
     hide: (el, value) => el.style.display = value ? 'none' : '',
     disabled: (el, value) => (el as HTMLButtonElement | HTMLInputElement).disabled = !!value
   };
-  return resolvers[type] || resolvers.text;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return resolvers[type] || resolvers.text || (() => {});
 }
 
 type ElementWithCtx = HTMLElement & { __localCtx__?: ComponentContext };
@@ -321,21 +369,68 @@ function findLocalCtx(element: HTMLElement): ComponentContext | null {
   return null;
 }
 
+function shallowEqual(a: unknown[], b: unknown[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (!Object.is(a[i], b[i])) return false;
+  }
+  return true;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function resolveBindingValue(binding: ComponentBinding, ctx: Record<string, unknown>): any {
   const resolver = getResolver(binding);
-  let path = binding.path;
-  if(binding.type === 'fn' && binding.params && binding.params.length > 0){
-    // Si es una función con parámetros, el path real es el primer parámetro
+  const isFnBinding = binding.type === 'fn';
+  // =======================================================================================
+  // Si el binding es de tipo 'fn' y tiene parámetros, el path real es el primer parámetro
+  // =======================================================================================
+  let path = binding.path; 
+  if( isFnBinding &&  binding.params &&  binding.params.length > 0 )
     path = binding.params[0] as string;
-  }
+  // =======================================================================================
+  // Intentamos resolver el valor en el contexto actual
+  // =======================================================================================
+  let resolvedValue: unknown;
   const value = getValue(path, ctx);
   if (value !== undefined) {
-    resolver(binding.element, value);
+    resolvedValue = value;
+  } 
+  // =======================================================================================
+  // Si no se encuentra, buscamos en el contexto local del elemento (si existe)
+  // =======================================================================================
+  else {
+    const localCtx = findLocalCtx(binding.element);
+    resolvedValue = getValue(path, localCtx);
+  }
+  // =======================================================================================
+  // Si el binding es de tipo 'fn' con dependencias explícitas, hacemos dirty-check por deps
+  // =======================================================================================
+  if (isFnBinding && binding.depExpressions) {
+    const currentDeps = binding.depExpressions.map(dep => getValue(dep, ctx));
+    // No hay cambios en las dependencias, no ejecutamos la función
+    if (binding.lastDeps && shallowEqual(currentDeps, binding.lastDeps)) return;
+    // Ejecutamos la función y actualizamos las dependencias
+    binding.lastDeps = currentDeps;
+    binding.lastValue = resolvedValue;
+    resolver(binding.element, resolvedValue);
     return;
   }
-  const localCtx = findLocalCtx(binding.element);
-  const localValue = getValue(path, localCtx);
-  // console.log(`Resolviendo binding:`, { path: path, value, localCtx });
-  resolver(binding.element, localValue);
+  // =======================================================================================
+  // Si el binding es de tipo 'fn' sin dependencias, siempre ejecutamos la función
+  // =======================================================================================
+  if (isFnBinding) {
+    binding.lastValue = resolvedValue;
+    resolver(binding.element, resolvedValue);
+    return;
+  }
+  // =======================================================================================
+  // Si el binding es de otro tipo, hacemos dirty-check por valor
+  // =======================================================================================
+  const notChanged = binding.lastValue !== UNSET && Object.is(resolvedValue, binding.lastValue);
+  if (notChanged)  return;
+  // =======================================================================================
+  // Ejecutamos el resolver y actualizamos el valor anterior
+  // =======================================================================================
+  binding.lastValue = resolvedValue;
+  resolver(binding.element, resolvedValue);
 }

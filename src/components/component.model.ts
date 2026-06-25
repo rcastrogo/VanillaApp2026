@@ -32,6 +32,9 @@ export interface ComponentBinding {
   prop: string | null;
   path: string;
   params?: unknown[];
+  lastValue?: unknown | symbol;
+  depExpressions?: string[];
+  lastDeps?: unknown[];
 }
 
 export interface AutocompleteItem {

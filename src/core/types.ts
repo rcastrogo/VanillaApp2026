@@ -178,7 +178,7 @@ export abstract class BaseComponent implements Component {
         const resolvers = {
           Map: () => target.get(idx),
           Set: () => Array.from(target)[Number(idx)],
-          Default: () => target?.[idx]
+          Default: () => target?.[idx || '']
         };
         const type = target instanceof Map ? 'Map' : target instanceof Set ? 'Set' : 'Default';
         arrayValue = resolvers[type]();
