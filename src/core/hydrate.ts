@@ -135,6 +135,56 @@ export function hydrateEventListeners(container: HTMLElement, ctx: ComponentCont
         }
         el.removeAttribute(attrName);
       }
+      // =======================================================================
+      // SUSCRIPCIÓN REACTIVA A ESTADO (on-state)
+      // Formato: on-state="action:path | filters; action.prop:path | filters"
+      // Para paths profundos (errors.name), se suscribe a la raíz (errors)
+      // y resuelve el path completo en cada notificación.
+      // =======================================================================
+      if (attrName === 'on-state') {
+        if (!ctx.on || typeof ctx.on !== 'function') {
+          console.warn('on-state requiere un useState conectado al contexto');
+          el.removeAttribute(attrName);
+        } else {
+          attrValue
+            .split(';')
+            .map(s => s.trim())
+            .filter(Boolean)
+            .forEach(stateDef => {
+              const [typeAndProp = '', ...pathTokens] = stateDef.split(':').map(s => s.trim());
+              const fullPath = pathTokens.join(':');
+              const [type, prop] = typeAndProp.includes('.')
+                ? typeAndProp.split('.')
+                : [typeAndProp, null];
+              const [rawPath, ...filters] = fullPath.split('|').map(s => s.trim());
+              const rootProp = (rawPath || '').split('.')[0];
+              if (!rootProp) return;
+
+              const binding: ComponentBinding = { 
+                element: el, type, prop, path: rawPath, lastValue: UNSET 
+              };
+              const resolver = getResolver(binding);
+              const filterStr = filters.join('|');
+              const propPath = `store.${rawPath}${filterStr ? ` | ${filterStr}` : ''}`;
+
+              const unsubscribe = ctx.on(rootProp, () => {
+                const value = getValue(propPath, ctx);
+                if (type === 'fn' && typeof ctx[rawPath] === 'function') {
+                  ctx[rawPath].call(ctx, el, value);
+                } else {
+                  resolver(el, value);
+                }
+              });
+
+              if (ctx.component) ctx.component.addCleanup(unsubscribe);
+              else {
+                ctx.__cleanupFns = ctx.__cleanupFns || [];
+                ctx.__cleanupFns.push(unsubscribe);
+              }
+            });
+          el.removeAttribute(attrName);
+        }
+      }
       else if (attrName === 'data-bind') {
         // Formato: "tipo:path" o "tipo.propiedad:path".
         // Se permiten varios bindings separados por ';'.
