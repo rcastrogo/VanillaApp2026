@@ -2,7 +2,7 @@ import { getComponent } from "./component-registry";
 import { buildAndInterpolate } from "./dom";
 import { createIcon } from "./icons";
 import { getValue, resolveArgs } from "./template";
-import { BaseComponent, type ComponentElement } from "./types";
+import { BaseComponent, type ComponentElement, type ComponentHostElement } from "./types";
 import { APP_CONFIG } from "../app.config";
 import type { BindingResolver, ComponentBinding, ComponentContext } from "../components/component.model";
 import { loader } from "./services/loader.service";
@@ -245,7 +245,7 @@ export async function hydrateComponents(root: HTMLElement, ctx: ComponentContext
       const component = await loader.resolve(provider, ctx) as BaseComponent;
       el.removeAttribute('data-component');
       const customClasses = el.className.trim();
-      component.init?.({ parent: el });
+      component.init?.({ parent: el });      
       const element = component.render() as ComponentElement;
       if (element) {
         BaseComponent.bind(component, element);
@@ -334,6 +334,12 @@ export function hydrateDirectives(container: HTMLElement, ctx: any) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type InternalResolver = (el: HTMLElement, value: any, prop?: string, params?: any[], path?: string) => void;
+
+function getComponentRef(el: HTMLElement): BaseComponent | undefined {
+  return (el as ComponentHostElement).__componentRef || 
+         (el as ComponentElement).__componentInstance;
+}
+
 const RESOLVERS_MAP: Record<string, InternalResolver> = {
   fn: (el, value, _, params, path) => {
     if (typeof value === 'function') {
@@ -345,10 +351,16 @@ const RESOLVERS_MAP: Record<string, InternalResolver> = {
   text: (el, value) => el.innerText = value ?? '',
   html: (el, value) => el.innerHTML = value ?? '',
   value: (el, value) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ref = (el as any).__instance;
-    if (ref) ref.setProp?.('value', value);
+    const ref = getComponentRef(el);
+    if (ref && ref.setProp) ref.setProp('value', value);
     else (el as HTMLInputElement).value = value ?? '';
+  },
+  prop: (el, value, prop) => {
+    if (prop) {
+      const ref = getComponentRef(el);
+      if (ref && ref.setProp) ref.setProp(prop, value);
+      else (el as unknown as Record<string, unknown>)[prop] = value;
+    }
   },
   checked: (el, value) => (el as HTMLInputElement).checked = !!value,
   attr: (el, value, prop) => value === null || value === undefined ? el.removeAttribute(prop!) : el.setAttribute(prop!, String(value)),
@@ -380,8 +392,7 @@ export function getResolverBack(binding: ComponentBinding): BindingResolver {
     text: (el, value) => el.innerText = value ?? '',
     html: (el, value) => el.innerHTML = value ?? '',
     value: (el, value) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const ref = (el as any).__instance;
+      const ref = getComponentRef(el);
       if (ref) 
         ref.setProp?.('value', value);
       else

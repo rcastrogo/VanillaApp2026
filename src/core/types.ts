@@ -29,6 +29,9 @@ export interface ModuleNamespace {
 
 export type CleanupFn = () => void;
 
+export interface ComponentHostElement extends HTMLElement {
+  __componentRef?: BaseComponent;
+}
 export interface ComponentElement extends HTMLElement {
   __componentInstance?: BaseComponent;
   __isUpdating?: boolean;
@@ -204,8 +207,7 @@ export abstract class BaseComponent implements Component {
       this.props = { ...ctx.parent.dataset };
       this.children = Array.from(ctx.parent.childNodes);
       this.setupOutputs(ctx);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (ctx.parent as any).__instance = this;
+      (ctx.parent as ComponentHostElement).__componentRef = this;
     }    
   }
 

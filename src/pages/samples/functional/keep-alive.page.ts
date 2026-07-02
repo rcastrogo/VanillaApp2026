@@ -1,7 +1,43 @@
-import type { ComponentContext, ComponentFactory } from "@/components/component.model";
+import { ComponentRegistry } from "@/app.components";
+import type { ComponentContext, ComponentFactory, ComponentInitValue } from "@/components/component.model";
 import { buildAndInterpolate } from "@/core/dom";
 import { pubSub } from "@/core/services/pubsub.service";
 import { useState } from "@/core/state.utils";
+import { BaseComponent } from "@/core/types";
+
+class PocComponent extends BaseComponent {
+
+  age = 0;
+  email = '';
+
+  constructor(ctx: ComponentContext) {
+    super(ctx);
+  }
+
+  init(ctx: ComponentInitValue) {
+    super.init(ctx);
+  }
+
+  public setProp(name: string, value: string | number) {
+    if(name === 'age') this.age = value as number;
+    if(name === 'email') this.email = String(value);
+    this.invalidate();
+  }
+
+  render() {
+    const template = `
+      <div class="flex items-center gap-2 text-2xl justify-center">
+        <div>
+          {email} - {age}
+        </div>
+      </div>
+    `;
+    return buildAndInterpolate(template, this);
+  }
+}
+
+ComponentRegistry.registerComponent('poc-component', PocComponent);
+
 
 export const KeepAlivePage: ComponentFactory = (_ctx: ComponentContext) => {
 
@@ -47,7 +83,10 @@ export const KeepAlivePage: ComponentFactory = (_ctx: ComponentContext) => {
     element: null,
     render: function() {
       const template = `
-        <div class="min-h-1/2 flex items-center justify-center">
+        <div 
+          on-state="prop.id:inputValue"
+          class="min-h-1/2 flex items-center justify-center"
+          >
           <div class="max-w-xl w-full text-center">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Keep Alive Demo
@@ -74,7 +113,15 @@ export const KeepAlivePage: ComponentFactory = (_ctx: ComponentContext) => {
               <div class="font-semibold border p-2 text-center hidden" on-state="toggle.hidden:isDirty|not;text:inputValue"></div>
               <input type="range" class="w-full" min="0" max="100" on-state="value:length" />
               <input type="text" class="w-full p-2 text-center" on-state="value:length" />
-            </div>     
+              <div 
+                data-component="poc-component" 
+                data-lines="1" 
+                on-state="
+                  prop.age:length;
+                  prop.email:inputValue | upper">
+              </div>
+            </div>  
+               
             <div class="mb-4">
               <div class="font-semibold border p-2 text-center" on-publish="INFO_MESSAGE_UPDATED:local:html"></div>
             </div>     
